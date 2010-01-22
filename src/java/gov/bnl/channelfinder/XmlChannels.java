@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package gov.bnl.epicsChannelFinder;
+package gov.bnl.channelfinder;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package gov.bnl.epicsChannelFinder;
+package gov.bnl.channelfinder;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
