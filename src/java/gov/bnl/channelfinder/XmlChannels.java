@@ -29,7 +29,7 @@ public class XmlChannels {
      * @return a collection of XmlChannel
      */
     @XmlElement
-    public Collection<XmlChannel> getChannelCollection() {
+    public Collection<XmlChannel> getChannel() {
         return items;
     }
 

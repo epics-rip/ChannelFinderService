@@ -205,7 +205,7 @@ public class ChannelManager {
     public void createChannels(XmlChannels data) {
         begin();
         try {
-            for (XmlChannel chan : data.getChannelCollection()) {
+            for (XmlChannel chan : data.getChannel()) {
                 CreateChannelQuery q = new CreateChannelQuery(chan);
                 q.executeQuery(con.get());
             }
