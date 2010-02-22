@@ -28,21 +28,25 @@ public class MatchQuery {
 
     private Multimap<String, String> prop_matches = ArrayListMultimap.create();
     private List<String> chan_matches = new ArrayList();
+    private List<String> tag_matches = new ArrayList();
 
     /**
      * Creates a new instance of MatchQuery, sorting the query parameters.
-     * Property match parameters go to the inner query, name parameters
-     * go to the outer query.
-     * Property names are converted to lowercase before being matched.
+     * Property and tag matches go to the inner query,
+     * name matches go to the outer query.
+     * Property and tag names are converted to lowercase before being matched.
      *
      * @param matches  the map of matches to apply
      */
     public MatchQuery(MultivaluedMap<String, String> matches) {
         for (Map.Entry<String, List<String>> match : matches.entrySet()) {
-            if (match.getKey().equals("Name")) {
+            String key = match.getKey().toLowerCase();
+            if (key.equals("~name")) {
                 chan_matches.addAll(match.getValue());
+            } else if (key.equals("~tag")) {
+                tag_matches.addAll(match.getValue());
             } else {
-                prop_matches.putAll(match.getKey().toLowerCase(), match.getValue());
+                prop_matches.putAll(key, match.getValue());
             }
         }
     }
@@ -59,24 +63,24 @@ public class MatchQuery {
     /**
      * Creates a new instance of MatchQuery for a single channel name query.
      *
-     * @param matches  the collection of name matches
+     * @param name the name to match
      */
     public MatchQuery(String name) {
         chan_matches.add(name);
     }
 
     /**
-     * Creates and executes the property match subquery using GROUP
+     * Creates and executes the property match subquery using GROUP.
      *
      * @param con  connection to use
-     * @return  set of channel ids that match
+     * @return a set of channel ids that match
      */
     private Set<Long> getIdsForPropertyMatch(Connection con) throws SQLException {
         String query = "SELECT p0.channel_id FROM property p0 WHERE";
         Set<Long> ids = new HashSet<Long>();           // set of matching channel ids
         List<String> params = new ArrayList<String>(); // parameter list for this query
 
-        if (prop_matches.size() == 0) return null;
+        if (prop_matches.size() == 0 && tag_matches.size() == 0) return null;
 
         for (Map.Entry<String, Collection<String>> match : prop_matches.asMap().entrySet()) {
             String valueList = "p0.value LIKE";
@@ -88,8 +92,16 @@ public class MatchQuery {
             query = query + " (p0.property = ? AND (" +
                     valueList.substring(0, valueList.length() - 17) + ")) OR";
         }
+
+       for (String tag : tag_matches) {
+            params.add(convertFileGlobToSQLPattern(tag));
+            query = query + " (p0.property LIKE ? AND p0.value IS NULL) OR";
+        }
+
         query = query.substring(0, query.length() - 2) +
-                "GROUP BY p0.channel_id HAVING COUNT(p0.channel_id) = " + prop_matches.size();
+                "GROUP BY p0.channel_id HAVING COUNT(p0.channel_id) = " +
+                (prop_matches.size() + tag_matches.size());
+
         PreparedStatement ps = con.prepareStatement(query);
         int i = 1;
         for (String p : params) {
