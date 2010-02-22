@@ -15,6 +15,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "property")
 public class XmlProperty {
     private String name = null;
+    private String owner = null;
     private String value = null;
 
     /**
@@ -28,17 +29,19 @@ public class XmlProperty {
      * Creates a new instance of XmlProperty.
      *
      * @param name
+     * @param owner
      * @param value
      */
-    public XmlProperty(String name, String value) {
+    public XmlProperty(String name, String owner, String value) {
         this.value = value;
+        this.owner = owner;
         this.name = name;
     }
 
     /**
-     * Getter for name.
+     * Getter for property name.
      *
-     * @return value for name
+     * @return property name
      */
     @XmlAttribute
     public String getName() {
@@ -46,18 +49,18 @@ public class XmlProperty {
     }
 
     /**
-     * Setter for name.
+     * Setter for property name.
      *
-     * @param value the value to set
+     * @param name property name
      */
-    public void setName(String value) {
-        this.name = value;
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
-     * Getter for value.
+     * Getter for property value.
      *
-     * @return value for value
+     * @return property value
      */
     @XmlAttribute
     public String getValue() {
@@ -65,12 +68,31 @@ public class XmlProperty {
     }
 
     /**
-     * Setter for value.
+     * Setter for property value.
      *
-     * @param value the value to set
+     * @param value property value
      */
     public void setValue(String value) {
         this.value = value;
+    }
+
+    /**
+     * Getter for property owner.
+     *
+     * @return property owner
+     */
+    @XmlAttribute
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Setter for property owner.
+     *
+     * @param owner property owner
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
 }

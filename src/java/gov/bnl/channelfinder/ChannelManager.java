@@ -83,17 +83,23 @@ public class ChannelManager {
             String lastchan = "";
             XmlChannel xmlChan = null;
             XmlProperties xmlProps = null;
+            XmlTags xmlTags = null;
 
             while (rs.next()) {
                 String thischan = rs.getString("channel");
                 if (rs.isFirst()) {
-                    xmlChan = new XmlChannel(thischan);
+                    xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
                     xmlProps = new XmlProperties();
+                    xmlTags = new XmlTags();
                     xmlChan.setXmlProperties(xmlProps);
+                    xmlChan.setXmlTags(xmlTags);
                     lastchan = thischan;
                 }
-                if (!thischan.equals(lastchan)) break;
-                xmlProps.addProperty(new XmlProperty(rs.getString("property"), rs.getString("value")));
+                if (rs.getString("value") == null)
+                    xmlTags.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                else
+                    xmlProps.addProperty(new XmlProperty(rs.getString("property"),
+                        rs.getString("owner"), rs.getString("value")));
             }
             con.get().close();
             return xmlChan;
@@ -104,9 +110,9 @@ public class ChannelManager {
     }
 
     /**
-     * Returns channels found by matching property values and/or channel names.
+     * Returns channels found by matching property/tag values and/or channel names.
      * @param query the query to be used for matching
-     * @return XmlChannels container with all found channels and their properties
+     * @return XmlChannels container with all found channels and their properties/tags
      */
     private XmlChannels findChannelsByMatch(MatchQuery query) {
         try {
@@ -117,17 +123,24 @@ public class ChannelManager {
             XmlChannels xmlChans = new XmlChannels();
             XmlChannel xmlChan = null;
             XmlProperties xmlProps = null;
+            XmlTags xmlTags = null;
 
             while (rs.next()) {
                 String thischan = rs.getString("channel");
                 if (!thischan.equals(lastchan) || rs.isFirst()) {
-                    xmlChan = new XmlChannel(thischan);
+                    xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
                     xmlChans.addChannel(xmlChan);
                     xmlProps = new XmlProperties();
+                    xmlTags = new XmlTags();
                     xmlChan.setXmlProperties(xmlProps);
+                    xmlChan.setXmlTags(xmlTags);
                     lastchan = thischan;
                 }
-                xmlProps.addProperty(new XmlProperty(rs.getString("property"), rs.getString("value")));
+                if (rs.getString("value") == null)
+                    xmlTags.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                else
+                    xmlProps.addProperty(new XmlProperty(rs.getString("property"),
+                        rs.getString("owner"), rs.getString("value")));
             }
             con.get().close();
             return xmlChans;

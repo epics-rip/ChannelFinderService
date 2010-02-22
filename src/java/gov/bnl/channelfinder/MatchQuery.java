@@ -111,8 +111,8 @@ public class MatchQuery {
      * @throws SQLException
      */
     public ResultSet executeQuery(Connection con) throws SQLException {
-        String query = "SELECT c.name as channel, p.property, p.value FROM channel c, property p" +
-                " WHERE c.id = p.channel_id";
+        String query = "SELECT c.name as channel, c.owner as cowner, p.property, p.value, p.owner" +
+                " FROM channel c, property p WHERE c.id = p.channel_id";
         List<Long> id_params = new ArrayList<Long>();       // parameter lists for the outer query
         List<String> name_params = new ArrayList<String>();
 

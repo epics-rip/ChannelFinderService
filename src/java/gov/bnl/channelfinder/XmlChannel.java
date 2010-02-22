@@ -17,7 +17,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 @XmlRootElement(name = "channel")
 public class XmlChannel {
     private String name = null;
+    private String owner = null;
     private XmlProperties properties = null;
+    private XmlTags tags = null;
   
     /** Creates a new instance of XmlChannel */
     public XmlChannel() {
@@ -27,26 +29,30 @@ public class XmlChannel {
      * Creates a new instance of XmlChannel.
      *
      * @param name channel name
+     * @param owner owner name
      */
-    public XmlChannel(String name) {
+    public XmlChannel(String name, String owner) {
         this.name = name;
+        this.owner = owner;
     }
 
     /**
      * Creates a new instance of XmlChannel.
      *
      * @param name channel name
+     * @param owner owner name
      * @param properties properties container
      */
-    public XmlChannel(String name, XmlProperties properties) {
+    public XmlChannel(String name, String owner, XmlProperties properties) {
         this.name = name;
+        this.owner = owner;
         this.properties = properties;
     }
 
     /**
-     * Getter for name.
+     * Getter for channel name.
      *
-     * @return value for name
+     * @return name
      */
     @XmlAttribute
     public String getName() {
@@ -54,18 +60,37 @@ public class XmlChannel {
     }
 
     /**
-     * Setter for name.
+     * Setter for channel name.
      *
-     * @param value the value to set
+     * @param name the value to set
      */
-    public void setName(String value) {
-        this.name = value;
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
-     * Getter for XmlProperties.
+     * Getter for channel owner.
      *
-     * @return value for XmlProperties
+     * @return owner
+     */
+    @XmlAttribute
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Setter for channel owner.
+     *
+     * @param owner
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    /**
+     * Getter for channel's XmlProperties.
+     *
+     * @return XmlProperties
      */
     @XmlElement(name = "properties")
     public XmlProperties getXmlProperties() {
@@ -73,12 +98,31 @@ public class XmlChannel {
     }
 
     /**
-     * Setter for XmlProperties.
+     * Setter for channel's XmlProperties.
      *
-     * @param value the value to set
+     * @param properties
      */
-    public void setXmlProperties(XmlProperties value) {
-        this.properties = value;
+    public void setXmlProperties(XmlProperties properties) {
+        this.properties = properties;
+    }
+
+    /**
+     * Getter for the channel's XmlTags.
+     *
+     * @return the XmlTags for this channel
+     */
+    @XmlElement(name = "tags")
+    public XmlTags getXmlTags() {
+        return tags;
+    }
+
+    /**
+     * Setter for the channel's XmlTags.
+     *
+     * @param tags XmlTags object to set
+     */
+    public void setXmlTags(XmlTags tags) {
+        this.tags = tags;
     }
 
 }
