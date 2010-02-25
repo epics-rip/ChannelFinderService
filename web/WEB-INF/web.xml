@@ -16,12 +16,86 @@
     </session-config>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
-        </welcome-file-list>
-<resource-ref>
-<res-ref-name>UserTransaction</res-ref-name>
-<res-type>javax.transaction.UserTransaction</res-type>
-<res-auth>Container</res-auth>
-</resource-ref>
+    </welcome-file-list>
+    <security-constraint>
+        <display-name>Add or Modify Channels</display-name>
+        <web-resource-collection>
+            <web-resource-name>add channels</web-resource-name>
+            <description/>
+            <url-pattern>/resources/channels</url-pattern>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>create / update / delete channel</web-resource-name>
+            <description/>
+            <url-pattern>/resources/channel/*</url-pattern>
+            <http-method>PUT</http-method>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>ChannelMod</role-name>
+            <role-name>Administrator</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Add or Modify Properties</display-name>
+        <web-resource-collection>
+            <web-resource-name>add or update properties</web-resource-name>
+            <description/>
+            <url-pattern>/resources/channel/*</url-pattern>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>PropertyMod</role-name>
+            <role-name>ChannelMod</role-name>
+            <role-name>Administrator</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Add or Modify Tags</display-name>
+        <web-resource-collection>
+            <web-resource-name>add / modify / delete tags</web-resource-name>
+            <description/>
+            <url-pattern>/resources/tags/*</url-pattern>
+            <http-method>PUT</http-method>
+            <http-method>POST</http-method>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>TagMod</role-name>
+            <role-name>PropertyMod</role-name>
+            <role-name>ChannelMod</role-name>
+            <role-name>Administrator</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>channelfinder</realm-name>
+    </login-config>
+    <security-role>
+        <description>May add or modify channels</description>
+        <role-name>ChannelMod</role-name>
+    </security-role>
+    <security-role>
+        <description>May add or modify properties</description>
+        <role-name>PropertyMod</role-name>
+    </security-role>
+    <security-role>
+        <description>May add or modify tags</description>
+        <role-name>TagMod</role-name>
+    </security-role>
+    <security-role>
+        <description>Directory administrator</description>
+        <role-name>Administrator</role-name>
+    </security-role>
+    <resource-ref>
+        <res-ref-name>UserTransaction</res-ref-name>
+        <res-type>javax.transaction.UserTransaction</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
     <resource-ref>
         <description>jdbc:mysql://localhost/epics_directory</description>
         <res-ref-name>jdbc/epics_directory</res-ref-name>
@@ -29,4 +103,4 @@
         <res-auth>Container</res-auth>
         <res-sharing-scope>Shareable</res-sharing-scope>
     </resource-ref>
-    </web-app>
+</web-app>
