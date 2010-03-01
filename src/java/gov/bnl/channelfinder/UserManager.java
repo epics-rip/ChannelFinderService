@@ -16,9 +16,9 @@ import java.security.Principal;
 public class UserManager {
     private static UserManager instance = new UserManager();
     private ThreadLocal<Principal> user = new ThreadLocal<Principal>();
-    private Multimap<String, String> groups = ArrayListMultimap.create();
+    private static Multimap<String, String> groups = ArrayListMultimap.create();
 
-    public UserManager() {
+    static {
         /* FIXME: For the time being: hardcoded */
         groups.put("taggy", "group1");
         groups.put("proppy", "group1");
@@ -26,6 +26,9 @@ public class UserManager {
         groups.put("channy", "group1");
         groups.put("channy", "group2");
         groups.put("channy", "group3");
+    }
+
+    public UserManager() {
     }
 
     public static UserManager getInstance() {
