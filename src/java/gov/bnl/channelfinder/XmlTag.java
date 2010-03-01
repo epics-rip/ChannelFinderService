@@ -6,13 +6,13 @@
 package gov.bnl.channelfinder;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  *
  * @author rlange
  */
-@XmlRootElement(name = "tag")
+@XmlType(name = "tag")
 public class XmlTag {
     private String name = null;
     private String owner = null;

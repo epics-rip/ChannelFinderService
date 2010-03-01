@@ -8,13 +8,13 @@ package gov.bnl.channelfinder;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  *
  * @author rlange
  */
-@XmlRootElement(name = "properties")
+@XmlType(name = "properties")
 public class XmlProperties {
     private Collection<XmlProperty> items = new ArrayList<XmlProperty>();
 

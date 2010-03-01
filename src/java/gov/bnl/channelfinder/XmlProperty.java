@@ -6,17 +6,17 @@
 package gov.bnl.channelfinder;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  *
  * @author rlange
  */
-@XmlRootElement(name = "property")
+@XmlType(name = "property", propOrder = {"name","value","owner"})
 public class XmlProperty {
     private String name = null;
-    private String owner = null;
     private String value = null;
+    private String owner = null;
 
     /**
      * Creates a new instance of XmlProperty.

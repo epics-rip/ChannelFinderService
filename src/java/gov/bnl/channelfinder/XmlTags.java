@@ -8,13 +8,13 @@ package gov.bnl.channelfinder;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  *
  * @author rlange
  */
-@XmlRootElement(name = "tags")
+@XmlType(name = "tags")
 public class XmlTags {
     private Collection<XmlTag> items = new ArrayList<XmlTag>();
 
