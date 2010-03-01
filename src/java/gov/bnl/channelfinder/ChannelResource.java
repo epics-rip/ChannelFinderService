@@ -28,19 +28,10 @@ import javax.ws.rs.PathParam;
 
 @Path("/channel/{name}")
 public class ChannelResource {
-    /**
-     *
-     */
     @Context
     protected UriInfo uriInfo;
-    /**
-     *
-     */
     @Context
     protected ResourceContext resourceContext;
-    /**
-     *
-     */
     protected Integer id;
 
     /** Creates a new instance of ChannelResource */
@@ -71,7 +62,7 @@ public class ChannelResource {
     @PUT
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannel data) {
-            ChannelManager.getInstance().updateChannel(name, data);
+        ChannelManager.getInstance().updateChannel(name, data);
     }
 
     /**
@@ -81,8 +72,7 @@ public class ChannelResource {
      * @param name channel to delete
      */
     @DELETE
-    public void delete(
-            @PathParam("name") String name) {
+    public void delete(@PathParam("name") String name) {
         ChannelManager.getInstance().deleteChannel(name);
     }
 }
