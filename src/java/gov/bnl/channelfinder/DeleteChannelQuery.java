@@ -37,7 +37,7 @@ public class DeleteChannelQuery {
         PreparedStatement ps = con.prepareStatement(query);
         ps.setString(1, name);
         ResultSet rs = ps.executeQuery();
-        rs.first();
+        if (!rs.first()) return;
         long id = rs.getLong(1);
 
         query = "DELETE FROM property WHERE channel_id = ?";
