@@ -5,9 +5,12 @@
 
 package gov.bnl.channelfinder;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementWrapper;
 
 /**
  *
@@ -18,8 +21,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 public class XmlChannel {
     private String name = null;
     private String owner = null;
-    private XmlProperties properties = null;
-    private XmlTags tags = null;
+    private Collection<XmlProperty> properties = new ArrayList<XmlProperty>();
+    private Collection<XmlTag> tags = new ArrayList<XmlTag>();
   
     /** Creates a new instance of XmlChannel */
     public XmlChannel() {
@@ -34,19 +37,6 @@ public class XmlChannel {
     public XmlChannel(String name, String owner) {
         this.name = name;
         this.owner = owner;
-    }
-
-    /**
-     * Creates a new instance of XmlChannel.
-     *
-     * @param name channel name
-     * @param owner owner name
-     * @param properties properties container
-     */
-    public XmlChannel(String name, String owner, XmlProperties properties) {
-        this.name = name;
-        this.owner = owner;
-        this.properties = properties;
     }
 
     /**
@@ -92,18 +82,28 @@ public class XmlChannel {
      *
      * @return XmlProperties
      */
-    @XmlElement(name = "properties")
-    public XmlProperties getXmlProperties() {
+    @XmlElement(name = "property")
+    @XmlElementWrapper(name = "properties")
+    public Collection<XmlProperty> getXmlProperties() {
         return properties;
     }
 
     /**
      * Setter for channel's XmlProperties.
      *
-     * @param properties
+     * @param properties XmlProperty collection
      */
-    public void setXmlProperties(XmlProperties properties) {
+    public void setXmlProperties(Collection<XmlProperty> properties) {
         this.properties = properties;
+    }
+
+    /**
+     * Adds an XmlProperty to the collection.
+     *
+     * @param property single XmlProperty
+     */
+    public void addProperty(XmlProperty property) {
+        this.properties.add(property);
     }
 
     /**
@@ -111,18 +111,28 @@ public class XmlChannel {
      *
      * @return the XmlTags for this channel
      */
-    @XmlElement(name = "tags")
-    public XmlTags getXmlTags() {
+    @XmlElement(name = "tag")
+    @XmlElementWrapper(name = "tags")
+    public Collection<XmlTag> getXmlTags() {
         return tags;
     }
 
     /**
      * Setter for the channel's XmlTags.
      *
-     * @param tags XmlTags object to set
+     * @param tags XmlTag collection
      */
-    public void setXmlTags(XmlTags tags) {
+    public void setXmlTags(Collection<XmlTag> tags) {
         this.tags = tags;
+    }
+
+    /**
+     * Adds an XmlTag to the collection.
+     *
+     * @param tag
+     */
+    public void addTag(XmlTag tag) {
+        this.tags.add(tag);
     }
 
 }

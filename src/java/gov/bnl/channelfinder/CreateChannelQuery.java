@@ -8,7 +8,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class CreateChannelQuery {
         long id = rs.getLong(1);
 
         query = "INSERT INTO property (channel_id, property, value, owner) VALUES ";
-        for (XmlProperty prop : this.chan.getXmlProperties().getProperty()) {
+        for (XmlProperty prop : this.chan.getXmlProperties()) {
             query = query + "(?,?,?,?),";
             ArrayList<String> par = new ArrayList<String>();
             par.add(prop.getName());

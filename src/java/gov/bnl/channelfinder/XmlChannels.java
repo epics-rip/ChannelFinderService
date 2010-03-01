@@ -28,9 +28,13 @@ public class XmlChannels {
      *
      * @return a collection of XmlChannel
      */
-    @XmlElement
-    public Collection<XmlChannel> getChannel() {
+    @XmlElement(name = "channel")
+    public Collection<XmlChannel> getChannels() {
         return items;
+    }
+
+    public void setChannels(Collection<XmlChannel> items) {
+        this.items = items;
     }
 
     /**

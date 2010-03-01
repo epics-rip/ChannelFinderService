@@ -82,23 +82,17 @@ public class ChannelManager {
 
             String lastchan = "";
             XmlChannel xmlChan = null;
-            XmlProperties xmlProps = null;
-            XmlTags xmlTags = null;
 
             while (rs.next()) {
                 String thischan = rs.getString("channel");
                 if (rs.isFirst()) {
                     xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
-                    xmlProps = new XmlProperties();
-                    xmlTags = new XmlTags();
-                    xmlChan.setXmlProperties(xmlProps);
-                    xmlChan.setXmlTags(xmlTags);
                     lastchan = thischan;
                 }
                 if (rs.getString("value") == null)
-                    xmlTags.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                    xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
                 else
-                    xmlProps.addProperty(new XmlProperty(rs.getString("property"),
+                    xmlChan.addProperty(new XmlProperty(rs.getString("property"),
                         rs.getString("owner"), rs.getString("value")));
             }
             con.get().close();
@@ -122,24 +116,18 @@ public class ChannelManager {
             String lastchan = "";
             XmlChannels xmlChans = new XmlChannels();
             XmlChannel xmlChan = null;
-            XmlProperties xmlProps = null;
-            XmlTags xmlTags = null;
 
             while (rs.next()) {
                 String thischan = rs.getString("channel");
                 if (!thischan.equals(lastchan) || rs.isFirst()) {
                     xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
                     xmlChans.addChannel(xmlChan);
-                    xmlProps = new XmlProperties();
-                    xmlTags = new XmlTags();
-                    xmlChan.setXmlProperties(xmlProps);
-                    xmlChan.setXmlTags(xmlTags);
                     lastchan = thischan;
                 }
                 if (rs.getString("value") == null)
-                    xmlTags.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                    xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
                 else
-                    xmlProps.addProperty(new XmlProperty(rs.getString("property"),
+                    xmlChan.addProperty(new XmlProperty(rs.getString("property"),
                         rs.getString("owner"), rs.getString("value")));
             }
             con.get().close();
@@ -218,7 +206,7 @@ public class ChannelManager {
     public void createChannels(XmlChannels data) {
         begin();
         try {
-            for (XmlChannel chan : data.getChannel()) {
+            for (XmlChannel chan : data.getChannels()) {
                 CreateChannelQuery q = new CreateChannelQuery(chan);
                 q.executeQuery(con.get());
             }

@@ -20,7 +20,7 @@ import javax.xml.bind.JAXBContext;
 public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {
 
     private JAXBContext context;
-    private Class[] types = {XmlChannels.class, XmlProperties.class};
+    private Class[] types = {XmlChannels.class};
 
     public MyJAXBContextResolver() throws Exception {
         Map props = new HashMap<String, Object>();
