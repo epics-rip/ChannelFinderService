@@ -43,7 +43,7 @@ public class ChannelResource {
     @Produces({"application/xml", "application/json"})
     public XmlChannel get(
             @PathParam("name") String name) {
-        return ChannelManager.getInstance().findChannelByName(name);
+        return AccessManager.getInstance().findChannelByName(name);
     }
 
     /**
@@ -57,7 +57,7 @@ public class ChannelResource {
     @PUT
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannel data) {
-        ChannelManager.getInstance().updateChannel(name, data);
+        AccessManager.getInstance().updateChannel(name, data);
     }
 
     /**
@@ -68,6 +68,6 @@ public class ChannelResource {
      */
     @DELETE
     public void delete(@PathParam("name") String name) {
-        ChannelManager.getInstance().deleteChannel(name);
+        AccessManager.getInstance().deleteChannel(name);
     }
 }

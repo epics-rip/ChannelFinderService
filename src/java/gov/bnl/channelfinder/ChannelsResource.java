@@ -38,7 +38,7 @@ public class ChannelsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public XmlChannels get() {
-        return ChannelManager.getInstance().findChannelsByPropertyMatch(uriInfo.getQueryParameters());
+        return AccessManager.getInstance().findChannelsByPropertyMatch(uriInfo.getQueryParameters());
     }
 
     /**
@@ -50,7 +50,7 @@ public class ChannelsResource {
     @Consumes({"application/xml", "application/json"})
     public void post(XmlChannels data) {
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
-        ChannelManager.getInstance().createChannels(data);
+        AccessManager.getInstance().createChannels(data);
     }
 
 }
