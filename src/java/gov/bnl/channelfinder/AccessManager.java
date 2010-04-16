@@ -92,4 +92,13 @@ public class AccessManager {
     public void createChannel(XmlChannel data) {
         cm.createChannel(data);
     }
+
+    /**
+     * Merge property set in <tt>data</tt> into the existing channel <tt>name</tt>.
+     * @param name channel to merge the properties and tags into
+     * @param data XmlChannel data containing properties and tags
+     */
+    public void mergeChannel(String name, XmlChannel data) {
+        cm.mergeChannel(name, data);
+    }
 }

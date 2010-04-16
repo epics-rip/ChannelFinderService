@@ -33,6 +33,33 @@ public class ChannelManager {
     }
 
     /**
+     * Merges XmlProperties and XmlTags of two channels in place
+     * @param dest destination channel
+     * @param src source channel
+     */
+    public static void mergeXmlChannels(XmlChannel dest, XmlChannel src) {
+    src_props:
+        for (XmlProperty s : src.getXmlProperties()) {
+            for (XmlProperty d : dest.getXmlProperties()) {
+                if (d.getName().equals(s.getName())) {
+                    d.setValue(s.getValue());
+                    continue src_props;
+                }
+            }
+            dest.getXmlProperties().add(s);
+        }
+    src_tags:
+        for (XmlTag s : src.getXmlTags()) {
+            for (XmlTag d : dest.getXmlTags()) {
+                if (d.getName().equals(s.getName())) {
+                    continue src_tags;
+                }
+            }
+            dest.getXmlTags().add(s);
+        }
+    }
+    
+    /**
      * Begins a transaction by establishing a connection and beginning the transaction
      */
     public void begin() {
@@ -232,5 +259,16 @@ public class ChannelManager {
             throw new RuntimeException("SQL Error during channel create operation", e);
         }
         commit();
+    }
+
+    /**
+     * Merge property set in <tt>data</tt> into the existing channel <tt>name</tt>.
+     * @param name channel to merge the properties and tags into
+     * @param data XmlChannel data containing properties and tags
+     */
+    public void mergeChannel(String name, XmlChannel data) {
+        XmlChannel dest = findChannelByName(name);
+        mergeXmlChannels(dest, data);
+        updateChannel(name, dest);
     }
 }

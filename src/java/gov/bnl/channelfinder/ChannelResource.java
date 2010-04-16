@@ -12,6 +12,7 @@ import javax.ws.rs.core.UriInfo;
 import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -34,7 +35,7 @@ public class ChannelResource {
     }
 
     /**
-     * Get method for retrieving an instance of Channel identified by name in XML format.
+     * HTTP GET method for retrieving an instance of Channel identified by name in XML format.
      *
      * @param name channel name
      * @return an instance of XmlChannel
@@ -47,9 +48,9 @@ public class ChannelResource {
     }
 
     /**
-     * Put method for creating/updating an instance of Channel identified by the
+     * HTTP PUT method for creating/updating an instance of Channel identified by the
      * XML input.
-     * The <em>complete</em> set of properties for the channel must be supplied,\
+     * The <em>complete</em> set of properties for the channel must be supplied,
      * which will replace the existing set of properties.
      *
      * @param data an XmlChannel entity that is deserialized from a XML stream
@@ -58,6 +59,18 @@ public class ChannelResource {
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannel data) {
         AccessManager.getInstance().updateChannel(name, data);
+    }
+
+    /**
+     * HTTP POST method for merging properties and tags of the Channel identified by the
+     * XML input into an existing Channel.
+     *
+     * @param data an XmlChannel entity that is deserialized from a XML stream
+     */
+    @POST
+    @Consumes({"application/xml", "application/json"})
+    public void post(@PathParam("name") String name, XmlChannel data) {
+        AccessManager.getInstance().mergeChannel(name, data);
     }
 
     /**
