@@ -176,11 +176,11 @@ public class ChannelManager {
 
     /**
      * Returns channels found by matching property values.
-     * @param matches multivalued map of property names and patterns to match
+     * @param matches multivalued map of property, tag, channel names and patterns to match
      * their values against.
      * @return XmlChannels container with all found channels and their properties
      */
-    public XmlChannels findChannelsByPropertyMatch(MultivaluedMap<String, String> matches) {
+    public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) {
         MatchQuery query = MatchQuery.createMultiMatchQuery(matches);
         return findChannelsByMatch(query);
     }

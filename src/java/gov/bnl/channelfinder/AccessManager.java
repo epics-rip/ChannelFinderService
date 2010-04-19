@@ -54,8 +54,8 @@ public class AccessManager {
      * their values against.
      * @return XmlChannels container with all found channels and their properties
      */
-    public XmlChannels findChannelsByPropertyMatch(MultivaluedMap<String, String> matches) {
-        return cm.findChannelsByPropertyMatch(matches);
+    public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) {
+        return cm.findChannelsByMultiMatch(matches);
     }
 
     /**

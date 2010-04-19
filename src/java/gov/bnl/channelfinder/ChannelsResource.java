@@ -38,7 +38,7 @@ public class ChannelsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public XmlChannels get() {
-        return AccessManager.getInstance().findChannelsByPropertyMatch(uriInfo.getQueryParameters());
+        return AccessManager.getInstance().findChannelsByMultiMatch(uriInfo.getQueryParameters());
     }
 
     /**
