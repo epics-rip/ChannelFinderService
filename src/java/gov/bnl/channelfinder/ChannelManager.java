@@ -222,6 +222,22 @@ public class ChannelManager {
     }
 
     /**
+     * Deletes a tag identified by <tt>name</tt> from all channels.
+     * @param name channel to delete
+     */
+    public void deleteTag(String name) {
+        DeleteTagQuery dq = new DeleteTagQuery(name);
+
+        begin();
+        try {
+            dq.executeQuery(con.get());
+        } catch (Exception e) {
+            throw new RuntimeException("SQL Error during tag delete operation", e);
+        }
+        commit();
+    }
+
+    /**
      * Update a channel identified by <tt>name</tt>, creating it when necessary.
      * The property set in <tt>data</tt> has to be complete, i.e. the existing channel properties
      * are <b>replaced</b> with the properties in <tt>data</tt>.

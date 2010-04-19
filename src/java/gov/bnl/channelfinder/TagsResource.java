@@ -74,13 +74,13 @@ public class TagsResource {
 //    }
 
     /**
-     * HTTP DELETE method for deleting an instance of Channel identified by
-     * path parameter <tt>name</tt>.
+     * HTTP DELETE method for deleting a tag identified by the
+     * path parameter <tt>name</tt> from all Channels.
      *
-     * @param name channel to delete
+     * @param name tag to delete
      */
-//    @DELETE
-//    public void delete(@PathParam("name") String name) {
-//        AccessManager.getInstance().deleteChannel(name);
-//    }
+    @DELETE
+    public void delete(@PathParam("name") String name) {
+        AccessManager.getInstance().deleteTag(name);
+    }
 }

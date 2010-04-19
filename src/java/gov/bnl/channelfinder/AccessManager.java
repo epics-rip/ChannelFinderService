@@ -110,4 +110,12 @@ public class AccessManager {
     public void mergeChannel(String name, XmlChannel data) {
         cm.mergeChannel(name, data);
     }
+
+    /**
+     * Deletes a tag identified by <tt>name</tt> from all channels.
+     * @param name tag to delete
+     */
+    public void deleteTag(String name) {
+        cm.deleteTag(name);
+    }
 }
