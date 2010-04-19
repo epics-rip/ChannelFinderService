@@ -175,6 +175,26 @@ public class ChannelManager {
     }
 
     /**
+     * Return channels found by matching the tag name.
+     * @param matches collection of channel name patterns to match
+     * @return XmlChannels container with all found channels and their properties
+     */
+    public XmlChannels findChannelsByTagMatch(Collection<String> matches) {
+        MatchQuery query = MatchQuery.createTagMatchQuery(matches);
+        return findChannelsByMatch(query);
+    }
+
+    /**
+     * Return channels found by matching the tag name.
+     * @param matches collection of channel name patterns to match
+     * @return XmlChannels container with all found channels and their properties
+     */
+    public XmlChannels findChannelsByTag(String name) {
+        MatchQuery query = MatchQuery.createSingleTagMatchQuery(name);
+        return findChannelsByMatch(query);
+    }
+
+    /**
      * Returns channels found by matching property values.
      * @param matches multivalued map of property, tag, channel names and patterns to match
      * their values against.

@@ -40,6 +40,15 @@ public class AccessManager {
     }
 
     /**
+     * Return single channel found by channel name.
+     * @param name name to look for
+     * @return XmlChannel with found channel and its properties
+     */
+    public XmlChannels findChannelsByTag(String name) {
+        return cm.findChannelsByTag(name);
+    }
+
+    /**
      * Return channels found by matching the channel name.
      * @param matches collection of channel name patterns to match
      * @return XmlChannels container with all found channels and their properties
