@@ -102,7 +102,7 @@ public class ChannelManager {
      * @return XmlChannel with found channel and its properties
      */
     public XmlChannel findChannelByName(String name) {
-        MatchQuery query = new MatchQuery(name);
+        MatchQuery query = MatchQuery.createSingleChannelMatchQuery(name);
         try {
             con.set(DbConnection.getInstance().getConnection());
             ResultSet rs = query.executeQuery(con.get());
@@ -170,7 +170,7 @@ public class ChannelManager {
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByNameMatch(Collection<String> matches) {
-        MatchQuery query = new MatchQuery(matches);
+        MatchQuery query = MatchQuery.createChannelMatchQuery(matches);
         return findChannelsByMatch(query);
     }
 
@@ -181,7 +181,7 @@ public class ChannelManager {
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByPropertyMatch(MultivaluedMap<String, String> matches) {
-        MatchQuery query = new MatchQuery(matches);
+        MatchQuery query = MatchQuery.createMultiMatchQuery(matches);
         return findChannelsByMatch(query);
     }
 

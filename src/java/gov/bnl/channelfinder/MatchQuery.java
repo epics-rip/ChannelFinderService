@@ -26,6 +26,7 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 public class MatchQuery {
 
+    private enum SearchType { CHANNEL, TAG };
     private Multimap<String, String> prop_matches = ArrayListMultimap.create();
     private List<String> chan_matches = new ArrayList();
     private List<String> tag_matches = new ArrayList();
@@ -38,7 +39,7 @@ public class MatchQuery {
      *
      * @param matches  the map of matches to apply
      */
-    public MatchQuery(MultivaluedMap<String, String> matches) {
+    private MatchQuery(MultivaluedMap<String, String> matches) {
         for (Map.Entry<String, List<String>> match : matches.entrySet()) {
             String key = match.getKey().toLowerCase();
             if (key.equals("~name")) {
@@ -52,21 +53,63 @@ public class MatchQuery {
     }
 
     /**
-     * Creates a new instance of MatchQuery for a channel name query.
+     * Creates a new instance of MatchQuery for single type query.
      *
      * @param matches  the collection of name matches
      */
-    public MatchQuery(Collection<String> matches) {
-        chan_matches.addAll(matches);
+    private MatchQuery(SearchType type, Collection<String> matches) {
+        if (type == SearchType.CHANNEL)
+            chan_matches.addAll(matches);
+        else
+            tag_matches.addAll(matches);
     }
 
     /**
-     * Creates a new instance of MatchQuery for a single channel name query.
+     * Creates a new instance of MatchQuery for a simple single type query.
      *
      * @param name the name to match
      */
-    public MatchQuery(String name) {
-        chan_matches.add(name);
+    private MatchQuery(SearchType type, String name) {
+        if (type == SearchType.CHANNEL)
+            chan_matches.add(name);
+        else
+            tag_matches.add(name);
+    }
+
+    /**
+     * Creates a generic MatchQuery (mix of channel, tag, and property search)
+     * @param matches MultiMap of query parameters
+     * @return new MatchQuery instance
+     */
+    public static MatchQuery createMultiMatchQuery(MultivaluedMap<String, String> matches) {
+        return new MatchQuery(matches);
+    }
+
+    /**
+     * Creates a channel MatchQuery (multiple channel names)
+     * @param matches String collection of name query parameters
+     * @return new MatchQuery instance
+     */
+    public static MatchQuery createChannelMatchQuery(Collection<String> matches) {
+        return new MatchQuery(SearchType.CHANNEL, matches);
+    }
+
+    /**
+     * Creates a channel MatchQuery (single channel name)
+     * @param name channel name
+     * @return new MatchQuery instance
+     */
+    public static MatchQuery createSingleChannelMatchQuery(String name) {
+        return new MatchQuery(SearchType.CHANNEL, name);
+    }
+
+    /**
+     * Creates a channel MatchQuery (single tag name)
+     * @param name tag name
+     * @return new MatchQuery instance
+     */
+    public static MatchQuery createSingleTagMatchQuery(String name) {
+        return new MatchQuery(SearchType.TAG, name);
     }
 
     /**
