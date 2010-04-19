@@ -104,7 +104,16 @@ public class MatchQuery {
     }
 
     /**
-     * Creates a channel MatchQuery (single tag name)
+     * Creates a tag MatchQuery (multiple tag names)
+     * @param matches String collection of name query parameters
+     * @return new MatchQuery instance
+     */
+    public static MatchQuery createTagMatchQuery(Collection<String> matches) {
+        return new MatchQuery(SearchType.TAG, matches);
+    }
+
+    /**
+     * Creates a tag MatchQuery (single tag name)
      * @param name tag name
      * @return new MatchQuery instance
      */
