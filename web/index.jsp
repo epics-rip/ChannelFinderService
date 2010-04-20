@@ -11,9 +11,15 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>ChannelFinder Directory Service</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <h1>ChannelFinder Directory Service</h1>
+        <h2>External Design Documents</h2>
+        <ul>
+            <li><a href="ChannelFinder-Design.pdf">Design Document</a> (Jan 2010)</li>
+            <li><a href="ChannelFinder-API.pdf">API Description</a> (Apr 2010)</li>
+        </ul>
+
     </body>
 </html>
