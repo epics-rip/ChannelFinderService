@@ -61,22 +61,34 @@ public class ChannelManager {
     }
 
     /**
-     * Finds owner of a given tag <tt>name</tt> in XmlChannels data
+     * Finds owner of a given tag <tt>tag</tt> in XmlChannels data
      * @param data XmlChannels object
-     * @param name name of tag to search
+     * @param tag name of tag to search
      * @return owner of the tag, null if tag was not found
      */
-    public static String findTagOwner(XmlChannels data, String name) {
+    public static String findTagOwner(XmlChannels data, String tag) {
         String owner = null;
         for (XmlChannel ch : data.getChannels()) {
-            for (XmlTag tag : ch.getXmlTags()) {
-                if (owner == null) owner = tag.getOwner();
-                else if (!owner.equals(tag.getOwner())) {
-                    throw new WebServiceException("Inconsistent owner in payload for tag " + name);
+            for (XmlTag t : ch.getXmlTags()) {
+                if (owner == null) owner = t.getOwner();
+                else if (!owner.equals(t.getOwner())) {
+                    throw new WebServiceException("Inconsistent owner in payload for tag " + tag);
                 }
             }
         }
         return owner;
+    }
+
+    /**
+     * Finds owner of a given tag <tt>tag</tt> in a single XmlChannel <tt>data</tt>
+     * @param data XmlChannel object
+     * @param tag name of tag to search
+     * @return owner of the tag, null if tag was not found
+     */
+    public static String findTagOwner(XmlChannel data, String tag) {
+        XmlChannels chans = new XmlChannels();
+        chans.addChannel(data);
+        return findTagOwner(chans, tag);
     }
 
     /**
@@ -243,10 +255,10 @@ public class ChannelManager {
 
     /**
      * Deletes a tag identified by <tt>name</tt> from all channels.
-     * @param name channel to delete
+     * @param tag tag to delete
      */
-    public void deleteTag(String name) {
-        DeleteTagQuery dq = new DeleteTagQuery(name);
+    public void deleteTag(String tag) {
+        DeleteTagQuery dq = new DeleteTagQuery(tag);
 
         begin();
         try {
@@ -258,42 +270,59 @@ public class ChannelManager {
     }
 
     /**
-     * Asserts the operation on named tag <tt>name</tt> with the specified <tt>owner</tt>
+     * Deletes a tag identified by <tt>name</tt> from all channels.
+     * @param tag tag to delete
+     * @param chan channel to delete it from
+     */
+    public void deleteSingleTag(String tag, String chan) {
+        DeleteTagQuery dq = new DeleteTagQuery(tag, chan);
+
+        begin();
+        try {
+            dq.executeQuery(con.get());
+        } catch (Exception e) {
+            throw new WebServiceException("SQL Error during single tag delete operation", e);
+        }
+        commit();
+    }
+
+    /**
+     * Asserts the operation on named tag <tt>tag</tt> with the specified <tt>owner</tt>
      * on the channels specified in the XmlChannels <tt>data</tt> does not violate data
      * integrity.
-     * @param name tag to add
+     * @param tag tag to add
      * @param owner owner for new tag
      * @param data XmlChannels container with all channels for the operation
      */
-    private String assertTagOwner(String name, String owner, XmlChannels data) {
+    private String assertTagOwner(String tag, String owner) {
         // retrieve tag owner from database
-        XmlChannels chans = findChannelsByTag(name);
-        String dbowner = findTagOwner(chans, name);
+        XmlChannels chans = findChannelsByTag(tag);
+        String dbowner = findTagOwner(chans, tag);
         if (owner == null) owner = dbowner;
 
         // throw if no owner from database and not specified
         if (owner == null)
-            throw new WebServiceException("No owner specified for new tag " + name);
+            throw new WebServiceException("No owner specified for new tag " + tag);
 
         // throw if specified and existing owner exist and do not match
         if (owner != null && dbowner != null && !owner.equals(dbowner))
             throw new WebServiceException("Specified owner " + owner
-                    + " and existing owner " + dbowner + " for tag " + name + " do not match");
+                    + " and existing owner " + dbowner + " for tag " + tag + " do not match");
 
         return owner;
     }
 
     /**
-     * Add the tag identified by <tt>name</tt> and <tt>owner</tt> to the channels
+     * Add the tag identified by <tt>tag</tt> and <tt>owner</tt> to the channels
      * specified in the XmlChannels <tt>data</tt>.
-     * @param name tag to add
+     * @param tag tag to add
      * @param owner owner for new tag
      * @param data XmlChannels container with all channels to add tag to
      */
-    public void addTag(String name, String owner, XmlChannels data) {
-        owner = assertTagOwner(name, owner, data);
+    public void addTag(String tag, String owner, XmlChannels data) {
+        owner = assertTagOwner(tag, owner);
 
-        AddTagQuery q = new AddTagQuery(name, owner, data);
+        AddTagQuery q = new AddTagQuery(tag, owner, data);
 
         begin();
         try {
@@ -305,17 +334,17 @@ public class ChannelManager {
     }
 
     /**
-     * Add the tag identified by <tt>name</tt> and <tt>owner</tt> exclusively
+     * Add the tag identified by <tt>tag</tt> and <tt>owner</tt> exclusively
      * to the channels specified in the XmlChannels <tt>data</tt>.
-     * @param name tag to add
+     * @param tag tag to add
      * @param owner owner for new tag
      * @param data XmlChannels container with all channels to add tag to
      */
-    public void putTag(String name, String owner, XmlChannels data) {
-        owner = assertTagOwner(name, owner, data);
+    public void putTag(String tag, String owner, XmlChannels data) {
+        owner = assertTagOwner(tag, owner);
 
-        DeleteTagQuery dq = new DeleteTagQuery(name);
-        AddTagQuery q = new AddTagQuery(name, owner, data);
+        DeleteTagQuery dq = new DeleteTagQuery(tag);
+        AddTagQuery q = new AddTagQuery(tag, owner, data);
 
         begin();
         try {
@@ -323,6 +352,31 @@ public class ChannelManager {
             q.executeQuery(con.get());
         } catch (Exception e) {
             throw new WebServiceException("SQL Error during tag add operation", e);
+        }
+        commit();
+    }
+
+    /**
+     * Add the tag identified by <tt>tag</tt> and <tt>owner</tt>
+     * to the single channel <tt>channel</tt>.
+     * @param tag tag to add
+     * @param owner owner for new tag
+     * @param data XmlChannels container with all channels to add tag to
+     */
+    public void addSingleTag(String tag, String owner, String channel, XmlChannel data) {
+        owner = assertTagOwner(tag, owner);
+
+        if (!channel.equals(data.getName()))
+            throw new WebServiceException("Specified channel name " + channel
+                    + " and payload channel name " + data.getName() + " do not match");
+
+        AddTagQuery q = new AddTagQuery(tag, owner, data);
+
+        begin();
+        try {
+            q.executeQuery(con.get());
+        } catch (Exception e) {
+            throw new WebServiceException("SQL Error during single tag add operation", e);
         }
         commit();
     }

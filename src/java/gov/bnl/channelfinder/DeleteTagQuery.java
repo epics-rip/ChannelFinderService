@@ -15,15 +15,26 @@ import java.sql.SQLException;
  */
 public class DeleteTagQuery {
 
-    private String name;
+    private String tag;
+    private String channel = null;
 
     /**
      * Creates a new instance of DeleteChannelQuery
      *
-     * @param name  channel name
+     * @param tag  tag name
      */
-    public DeleteTagQuery(String name) {
-    this.name = name;
+    public DeleteTagQuery(String tag) {
+        this.tag = tag;
+    }
+
+    /**
+     * Creates a new instance of DeleteChannelQuery for a single channel delete
+     *
+     * @param tag  tag name
+     */
+    public DeleteTagQuery(String tag, String channel) {
+        this.tag = tag;
+        this.channel = channel;
     }
 
     /**
@@ -33,9 +44,24 @@ public class DeleteTagQuery {
      * @throws SQLException
      */
     public void executeQuery(Connection con) throws SQLException {
+        Long id = null;
+
+        if (this.channel != null) {
+            // Get Channel id
+            String query = "SELECT id FROM channel WHERE name = ?";
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setString(1, this.channel);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.first())
+                id = rs.getLong(1);
+        }
+
         String query = "DELETE FROM property WHERE property = ? AND value IS NULL";
+        if (id != null) query = query + " AND channel_id = ?";
         PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, name);
+        ps.setString(1, tag);
+        if (id != null) ps.setLong(2, id);
         ps.executeUpdate();
     }
 }

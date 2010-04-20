@@ -83,4 +83,33 @@ public class TagsResource {
     public void delete(@PathParam("name") String name) {
         AccessManager.getInstance().deleteTag(name);
     }
+
+    /**
+     * HTTP PUT method for adding the tag identified by <tt>name</tt>
+     * to the channel <tt>chan</tt>, with the XML structure <tt>data</tt> specifying the owner for a new tag.
+     *
+     * @param name URI path parameter: tag name
+     * @param chan URI path parameter: channel name
+     * @param data an XmlChannel entity that is deserialized from a XML stream
+     */
+    @PUT
+    @Path("{chan}")
+    @Consumes({"application/xml", "application/json"})
+    public void putSingle(@PathParam("name") String name, @PathParam("chan") String chan, XmlChannel data) {
+        AccessManager.getInstance().addSingleTag(name, chan, data);
+    }
+
+    /**
+     * HTTP DELETE method for adding the tag identified by <tt>name</tt>
+     * from the channel <tt>chan</tt>.
+     *
+     * @param name URI path parameter: tag name
+     * @param chan URI path parameter: channel name
+     */
+    @DELETE
+    @Path("{chan}")
+    @Consumes({"application/xml", "application/json"})
+    public void deleteSingle(@PathParam("name") String name, @PathParam("chan") String chan) {
+        AccessManager.getInstance().deleteSingleTag(name, chan);
+    }
 }

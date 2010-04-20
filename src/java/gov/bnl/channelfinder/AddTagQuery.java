@@ -33,6 +33,18 @@ public class AddTagQuery {
     }
 
     /**
+     * Creates a new instance of AddTagQuery for a single channel
+     *
+     * @param data  channel data
+     */
+    public AddTagQuery(String name, String owner, XmlChannel data) {
+        this.name = name;
+        this.owner = owner;
+        this.data = new XmlChannels();
+        this.data.addChannel(data);
+    }
+
+    /**
      * Creates and executes a JDBC based query to add a tag to the listed channels
      *
      * @param con  connection to use

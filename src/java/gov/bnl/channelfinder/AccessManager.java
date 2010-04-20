@@ -138,4 +138,25 @@ public class AccessManager {
         String owner = ChannelManager.findTagOwner(data, name);
         cm.putTag(name, owner, data);
     }
+
+    /**
+     * Adds a tag identified by <tt>name</tt> to channel <tt>chan</tt>,
+     * with ownership specified in <tt>data</tt>.
+     * @param name tag to add
+     * @param chan channel to add tag to
+     * @param data XmlChannels data containing channel names
+     */
+    public void addSingleTag(String name, String chan, XmlChannel data) {
+        String owner = ChannelManager.findTagOwner(data, name);
+        cm.addSingleTag(name, owner, chan, data);
+    }
+
+    /**
+     * Deletes a tag identified by <tt>name</tt> from channel <tt>chan</tt>.
+     * @param name tag to delete
+     * @param chan channel to delete tag from
+     */
+    public void deleteSingleTag(String name, String chan) {
+        cm.deleteSingleTag(name, chan);
+    }
 }
