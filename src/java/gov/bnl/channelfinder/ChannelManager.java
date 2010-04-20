@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Collection;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -58,7 +59,26 @@ public class ChannelManager {
             dest.getXmlTags().add(s);
         }
     }
-    
+
+    /**
+     * Finds owner of a given tag <tt>name</tt> in XmlChannels data
+     * @param data XmlChannels object
+     * @param name name of tag to search
+     * @return owner of the tag, null if tag was not found
+     */
+    public static String findTagOwner(XmlChannels data, String name) {
+        String owner = null;
+        for (XmlChannel ch : data.getChannels()) {
+            for (XmlTag tag : ch.getXmlTags()) {
+                if (owner == null) owner = tag.getOwner();
+                else if (!owner.equals(tag.getOwner())) {
+                    throw new WebServiceException("Inconsistent owner in payload for tag " + name);
+                }
+            }
+        }
+        return owner;
+    }
+
     /**
      * Begins a transaction by establishing a connection and beginning the transaction
      */
@@ -68,7 +88,7 @@ public class ChannelManager {
             con.get().setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             con.get().setAutoCommit(false);
         } catch (Exception e) {
-            throw new RuntimeException("Cannot establish database connection", e);
+            throw new WebServiceException("Cannot establish database connection", e);
         }
     }
 
@@ -80,7 +100,7 @@ public class ChannelManager {
             con.get().commit();
             con.get().close();
         } catch (Exception e) {
-            throw new RuntimeException("Could not commit the requested changes to the database", e);
+            throw new WebServiceException("Could not commit the requested changes to the database", e);
         }
     }
 
@@ -92,7 +112,7 @@ public class ChannelManager {
             con.get().rollback();
             con.get().close();
         } catch (Exception e) {
-            throw new RuntimeException("Could not roll back changes to the database", e);
+            throw new WebServiceException("Could not roll back changes to the database", e);
         }
     }
 
@@ -125,7 +145,7 @@ public class ChannelManager {
             con.get().close();
             return xmlChan;
         } catch (Exception e) {
-            throw new RuntimeException("SQL Error during channel find operation", e);
+            throw new WebServiceException("SQL Error during channel find operation", e);
         }
 
     }
@@ -160,7 +180,7 @@ public class ChannelManager {
             con.get().close();
             return xmlChans;
         } catch (Exception e) {
-            throw new RuntimeException("SQL Error during property match operation", e);
+            throw new WebServiceException("SQL Error during property match operation", e);
         }
     }
 
@@ -216,7 +236,7 @@ public class ChannelManager {
         try {
             dq.executeQuery(con.get());
         } catch (Exception e) {
-            throw new RuntimeException("SQL Error during channel delete operation", e);
+            throw new WebServiceException("SQL Error during channel delete operation", e);
         }
         commit();
     }
@@ -232,7 +252,40 @@ public class ChannelManager {
         try {
             dq.executeQuery(con.get());
         } catch (Exception e) {
-            throw new RuntimeException("SQL Error during tag delete operation", e);
+            throw new WebServiceException("SQL Error during tag delete operation", e);
+        }
+        commit();
+    }
+
+    /**
+     * Add the tag identified by <tt>name</tt> and <tt>owner</tt> to the channels
+     * specified in the XmlChannels <tt>data</tt>.
+     * @param name tag to add
+     * @param data XmlChannels container with all channels to add tag to
+     */
+    public void addTag(String name, String owner, XmlChannels data) {
+
+        // retrieve tag owner from database
+        XmlChannels chans = findChannelsByTag(name);
+        String dbowner = findTagOwner(chans, name);
+        if (owner == null) owner = dbowner;
+
+        // throw if no owner from database and not specified
+        if (owner == null)
+            throw new WebServiceException("No owner specified for new tag " + name);
+
+        // throw if specified and existing owner do not match
+        if (owner != null && dbowner != null && !owner.equals(dbowner))
+            throw new WebServiceException("Specified owner " + owner
+                    + " and existing owner " + dbowner + " for tag " + name + " do not match");
+
+        AddTagQuery q = new AddTagQuery(name, owner, data);
+
+        begin();
+        try {
+            q.executeQuery(con.get());
+        } catch (Exception e) {
+            throw new WebServiceException("SQL Error during tag add operation", e);
         }
         commit();
     }
@@ -246,7 +299,7 @@ public class ChannelManager {
      */
     public void updateChannel(String name, XmlChannel data) {
         if (!name.equals(data.getName())) {
-            throw new RuntimeException("Channel name from URL and data do not match");
+            throw new WebServiceException("Channel name from URL and data do not match");
         }
 
         begin();
@@ -257,7 +310,7 @@ public class ChannelManager {
             c.executeQuery(con.get());
         } catch (Exception e) {
             rollback();
-            throw new RuntimeException("SQL Error during channel create/update operation", e);
+            throw new WebServiceException("SQL Error during channel create/update operation", e);
         }
         commit();
     }
@@ -275,7 +328,7 @@ public class ChannelManager {
             }
         } catch (Exception e) {
             rollback();
-            throw new RuntimeException("SQL Error during channels create operation", e);
+            throw new WebServiceException("SQL Error during channels create operation", e);
         }
         commit();
     }
@@ -292,7 +345,7 @@ public class ChannelManager {
             q.executeQuery(con.get());
         } catch (Exception e) {
             rollback();
-            throw new RuntimeException("SQL Error during channel create operation", e);
+            throw new WebServiceException("SQL Error during channel create operation", e);
         }
         commit();
     }

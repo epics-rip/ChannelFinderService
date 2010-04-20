@@ -118,4 +118,14 @@ public class AccessManager {
     public void deleteTag(String name) {
         cm.deleteTag(name);
     }
+
+    /**
+     * Adds a tag identified by <tt>name</tt> to all channels in <tt>data</tt>.
+     * @param name tag to add
+     * @param data XmlChannels data containing channel names
+     */
+    public void addTag(String name, XmlChannels data) {
+        String owner = ChannelManager.findTagOwner(data, name);
+        cm.addTag(name, owner, data);
+    }
 }

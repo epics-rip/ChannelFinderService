@@ -13,7 +13,6 @@ import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
@@ -24,10 +23,19 @@ import javax.ws.rs.PathParam;
 
 @Path("/tags/{name}")
 public class TagsResource {
+    /**
+     *
+     */
     @Context
     protected UriInfo uriInfo;
+    /**
+     *
+     */
     @Context
     protected ResourceContext resourceContext;
+    /**
+     *
+     */
     protected Integer id;
 
     /** Creates a new instance of TagsResource */
@@ -62,16 +70,17 @@ public class TagsResource {
 //    }
 
     /**
-     * HTTP POST method for merging properties and tags of the Channel identified by the
-     * XML input into an existing Channel.
+     * HTTP POST method for adding the tag identified by <tt>name</tt> to all Channels
+     * identified by the XML structure <tt>data</tt>.
      *
-     * @param data an XmlChannel entity that is deserialized from a XML stream
+     * @param name tag name
+     * @param data XmlChannels list that is deserialized from a XML stream
      */
-//    @POST
-//    @Consumes({"application/xml", "application/json"})
-//    public void post(@PathParam("name") String name, XmlChannel data) {
-//        AccessManager.getInstance().mergeChannel(name, data);
-//    }
+    @POST
+    @Consumes({"application/xml", "application/json"})
+    public void post(@PathParam("name") String name, XmlChannels data) {
+        AccessManager.getInstance().addTag(name, data);
+    }
 
     /**
      * HTTP DELETE method for deleting a tag identified by the
