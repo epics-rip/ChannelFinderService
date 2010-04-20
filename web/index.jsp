@@ -21,5 +21,10 @@
             <li><a href="ChannelFinder-API.pdf">API Description</a> (Apr 2010)</li>
         </ul>
 
+        <h2>Web Service Code Documentation</h2>
+        <ul>
+            <li><a href="javadoc">Javadoc</a></li>
+        </ul>
+
     </body>
 </html>

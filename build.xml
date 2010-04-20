@@ -69,4 +69,7 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="-pre-compile">
+        <ant target="javadoc-build"/>
+    </target>
 </project>
