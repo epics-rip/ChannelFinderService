@@ -128,4 +128,14 @@ public class AccessManager {
         String owner = ChannelManager.findTagOwner(data, name);
         cm.addTag(name, owner, data);
     }
+
+    /**
+     * Adds a tag identified by <tt>name</tt> to all channels in <tt>data</tt>.
+     * @param name tag to add
+     * @param data XmlChannels data containing channel names
+     */
+    public void putTag(String name, XmlChannels data) {
+        String owner = ChannelManager.findTagOwner(data, name);
+        cm.putTag(name, owner, data);
+    }
 }

@@ -206,7 +206,7 @@ public class ChannelManager {
 
     /**
      * Return channels found by matching the tag name.
-     * @param matches collection of channel name patterns to match
+     * @param name tag name
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByTag(String name) {
@@ -258,13 +258,14 @@ public class ChannelManager {
     }
 
     /**
-     * Add the tag identified by <tt>name</tt> and <tt>owner</tt> to the channels
-     * specified in the XmlChannels <tt>data</tt>.
+     * Asserts the operation on named tag <tt>name</tt> with the specified <tt>owner</tt>
+     * on the channels specified in the XmlChannels <tt>data</tt> does not violate data
+     * integrity.
      * @param name tag to add
-     * @param data XmlChannels container with all channels to add tag to
+     * @param owner owner for new tag
+     * @param data XmlChannels container with all channels for the operation
      */
-    public void addTag(String name, String owner, XmlChannels data) {
-
+    private String assertTagOwner(String name, String owner, XmlChannels data) {
         // retrieve tag owner from database
         XmlChannels chans = findChannelsByTag(name);
         String dbowner = findTagOwner(chans, name);
@@ -274,15 +275,51 @@ public class ChannelManager {
         if (owner == null)
             throw new WebServiceException("No owner specified for new tag " + name);
 
-        // throw if specified and existing owner do not match
+        // throw if specified and existing owner exist and do not match
         if (owner != null && dbowner != null && !owner.equals(dbowner))
             throw new WebServiceException("Specified owner " + owner
                     + " and existing owner " + dbowner + " for tag " + name + " do not match");
+
+        return owner;
+    }
+
+    /**
+     * Add the tag identified by <tt>name</tt> and <tt>owner</tt> to the channels
+     * specified in the XmlChannels <tt>data</tt>.
+     * @param name tag to add
+     * @param owner owner for new tag
+     * @param data XmlChannels container with all channels to add tag to
+     */
+    public void addTag(String name, String owner, XmlChannels data) {
+        owner = assertTagOwner(name, owner, data);
 
         AddTagQuery q = new AddTagQuery(name, owner, data);
 
         begin();
         try {
+            q.executeQuery(con.get());
+        } catch (Exception e) {
+            throw new WebServiceException("SQL Error during tag add operation", e);
+        }
+        commit();
+    }
+
+    /**
+     * Add the tag identified by <tt>name</tt> and <tt>owner</tt> exclusively
+     * to the channels specified in the XmlChannels <tt>data</tt>.
+     * @param name tag to add
+     * @param owner owner for new tag
+     * @param data XmlChannels container with all channels to add tag to
+     */
+    public void putTag(String name, String owner, XmlChannels data) {
+        owner = assertTagOwner(name, owner, data);
+
+        DeleteTagQuery dq = new DeleteTagQuery(name);
+        AddTagQuery q = new AddTagQuery(name, owner, data);
+
+        begin();
+        try {
+            dq.executeQuery(con.get());
             q.executeQuery(con.get());
         } catch (Exception e) {
             throw new WebServiceException("SQL Error during tag add operation", e);
