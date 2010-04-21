@@ -77,8 +77,8 @@ public class AccessManager {
 
     /**
      * Update a channel identified by <tt>name</tt>, creating it when necessary.
-     * The property set in <tt>data</tt> has to be complete, i.e. the existing channel properties
-     * are <b>replaced</b> with the properties in <tt>data</tt>.
+     * The property set in <tt>data</tt> has to be complete, i.e. the existing
+     * channel properties are <b>replaced</b> with the properties in <tt>data</tt>.
      * @param name channel to update
      * @param data XmlChannel data
      */
@@ -125,7 +125,7 @@ public class AccessManager {
      * @param data XmlChannels data containing channel names
      */
     public void addTag(String name, XmlChannels data) {
-        String owner = ChannelManager.findTagOwner(data, name);
+        String owner = ChannelManager.findOwner(data, name);
         cm.addTag(name, owner, data);
     }
 
@@ -135,7 +135,7 @@ public class AccessManager {
      * @param data XmlChannels data containing channel names
      */
     public void putTag(String name, XmlChannels data) {
-        String owner = ChannelManager.findTagOwner(data, name);
+        String owner = ChannelManager.findOwner(data, name);
         cm.putTag(name, owner, data);
     }
 
@@ -147,7 +147,7 @@ public class AccessManager {
      * @param data XmlChannels data containing channel names
      */
     public void addSingleTag(String name, String chan, XmlChannel data) {
-        String owner = ChannelManager.findTagOwner(data, name);
+        String owner = ChannelManager.findOwner(data, name);
         cm.addSingleTag(name, owner, chan, data);
     }
 

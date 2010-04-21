@@ -61,18 +61,28 @@ public class ChannelManager {
     }
 
     /**
-     * Finds owner of a given tag <tt>tag</tt> in XmlChannels data
-     * @param data XmlChannels object
-     * @param tag name of tag to search
-     * @return owner of the tag, null if tag was not found
+     * Find owner of a given entity <tt>name</tt> (channel/property/tag)
+     * in XmlChannels data.
+     * @param data XmlChannels collection
+     * @param name name of entity to search
+     * @return owner of the entity, null if entity not found
      */
-    public static String findTagOwner(XmlChannels data, String tag) {
+    public static String findOwner(XmlChannels data, String name) {
         String owner = null;
         for (XmlChannel ch : data.getChannels()) {
+            if (ch.getName().equals(name)) return ch.getOwner();
+            for (XmlProperty p : ch.getXmlProperties()) {
+                if (p.getName().equals(name)) {
+                    if (owner == null) owner = p.getOwner();
+                    else if (!owner.equals(p.getOwner()))
+                        throw new WebServiceException("Inconsistent owner in payload for property " + name);
+                }
+            }
             for (XmlTag t : ch.getXmlTags()) {
-                if (owner == null) owner = t.getOwner();
-                else if (!owner.equals(t.getOwner())) {
-                    throw new WebServiceException("Inconsistent owner in payload for tag " + tag);
+                if (t.getName().equals(name)) {
+                    if (owner == null) owner = t.getOwner();
+                    else if (!owner.equals(t.getOwner()))
+                        throw new WebServiceException("Inconsistent owner in payload for tag " + name);
                 }
             }
         }
@@ -80,15 +90,16 @@ public class ChannelManager {
     }
 
     /**
-     * Finds owner of a given tag <tt>tag</tt> in a single XmlChannel <tt>data</tt>
+     * Find owner of a given entity <tt>name</tt> (channel/property/tag)
+     * in a single XmlChannel <tt>data</tt>.
      * @param data XmlChannel object
-     * @param tag name of tag to search
+     * @param name name of tag to search
      * @return owner of the tag, null if tag was not found
      */
-    public static String findTagOwner(XmlChannel data, String tag) {
+    public static String findOwner(XmlChannel data, String name) {
         XmlChannels chans = new XmlChannels();
         chans.addChannel(data);
-        return findTagOwner(chans, tag);
+        return findOwner(chans, name);
     }
 
     /**
@@ -297,7 +308,7 @@ public class ChannelManager {
     private String assertTagOwner(String tag, String owner) {
         // retrieve tag owner from database
         XmlChannels chans = findChannelsByTag(tag);
-        String dbowner = findTagOwner(chans, tag);
+        String dbowner = findOwner(chans, tag);
         if (owner == null) owner = dbowner;
 
         // throw if no owner from database and not specified
