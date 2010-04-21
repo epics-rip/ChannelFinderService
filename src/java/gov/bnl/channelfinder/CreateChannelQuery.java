@@ -22,7 +22,7 @@ public class CreateChannelQuery {
     /**
      * Creates a new instance of CreateChannelQuery
      *
-     * @param name  channel name
+     * @param chan  channel name
      */
     public CreateChannelQuery(XmlChannel chan) {
     this.chan = chan;
