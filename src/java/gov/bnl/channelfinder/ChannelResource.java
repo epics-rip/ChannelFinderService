@@ -8,14 +8,13 @@ package gov.bnl.channelfinder;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  *
@@ -25,10 +24,7 @@ import javax.ws.rs.PathParam;
 @Path("/channel/{name}")
 public class ChannelResource {
     @Context
-    protected UriInfo uriInfo;
-    @Context
-    protected ResourceContext resourceContext;
-    protected Integer id;
+    protected SecurityContext securityContext;
 
     /** Creates a new instance of ChannelResource */
     public ChannelResource() {
@@ -42,8 +38,7 @@ public class ChannelResource {
      */
     @GET
     @Produces({"application/xml", "application/json"})
-    public XmlChannel get(
-            @PathParam("name") String name) {
+    public XmlChannel get(@PathParam("name") String name) {
         return AccessManager.getInstance().findChannelByName(name);
     }
 
@@ -58,6 +53,7 @@ public class ChannelResource {
     @PUT
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannel data) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().updateChannel(name, data);
     }
 
@@ -70,6 +66,7 @@ public class ChannelResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public void post(@PathParam("name") String name, XmlChannel data) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().mergeChannel(name, data);
     }
 
@@ -81,6 +78,7 @@ public class ChannelResource {
      */
     @DELETE
     public void delete(@PathParam("name") String name) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().deleteChannel(name);
     }
 }

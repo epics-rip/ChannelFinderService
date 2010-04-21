@@ -8,14 +8,13 @@ package gov.bnl.channelfinder;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  *
@@ -25,10 +24,7 @@ import javax.ws.rs.PathParam;
 @Path("/tags/{name}")
 public class TagsResource {
     @Context
-    protected UriInfo uriInfo;
-    @Context
-    protected ResourceContext resourceContext;
-    protected Integer id;
+    protected SecurityContext securityContext;
 
     /** Creates a new instance of TagsResource */
     public TagsResource() {
@@ -42,8 +38,7 @@ public class TagsResource {
      */
     @GET
     @Produces({"application/xml", "application/json"})
-    public XmlChannels get(
-            @PathParam("name") String name) {
+    public XmlChannels get(@PathParam("name") String name) {
         return AccessManager.getInstance().findChannelsByTag(name);
     }
 
@@ -57,6 +52,7 @@ public class TagsResource {
     @PUT
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannels data) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().putTag(name, data);
     }
 
@@ -70,6 +66,7 @@ public class TagsResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public void post(@PathParam("name") String name, XmlChannels data) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().addTag(name, data);
     }
 
@@ -81,6 +78,7 @@ public class TagsResource {
      */
     @DELETE
     public void delete(@PathParam("name") String name) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().deleteTag(name);
     }
 
@@ -96,6 +94,7 @@ public class TagsResource {
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
     public void putSingle(@PathParam("name") String name, @PathParam("chan") String chan, XmlChannel data) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().addSingleTag(name, chan, data);
     }
 
@@ -110,6 +109,7 @@ public class TagsResource {
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
     public void deleteSingle(@PathParam("name") String name, @PathParam("chan") String chan) {
+        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         AccessManager.getInstance().deleteSingleTag(name, chan);
     }
 }
