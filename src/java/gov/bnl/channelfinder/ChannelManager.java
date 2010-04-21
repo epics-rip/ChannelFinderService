@@ -145,7 +145,7 @@ public class ChannelManager {
      * @return XmlChannel with found channel and its properties
      */
     public XmlChannel findChannelByName(String name) {
-        MatchQuery query = MatchQuery.createSingleChannelMatchQuery(name);
+        FindChannelsQuery query = FindChannelsQuery.createSingleChannelMatchQuery(name);
         try {
             con.set(DbConnection.getInstance().getConnection());
             ResultSet rs = query.executeQuery(con.get());
@@ -178,7 +178,7 @@ public class ChannelManager {
      * @param query the query to be used for matching
      * @return XmlChannels container with all found channels and their properties/tags
      */
-    private XmlChannels findChannelsByMatch(MatchQuery query) {
+    private XmlChannels findChannelsByMatch(FindChannelsQuery query) {
         try {
             con.set(DbConnection.getInstance().getConnection());
             ResultSet rs = query.executeQuery(con.get());
@@ -213,7 +213,7 @@ public class ChannelManager {
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByNameMatch(Collection<String> matches) {
-        MatchQuery query = MatchQuery.createChannelMatchQuery(matches);
+        FindChannelsQuery query = FindChannelsQuery.createChannelMatchQuery(matches);
         return findChannelsByMatch(query);
     }
 
@@ -223,7 +223,7 @@ public class ChannelManager {
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByTagMatch(Collection<String> matches) {
-        MatchQuery query = MatchQuery.createTagMatchQuery(matches);
+        FindChannelsQuery query = FindChannelsQuery.createTagMatchQuery(matches);
         return findChannelsByMatch(query);
     }
 
@@ -233,7 +233,7 @@ public class ChannelManager {
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByTag(String name) {
-        MatchQuery query = MatchQuery.createSingleTagMatchQuery(name);
+        FindChannelsQuery query = FindChannelsQuery.createSingleTagMatchQuery(name);
         return findChannelsByMatch(query);
     }
 
@@ -244,7 +244,7 @@ public class ChannelManager {
      * @return XmlChannels container with all found channels and their properties
      */
     public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) {
-        MatchQuery query = MatchQuery.createMultiMatchQuery(matches);
+        FindChannelsQuery query = FindChannelsQuery.createMultiMatchQuery(matches);
         return findChannelsByMatch(query);
     }
 
