@@ -57,6 +57,11 @@
                 <version>2.1-beta-1</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <directory>target/site</directory>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
         </plugins>

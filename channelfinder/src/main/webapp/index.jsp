@@ -23,7 +23,7 @@
 
         <h2>Web Service Code Documentation</h2>
         <ul>
-            <li><a href="javadoc">Javadoc</a></li>
+            <li><a href="apidocs">Javadoc</a></li>
         </ul>
 
     </body>
