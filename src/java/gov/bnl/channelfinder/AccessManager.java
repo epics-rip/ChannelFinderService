@@ -125,7 +125,7 @@ public class AccessManager {
      * @param data XmlChannels data containing channel names
      */
     public void addTag(String name, XmlChannels data) {
-        String owner = ChannelManager.findOwner(data, name);
+        String owner = ChannelManager.findAndCheckOwner(data, name);
         cm.addTag(name, owner, data);
     }
 
@@ -135,7 +135,7 @@ public class AccessManager {
      * @param data XmlChannels data containing channel names
      */
     public void putTag(String name, XmlChannels data) {
-        String owner = ChannelManager.findOwner(data, name);
+        String owner = ChannelManager.findAndCheckOwner(data, name);
         cm.putTag(name, owner, data);
     }
 
@@ -147,7 +147,7 @@ public class AccessManager {
      * @param data XmlChannels data containing channel names
      */
     public void addSingleTag(String name, String chan, XmlChannel data) {
-        String owner = ChannelManager.findOwner(data, name);
+        String owner = ChannelManager.findAndCheckOwner(data, name);
         cm.addSingleTag(name, owner, chan, data);
     }
 

@@ -7,7 +7,9 @@ package gov.bnl.channelfinder;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.ws.WebServiceException;
 
@@ -61,30 +63,51 @@ public class ChannelManager {
     }
 
     /**
+     * Find owner of a given property <tt>name</tt> in a collection of
+     * XmlProperty <tt>data</tt> and check for consistency.
+     * @param owner ownership to check against, will be set if null and property is found
+     * @param data XmlProperty collection
+     * @param name name of property to search
+     */
+    public static void findAndCheckPropertyOwner(String owner, Collection<XmlProperty> data, String name) {
+        for (XmlProperty p : data) {
+            if (p.getName().equals(name)) {
+                if (owner == null) owner = p.getOwner();
+                else if (!owner.equals(p.getOwner()))
+                    throw new WebServiceException("Inconsistent owner for property " + name);
+            }
+        }
+    }
+
+    /**
+     * Find owner of a given tag <tt>name</tt> in a collection of XmlTag data.
+     * @param owner ownership to check against, will be set if null and tag is found
+     * @param data XmlTag collection
+     * @param name name of tag to search
+     */
+    public static void findAndCheckTagOwner(String owner, Collection<XmlTag> data, String name) {
+        for (XmlTag t : data) {
+            if (t.getName().equals(name)) {
+                if (owner == null) owner = t.getOwner();
+                else if (!owner.equals(t.getOwner()))
+                    throw new WebServiceException("Inconsistent owner for tag " + name);
+            }
+        }
+    }
+
+    /**
      * Find owner of a given entity <tt>name</tt> (channel/property/tag)
-     * in XmlChannels data.
+     * in XmlChannels <tt>data</tt> and checks for consistency.
      * @param data XmlChannels collection
      * @param name name of entity to search
      * @return owner of the entity, null if entity not found
      */
-    public static String findOwner(XmlChannels data, String name) {
+    public static String findAndCheckOwner(XmlChannels data, String name) {
         String owner = null;
         for (XmlChannel ch : data.getChannels()) {
-            if (ch.getName().equals(name)) return ch.getOwner();
-            for (XmlProperty p : ch.getXmlProperties()) {
-                if (p.getName().equals(name)) {
-                    if (owner == null) owner = p.getOwner();
-                    else if (!owner.equals(p.getOwner()))
-                        throw new WebServiceException("Inconsistent owner in payload for property " + name);
-                }
-            }
-            for (XmlTag t : ch.getXmlTags()) {
-                if (t.getName().equals(name)) {
-                    if (owner == null) owner = t.getOwner();
-                    else if (!owner.equals(t.getOwner()))
-                        throw new WebServiceException("Inconsistent owner in payload for tag " + name);
-                }
-            }
+            if (ch.getName() != null && ch.getName().equals(name)) return ch.getOwner();
+            findAndCheckPropertyOwner(owner, ch.getXmlProperties(), name);
+            findAndCheckTagOwner(owner, ch.getXmlTags(), name);
         }
         return owner;
     }
@@ -96,10 +119,10 @@ public class ChannelManager {
      * @param name name of tag to search
      * @return owner of the tag, null if tag was not found
      */
-    public static String findOwner(XmlChannel data, String name) {
+    public static String findAndCheckOwner(XmlChannel data, String name) {
         XmlChannels chans = new XmlChannels();
         chans.addChannel(data);
-        return findOwner(chans, name);
+        return findAndCheckOwner(chans, name);
     }
 
     /**
@@ -137,6 +160,43 @@ public class ChannelManager {
         } catch (Exception e) {
             throw new WebServiceException("Could not roll back changes to the database", e);
         }
+    }
+
+    /**
+     * Return properties and tags found by their names.
+     * @param name collection of names to look for
+     * @return unnamed XmlChannel container with found properties and tags
+     */
+    public XmlChannel findPropertiesByName(Collection<String> names) {
+        FindPropertiesQuery query = FindPropertiesQuery.createFindPropertiesQuery(names);
+        try {
+            con.set(DbConnection.getInstance().getConnection());
+            ResultSet rs = query.executeQuery(con.get());
+
+            String lastchan = "";
+            XmlChannel xmlChan = new XmlChannel();
+
+            while (rs.next()) {
+                if (rs.getString("value") == null)
+                    xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                else
+                    xmlChan.addProperty(new XmlProperty(rs.getString("property"),
+                        rs.getString("owner"), rs.getString("value")));
+            }
+            con.get().close();
+            return xmlChan;
+        } catch (Exception e) {
+            throw new WebServiceException("SQL Error during property find operation", e);
+        }
+    }
+
+    /**
+     * Return properties and tags found by their names.
+     * @param name collection of names to look for
+     * @return unnamed XmlChannel container with found properties and tags
+     */
+    public XmlChannel findPropertiesByName(String name) {
+        return findPropertiesByName(Collections.singleton(name));
     }
 
     /**
@@ -298,27 +358,27 @@ public class ChannelManager {
     }
 
     /**
-     * Asserts the operation on named tag <tt>tag</tt> with the specified <tt>owner</tt>
+     * Asserts the owner for the tag/property <tt>name</tt> found in the database
+     * matches the specified <tt>owner</tt>. If <tt>owner</tt> is <tt>null</tt>
      * on the channels specified in the XmlChannels <tt>data</tt> does not violate data
      * integrity.
-     * @param tag tag to add
+     * @param name tag to add
      * @param owner owner for new tag
-     * @param data XmlChannels container with all channels for the operation
      */
-    private String assertTagOwner(String tag, String owner) {
+    private String assertOrGetOwner(String name, String owner) {
         // retrieve tag owner from database
-        XmlChannels chans = findChannelsByTag(tag);
-        String dbowner = findOwner(chans, tag);
+        XmlChannel chan = findPropertiesByName(name);
+        String dbowner = findAndCheckOwner(chan, name);
         if (owner == null) owner = dbowner;
 
         // throw if no owner from database and not specified
         if (owner == null)
-            throw new WebServiceException("No owner specified for new tag " + tag);
+            throw new WebServiceException("No owner specified for new property/tag " + name);
 
         // throw if specified and existing owner exist and do not match
         if (owner != null && dbowner != null && !owner.equals(dbowner))
             throw new WebServiceException("Specified owner " + owner
-                    + " and existing owner " + dbowner + " for tag " + tag + " do not match");
+                    + " and existing owner " + dbowner + " for " + name + " do not match");
 
         return owner;
     }
@@ -331,7 +391,7 @@ public class ChannelManager {
      * @param data XmlChannels container with all channels to add tag to
      */
     public void addTag(String tag, String owner, XmlChannels data) {
-        owner = assertTagOwner(tag, owner);
+        owner = assertOrGetOwner(tag, owner);
 
         AddTagQuery q = new AddTagQuery(tag, owner, data);
 
@@ -352,7 +412,7 @@ public class ChannelManager {
      * @param data XmlChannels container with all channels to add tag to
      */
     public void putTag(String tag, String owner, XmlChannels data) {
-        owner = assertTagOwner(tag, owner);
+        owner = assertOrGetOwner(tag, owner);
 
         DeleteTagQuery dq = new DeleteTagQuery(tag);
         AddTagQuery q = new AddTagQuery(tag, owner, data);
@@ -375,7 +435,7 @@ public class ChannelManager {
      * @param data XmlChannels container with all channels to add tag to
      */
     public void addSingleTag(String tag, String owner, String channel, XmlChannel data) {
-        owner = assertTagOwner(tag, owner);
+        owner = assertOrGetOwner(tag, owner);
 
         if (!channel.equals(data.getName()))
             throw new WebServiceException("Specified channel name " + channel
@@ -403,7 +463,7 @@ public class ChannelManager {
         if (!name.equals(data.getName())) {
             throw new WebServiceException("Channel name from URL and data do not match");
         }
-
+/* FIXME: Check for property/tag owner integrity */
         begin();
         try {
             DeleteChannelQuery d = new DeleteChannelQuery(name);
