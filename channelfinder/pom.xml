@@ -6,7 +6,25 @@
     <packaging>war</packaging>
     <version>0.1-SNAPSHOT</version>
     <name>ChannelFinder Directory Service</name>
-    <url>http://maven.apache.org</url>
+    <url>http://sourceforge.net/projects/channelfinder/</url>
+    <developers>
+        <developer>
+            <name>Ralph Lange</name>
+            <organization>BNL / NSLS-II, Helmholtz-Zentrum Berlin / BESSY-II</organization>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:hg:http://channelfinder.hg.sourceforge.net:8000/hgroot/channelfinder/channelfinder</connection>
+        <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/channelfinder/</url>
+    </scm>
+    <issueManagement>
+        <system>Trac</system>
+        <url>http://sourceforge.net/apps/trac/channelfinder/report</url>
+    </issueManagement>
     <repositories>
         <repository>
             <id>java.net2</id>
