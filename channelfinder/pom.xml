@@ -5,7 +5,7 @@
     <artifactId>ChannelFinder</artifactId>
     <packaging>war</packaging>
     <version>0.1-SNAPSHOT</version>
-    <name>ChannelFinder Java EE 6 Webapp</name>
+    <name>ChannelFinder Directory Service</name>
     <url>http://maven.apache.org</url>
     <repositories>
         <repository>
