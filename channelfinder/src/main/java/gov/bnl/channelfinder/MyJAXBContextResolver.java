@@ -5,9 +5,8 @@
 
 package gov.bnl.channelfinder;
 
+import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.json.JSONJAXBContext;
-import java.util.HashMap;
-import java.util.Map;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.ContextResolver;
 import javax.xml.bind.JAXBContext;
@@ -23,9 +22,11 @@ public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {
     private Class[] types = {XmlChannels.class};
 
     public MyJAXBContextResolver() throws Exception {
-        Map props = new HashMap<String, Object>();
-        props.put(JSONJAXBContext.JSON_ROOT_UNWRAPPING, Boolean.FALSE);
-        this.context = new JSONJAXBContext(types, props);
+        this.context = new JSONJAXBContext(
+                JSONConfiguration.mapped()
+                .rootUnwrapping(false)
+                .build(),
+                types);
     }
 
     public JAXBContext getContext(Class<?> objectType) {
