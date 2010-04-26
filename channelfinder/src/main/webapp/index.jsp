@@ -21,10 +21,12 @@
             <li><a href="ChannelFinder-API.pdf">API Description</a> (Apr 2010)</li>
         </ul>
 
-        <h2>Web Service Code Documentation</h2>
+        <h2>ChannelFinder Project on SourceForge</h2>
         <ul>
-            <li><a href="apidocs">Javadoc</a></li>
+            <li><a href="http://channelfinder.sourceforge.net/">Homepage</a></li>
+            <li><a href="http://sourceforge.net/projects/channelfinder/">Project Page</a></li>
+            <li><a href="http://sourceforge.net/apps/trac/channelfinder/">Wiki / Issue Tracker</a></li>
+            <li><a href="http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/">Repository Browser</a></li>
         </ul>
-
     </body>
 </html>
