@@ -28,9 +28,9 @@ public class DbConnection {
     private DbConnection() {
         try {
             InitialContext ic = new InitialContext();
-            ds = (DataSource) ic.lookup("java:comp/env/jdbc/epics_directory");
+            ds = (DataSource) ic.lookup("java:comp/env/jdbc/channelfinder");
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot find JDBC DataSource named 'epics_directory' "
+            throw new IllegalStateException("Cannot find JDBC DataSource named 'channelfinder' "
                     + "- check configuration", e);
         }
     }
