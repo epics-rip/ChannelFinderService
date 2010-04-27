@@ -36,6 +36,7 @@ public class CreateChannelQuery {
      */
     public void executeQuery(Connection con) throws SQLException {
         List<List<String>> params = new ArrayList<List<String>>();
+        int i;
 
         // Insert channel
         String query = "INSERT INTO channel (name, owner) VALUE (?, ?)";
@@ -48,41 +49,47 @@ public class CreateChannelQuery {
         long id = rs.getLong(1);
 
         // Insert properties
-        query = "INSERT INTO property (channel_id, property, value, owner) VALUES ";
-        for (XmlProperty prop : this.chan.getXmlProperties()) {
-            query = query + "(?,?,?,?),";
-            ArrayList<String> par = new ArrayList<String>();
-            par.add(prop.getName());
-            par.add(prop.getValue());
-            par.add(prop.getOwner());
-            params.add(par);
+        if (this.chan.getXmlProperties().size() > 0) {
+            params.clear();
+            query = "INSERT INTO property (channel_id, property, value, owner) VALUES ";
+            for (XmlProperty prop : this.chan.getXmlProperties()) {
+                query = query + "(?,?,?,?),";
+                ArrayList<String> par = new ArrayList<String>();
+                par.add(prop.getName());
+                par.add(prop.getValue());
+                par.add(prop.getOwner());
+                params.add(par);
+            }
+            ps = con.prepareStatement(query.substring(0, query.length() - 1));
+            i = 1;
+            for (List<String> par : params) {
+                ps.setLong(i++, id);
+                for (int j = 0; j < 3; j++)
+                    ps.setString(i++, par.get(j));
+            }
+            ps.executeUpdate();
         }
-        ps = con.prepareStatement(query.substring(0, query.length() - 1));
-        int i = 1;
-        for (List<String> par : params) {
-            ps.setLong(i++, id);
-            for (int j = 0; j < 3; j++)
-                ps.setString(i++, par.get(j));
-        }
-        ps.executeUpdate();
 
         // Insert tags
-        params.clear();
-        query = "INSERT INTO property (channel_id, property, owner) VALUES ";
-        for (XmlTag tag : this.chan.getXmlTags()) {
-            query = query + "(?,?,?),";
-            ArrayList<String> par = new ArrayList<String>();
-            par.add(tag.getName());
-            par.add(tag.getOwner());
-            params.add(par);
+        if (this.chan.getXmlProperties().size() > 0) {
+            params.clear();
+            query = "INSERT INTO property (channel_id, property, owner) VALUES ";
+            for (XmlTag tag : this.chan.getXmlTags()) {
+                query = query + "(?,?,?),";
+                ArrayList<String> par = new ArrayList<String>();
+                par.add(tag.getName());
+                par.add(tag.getOwner());
+                params.add(par);
+            }
+            ps = con.prepareStatement(query.substring(0, query.length() - 1));
+            i = 1;
+            for (List<String> par : params) {
+                ps.setLong(i++, id);
+                for (int j = 0; j < 2; j++)
+                    ps.setString(i++, par.get(j));
+            }
+            ps.executeUpdate();
         }
-        ps = con.prepareStatement(query.substring(0, query.length() - 1));
-        i = 1;
-        for (List<String> par : params) {
-            ps.setLong(i++, id);
-            for (int j = 0; j < 2; j++)
-                ps.setString(i++, par.get(j));
-        }
-        ps.executeUpdate();
     }
+
 }

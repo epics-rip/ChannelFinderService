@@ -210,20 +210,18 @@ public class ChannelManager {
             con.set(DbConnection.getInstance().getConnection());
             ResultSet rs = query.executeQuery(con.get());
 
-            String lastchan = "";
             XmlChannel xmlChan = null;
 
             while (rs.next()) {
                 String thischan = rs.getString("channel");
-                if (rs.isFirst()) {
-                    xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
-                    lastchan = thischan;
+                if (rs.isFirst()) xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+                if (rs.getString("property") != null) {
+                    if (rs.getString("value") == null)
+                        xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                    else
+                        xmlChan.addProperty(new XmlProperty(rs.getString("property"),
+                            rs.getString("owner"), rs.getString("value")));
                 }
-                if (rs.getString("value") == null)
-                    xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
-                else
-                    xmlChan.addProperty(new XmlProperty(rs.getString("property"),
-                        rs.getString("owner"), rs.getString("value")));
             }
             con.get().close();
             return xmlChan;
@@ -254,11 +252,13 @@ public class ChannelManager {
                     xmlChans.addChannel(xmlChan);
                     lastchan = thischan;
                 }
-                if (rs.getString("value") == null)
-                    xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
-                else
-                    xmlChan.addProperty(new XmlProperty(rs.getString("property"),
-                        rs.getString("owner"), rs.getString("value")));
+                if (rs.getString("property") != null) {
+                    if (rs.getString("value") == null)
+                        xmlChan.addTag(new XmlTag(rs.getString("property"), rs.getString("owner")));
+                    else
+                        xmlChan.addProperty(new XmlProperty(rs.getString("property"),
+                            rs.getString("owner"), rs.getString("value")));
+                }
             }
             con.get().close();
             return xmlChans;
@@ -461,7 +461,8 @@ public class ChannelManager {
      */
     public void updateChannel(String name, XmlChannel data) {
         if (!name.equals(data.getName())) {
-            throw new WebServiceException("Channel name from URL and data do not match");
+            throw new WebServiceException("Channel name from URL ("+ name
+                    + ") and data (" + data.getName() + ") do not match");
         }
 /* FIXME: Check for property/tag owner integrity */
         begin();

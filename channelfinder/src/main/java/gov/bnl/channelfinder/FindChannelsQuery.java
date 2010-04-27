@@ -176,7 +176,7 @@ public class FindChannelsQuery {
      */
     public ResultSet executeQuery(Connection con) throws SQLException {
         String query = "SELECT c.name as channel, c.owner as cowner, p.property, p.value, p.owner" +
-                " FROM channel c, property p WHERE c.id = p.channel_id";
+                " FROM channel c LEFT JOIN property p ON c.id = p.channel_id WHERE 1=1";
         List<Long> id_params = new ArrayList<Long>();       // parameter lists for the outer query
         List<String> name_params = new ArrayList<String>();
 
