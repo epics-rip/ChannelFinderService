@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author rlange
  */
-@XmlType(name = "tag")
+@XmlType(name = "tag", propOrder = {"name","owner"})
 public class XmlTag {
     private String name = null;
     private String owner = null;
