@@ -5,3 +5,5 @@
 \.conflict\~$
 \~$
 /target/
+/.cache/
+\.pyc$
