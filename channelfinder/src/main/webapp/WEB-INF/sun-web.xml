@@ -14,6 +14,10 @@
     <role-name>PropertyMod</role-name>
     <group-name>properties</group-name>
   </security-role-mapping>
+  <security-role-mapping>
+    <role-name>Administrator</role-name>
+    <group-name>admins</group-name>
+  </security-role-mapping>
   <class-loader delegate="true"/>
   <jsp-config>
     <property name="keepgenerated" value="true">
