@@ -5,6 +5,7 @@
 
 package gov.bnl.channelfinder;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -32,46 +33,56 @@ public class AccessManager {
 
     /**
      * Return single channel found by channel name.
+     *
      * @param name name to look for
      * @return XmlChannel with found channel and its properties
+     * @throws SQLException
      */
-    public XmlChannel findChannelByName(String name) {
+    public XmlChannel findChannelByName(String name) throws SQLException {
         return cm.findChannelByName(name);
     }
 
     /**
      * Return single channel found by channel name.
+     *
      * @param name name to look for
      * @return XmlChannel with found channel and its properties
+     * @throws SQLException
      */
-    public XmlChannels findChannelsByTag(String name) {
+    public XmlChannels findChannelsByTag(String name) throws SQLException {
         return cm.findChannelsByTag(name);
     }
 
     /**
      * Return channels found by matching the channel name.
+     *
      * @param matches collection of channel name patterns to match
      * @return XmlChannels container with all found channels and their properties
+     * @throws SQLException
      */
-    public XmlChannels findChannelsByNameMatch(Collection<String> matches) {
+    public XmlChannels findChannelsByNameMatch(Collection<String> matches) throws SQLException {
         return cm.findChannelsByNameMatch(matches);
     }
 
     /**
      * Returns channels found by matching property values.
+     *
      * @param matches multivalued map of property names and patterns to match
      * their values against.
      * @return XmlChannels container with all found channels and their properties
+     * @throws SQLException
      */
-    public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) {
+    public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) throws SQLException {
         return cm.findChannelsByMultiMatch(matches);
     }
 
     /**
      * Deletes a channel identified by <tt>name</tt>.
+     * 
      * @param name channel to delete
+     * @throws SQLException
      */
-    public void deleteChannel(String name) {
+    public void deleteChannel(String name) throws SQLException {
         cm.deleteChannel(name);
     }
 
@@ -79,62 +90,76 @@ public class AccessManager {
      * Update a channel identified by <tt>name</tt>, creating it when necessary.
      * The property set in <tt>data</tt> has to be complete, i.e. the existing
      * channel properties are <b>replaced</b> with the properties in <tt>data</tt>.
+     *
      * @param name channel to update
      * @param data XmlChannel data
+     * @throws SQLException
      */
-    public void updateChannel(String name, XmlChannel data) {
+    public void updateChannel(String name, XmlChannel data) throws SQLException {
         cm.updateChannel(name, data);
     }
 
     /**
      * Create channels specified in <tt>data</tt>.
+     * 
      * @param data XmlChannels data
+     * @throws SQLException
      */
-    public void createChannels(XmlChannels data) {
+    public void createChannels(XmlChannels data) throws SQLException {
         cm.createChannels(data);
     }
 
     /**
      * Create a new channel using the property set in <tt>data</tt>.
+     * 
      * @param data XmlChannel data
+     * @throws SQLException
      */
-    public void createChannel(XmlChannel data) {
+    public void createChannel(XmlChannel data) throws SQLException {
         cm.createChannel(data);
     }
 
     /**
      * Merge property set in <tt>data</tt> into the existing channel <tt>name</tt>.
+     *
      * @param name channel to merge the properties and tags into
      * @param data XmlChannel data containing properties and tags
+     * @throws SQLException
      */
-    public void mergeChannel(String name, XmlChannel data) {
+    public void mergeChannel(String name, XmlChannel data) throws SQLException {
         cm.mergeChannel(name, data);
     }
 
     /**
      * Deletes a tag identified by <tt>name</tt> from all channels.
+     * 
      * @param name tag to delete
+     * @throws SQLException
      */
-    public void deleteTag(String name) {
+    public void deleteTag(String name) throws SQLException {
         cm.deleteTag(name);
     }
 
     /**
      * Adds a tag identified by <tt>name</tt> to all channels in <tt>data</tt>.
+     *
      * @param name tag to add
      * @param data XmlChannels data containing channel names
+     * @throws SQLException
      */
-    public void addTag(String name, XmlChannels data) {
+    public void addTag(String name, XmlChannels data) throws SQLException {
         String owner = ChannelManager.findAndCheckOwner(data, name);
         cm.addTag(name, owner, data);
     }
 
     /**
      * Adds a tag identified by <tt>name</tt> to all channels in <tt>data</tt>.
+     *
      * @param name tag to add
      * @param data XmlChannels data containing channel names
+     * @throws SQLException
      */
-    public void putTag(String name, XmlChannels data) {
+    public void putTag(String name, XmlChannels data) throws SQLException {
         String owner = ChannelManager.findAndCheckOwner(data, name);
         cm.putTag(name, owner, data);
     }
@@ -142,21 +167,25 @@ public class AccessManager {
     /**
      * Adds a tag identified by <tt>name</tt> to channel <tt>chan</tt>,
      * with ownership specified in <tt>data</tt>.
+     *
      * @param name tag to add
      * @param chan channel to add tag to
      * @param data XmlChannels data containing channel names
+     * @throws SQLException
      */
-    public void addSingleTag(String name, String chan, XmlChannel data) {
+    public void addSingleTag(String name, String chan, XmlChannel data) throws SQLException {
         String owner = ChannelManager.findAndCheckOwner(data, name);
         cm.addSingleTag(name, owner, chan, data);
     }
 
     /**
      * Deletes a tag identified by <tt>name</tt> from channel <tt>chan</tt>.
+     *
      * @param name tag to delete
      * @param chan channel to delete tag from
+     * @throws SQLException
      */
-    public void deleteSingleTag(String name, String chan) {
+    public void deleteSingleTag(String name, String chan) throws SQLException {
         cm.deleteSingleTag(name, chan);
     }
 }

@@ -5,6 +5,7 @@
 
 package gov.bnl.channelfinder;
 
+import java.sql.SQLException;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
@@ -13,6 +14,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.SecurityContext;
+import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -22,35 +24,57 @@ import javax.ws.rs.core.SecurityContext;
 @Path("/channels/")
 public class ChannelsResource {
     @Context
-    protected UriInfo uriInfo;
+    private UriInfo uriInfo;
     @Context
-    protected SecurityContext securityContext;
+    private SecurityContext securityContext;
+    private DbConnection db = DbConnection.getInstance();
   
     /** Creates a new instance of ChannelsResource */
     public ChannelsResource() {
     }
 
     /**
-     * Get method for retrieving a collection of Channel instances in XML format.
+     * GET method for retrieving a collection of Channel instances,
+     * based on a multi-parameter query specifiying patterns for tags, property values,
+     * and channel names to match against.
      *
-     * @return an instance of XmlChannels
+     * @return matching channels with their properties and tags
      */
     @GET
     @Produces({"application/xml", "application/json"})
     public XmlChannels get() {
-        return AccessManager.getInstance().findChannelsByMultiMatch(uriInfo.getQueryParameters());
+        XmlChannels result = null;
+        try {
+            db.getConnection();
+            db.beginTransaction();
+            result = AccessManager.getInstance().findChannelsByMultiMatch(uriInfo.getQueryParameters());
+            db.commit();
+        } catch (SQLException e) {
+            throw new WebServiceException("SQLException during channels GET operation", e);
+        } finally {
+            db.releaseConnection();
+        }
+        return result;
     }
 
     /**
-     * Post method for creating channel instances using XML as the input format.
+     * POST method for creating channel instances.
      *
-     * @param data an XmlChannels entity that is deserialized from a XML stream
+     * @param data channels data (from payload)
      */
     @POST
     @Consumes({"application/xml", "application/json"})
     public void post(XmlChannels data) {
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
-        AccessManager.getInstance().createChannels(data);
+        try {
+            db.getConnection();
+            db.beginTransaction();
+            AccessManager.getInstance().createChannels(data);
+            db.commit();
+        } catch (SQLException e) {
+            throw new WebServiceException("SQLException during channels POST operation", e);
+        } finally {
+            db.releaseConnection();
+        }
     }
-
 }
