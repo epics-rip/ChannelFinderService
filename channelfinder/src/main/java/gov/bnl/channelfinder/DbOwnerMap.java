@@ -147,4 +147,22 @@ public class DbOwnerMap {
         return matchesOwnersIn(new XmlChannels(data));
     }
 
+    /**
+     * Returns the (database) owner of the specified property or tag.
+     * @param name of tag/property to look up
+     * @return owner of specified <tt>name</tt>, null if not in db
+     */
+    public String getPropertyOwner(String name) {
+        return powner.get(name);
+    }
+
+    /**
+     * Returns the (database) owner of the specified channel.
+     * @param name of channel to look up
+     * @return owner of specified <tt>name</tt>, null if not in db
+     */
+    public String getChannelOwner(String name) {
+        return cowner.get(name);
+    }
+
 }

@@ -148,34 +148,32 @@ public class AccessManager {
      * @throws SQLException
      */
     public void addTag(String name, XmlChannels data) throws SQLException {
-        String owner = ChannelManager.findAndCheckOwner(data, name);
-        cm.addTag(name, owner, data);
+        cm.addTag(name, DbOwnerMap.getInstance().getPropertyOwner(name), data);
     }
 
     /**
-     * Adds a tag identified by <tt>name</tt> to all channels in <tt>data</tt>.
+     * Adds a tag identified by <tt>name</tt> <b>exclusively</b>
+     * to all channels in <tt>data</tt>.
      *
      * @param name tag to add
      * @param data XmlChannels data containing channel names
      * @throws SQLException
      */
     public void putTag(String name, XmlChannels data) throws SQLException {
-        String owner = ChannelManager.findAndCheckOwner(data, name);
-        cm.putTag(name, owner, data);
+        cm.putTag(name, DbOwnerMap.getInstance().getPropertyOwner(name), data);
     }
 
     /**
-     * Adds a tag identified by <tt>name</tt> to channel <tt>chan</tt>,
-     * with ownership specified in <tt>data</tt>.
+     * Adds a tag identified by <tt>name</tt> to single channel <tt>chan</tt>,
+     * with ownership specified in <tt>data</tt> (if not in database).
      *
      * @param name tag to add
      * @param chan channel to add tag to
-     * @param data XmlChannels data containing channel names
+     * @param data XmlChannels data containing tag ownership (for new tag)
      * @throws SQLException
      */
     public void addSingleTag(String name, String chan, XmlChannel data) throws SQLException {
-        String owner = ChannelManager.findAndCheckOwner(data, name);
-        cm.addSingleTag(name, owner, chan, data);
+        cm.addSingleTag(name, DbOwnerMap.getInstance().getPropertyOwner(name), chan, data);
     }
 
     /**
