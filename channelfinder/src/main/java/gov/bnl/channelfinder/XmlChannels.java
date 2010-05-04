@@ -19,8 +19,15 @@ import javax.xml.bind.annotation.XmlElement;
 public class XmlChannels {
     private Collection<XmlChannel> items = new ArrayList<XmlChannel>();
   
-    /** Creates a new instance of XmlChannels */
+    /** Creates a new instance of XmlChannels. */
     public XmlChannels() {
+    }
+
+    /** Creates a new instance of XmlChannels with one initial channel.
+     * @param c initial element
+     */
+    public XmlChannels(XmlChannel c) {
+        items.add(c);
     }
 
     /**
@@ -33,6 +40,11 @@ public class XmlChannels {
         return items;
     }
 
+    /**
+     * Sets the collection of channels.
+     *
+     * @param items new channel collection
+     */
     public void setChannels(Collection<XmlChannel> items) {
         this.items = items;
     }
