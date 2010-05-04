@@ -16,7 +16,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.WebServiceException;
-import javax.xml.ws.http.HTTPException;
 
 /**
  *
@@ -34,8 +33,7 @@ public class ChannelResource {
     }
 
     /**
-     * HTTP GET method for retrieving an instance of Channel identified by <tt>name</tt>.
-     * Throws an HTTPException (404) if a channel of that name does not exist.
+     * GET method for retrieving an instance of Channel identified by <tt>name</tt>.
      *
      * @param name channel name
      * @return XmlChannel channel data with all properties and tags
@@ -58,8 +56,7 @@ public class ChannelResource {
     }
 
     /**
-     * HTTP PUT method for creating/updating an instance of Channel identified by the
-     * XML input.
+     * PUT method for creating/updating a channel instance identified by the payload.
      * The <b>complete</b> set of properties for the channel must be supplied,
      * which will replace the existing set of properties.
      *
@@ -73,6 +70,7 @@ public class ChannelResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().updateChannel(name, data);
             db.commit();
         } catch (SQLException e) {
@@ -83,11 +81,11 @@ public class ChannelResource {
     }
 
     /**
-     * HTTP POST method for merging properties and tags of the Channel identified by the
-     * XML input into an existing Channel.
+     * POST method for merging properties and tags of the Channel identified by the
+     * payload into an existing channel.
      *
-     * @param name
-     * @param data an XmlChannel entity that is deserialized from a XML stream
+     * @param name name of channel to update
+     * @param data new data (properties/tags) to be merged into channel <tt>name</tt>
      */
     @POST
     @Consumes({"application/xml", "application/json"})
@@ -96,6 +94,7 @@ public class ChannelResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().mergeChannel(name, data);
             db.commit();
         } catch (SQLException e) {
@@ -106,7 +105,7 @@ public class ChannelResource {
     }
 
     /**
-     * HTTP DELETE method for deleting an instance of Channel identified by
+     * DELETE method for deleting a channel instance identified by
      * path parameter <tt>name</tt>.
      *
      * @param name channel to delete
@@ -117,6 +116,7 @@ public class ChannelResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapForChannel(name);
             AccessManager.getInstance().deleteChannel(name);
             db.commit();
         } catch (SQLException e) {

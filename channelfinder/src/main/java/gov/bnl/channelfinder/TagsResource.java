@@ -70,6 +70,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
         } catch (SQLException e) {
@@ -93,6 +94,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
         } catch (SQLException e) {
@@ -114,6 +116,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapForProperty(name);
             AccessManager.getInstance().deleteTag(name);
             db.commit();
         } catch (SQLException e) {
@@ -140,6 +143,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
         } catch (SQLException e) {
@@ -165,6 +169,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            DbOwnerMap.getInstance().loadMapForProperty(tag);
             AccessManager.getInstance().deleteSingleTag(tag, chan);
             db.commit();
         } catch (SQLException e) {
@@ -174,4 +179,5 @@ public class TagsResource {
             db.releaseConnection();
         }
     }
+
 }
