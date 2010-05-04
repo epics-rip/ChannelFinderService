@@ -18,13 +18,12 @@ import javax.xml.ws.WebServiceException;
 public class DbConnection {
 
     private static ThreadLocal<DbConnection> instance = new ThreadLocal<DbConnection>() {
-
         @Override
         protected DbConnection initialValue() {
             return new DbConnection();
         }
     };
-    private ThreadLocal<Connection> con = new ThreadLocal<Connection>();
+    private Connection con;
     private DataSource ds;
 
     private DbConnection() {
@@ -53,20 +52,20 @@ public class DbConnection {
      * @throws SQLException
      */
     public Connection getConnection() throws SQLException {
-        if (con.get() == null) {
-            con.set(ds.getConnection());
+        if (con == null) {
+            con = ds.getConnection();
         }
-        return con.get();
+        return con;
     }
 
     /**
      * Release the current (thread local) DataSource Connection.
      */
     public void releaseConnection() {
-        if (con.get() != null) {
+        if (con != null) {
             try {
-                con.get().close();
-                con.set(null);
+                con.close();
+                con = null;
             } catch (Exception e) {
                 throw new WebServiceException("SQLException while releasing connection", e);
             }
@@ -79,8 +78,8 @@ public class DbConnection {
      */
     public void beginTransaction() throws SQLException {
         getConnection();
-        con.get().setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        con.get().setAutoCommit(false);
+        con.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+        con.setAutoCommit(false);
     }
 
     /**
@@ -88,8 +87,8 @@ public class DbConnection {
      * @throws SQLException
      */
     public void commit() throws SQLException {
-        if (con.get() != null) {
-            con.get().commit();
+        if (con != null) {
+            con.commit();
         }
     }
 
@@ -97,9 +96,9 @@ public class DbConnection {
      * Ends a transaction by rolling back.
      */
     public void rollback() {
-        if (con.get() != null) {
+        if (con != null) {
             try {
-                con.get().rollback();
+                con.rollback();
             } catch (Exception e) {
                 throw new WebServiceException("SQLException during rollback", e);
             }
