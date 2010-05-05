@@ -148,7 +148,7 @@ public class AccessManager {
      * @throws SQLException
      */
     public void addTag(String name, XmlChannels data) throws SQLException {
-        cm.addTag(name, DbOwnerMap.getInstance().getPropertyOwner(name), data);
+        cm.addTag(name, data);
     }
 
     /**
@@ -160,7 +160,7 @@ public class AccessManager {
      * @throws SQLException
      */
     public void putTag(String name, XmlChannels data) throws SQLException {
-        cm.putTag(name, DbOwnerMap.getInstance().getPropertyOwner(name), data);
+        cm.putTag(name, data);
     }
 
     /**
@@ -173,7 +173,7 @@ public class AccessManager {
      * @throws SQLException
      */
     public void addSingleTag(String name, String chan, XmlChannel data) throws SQLException {
-        cm.addSingleTag(name, DbOwnerMap.getInstance().getPropertyOwner(name), chan, data);
+        cm.addSingleTag(name, chan, data);
     }
 
     /**
