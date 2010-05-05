@@ -26,7 +26,6 @@ public class ChannelResource {
 
     @Context
     private SecurityContext securityContext;
-    private DbConnection db = DbConnection.getInstance();
 
     /** Creates a new instance of ChannelResource */
     public ChannelResource() {
@@ -41,6 +40,7 @@ public class ChannelResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public XmlChannel get(@PathParam("name") String name) {
+        DbConnection db = DbConnection.getInstance();
         XmlChannel result = null;
         try {
             db.getConnection();
@@ -66,6 +66,7 @@ public class ChannelResource {
     @PUT
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannel data) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -90,6 +91,7 @@ public class ChannelResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public void post(@PathParam("name") String name, XmlChannel data) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -112,6 +114,7 @@ public class ChannelResource {
      */
     @DELETE
     public void delete(@PathParam("name") String name) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();

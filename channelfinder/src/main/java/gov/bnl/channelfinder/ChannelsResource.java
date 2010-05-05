@@ -27,7 +27,6 @@ public class ChannelsResource {
     private UriInfo uriInfo;
     @Context
     private SecurityContext securityContext;
-    private DbConnection db = DbConnection.getInstance();
   
     /** Creates a new instance of ChannelsResource */
     public ChannelsResource() {
@@ -43,6 +42,7 @@ public class ChannelsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public XmlChannels get() {
+        DbConnection db = DbConnection.getInstance();
         XmlChannels result = null;
         try {
             db.getConnection();
@@ -65,6 +65,7 @@ public class ChannelsResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public void post(XmlChannels data) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();

@@ -26,7 +26,6 @@ public class TagsResource {
 
     @Context
     private SecurityContext securityContext;
-    private DbConnection db = DbConnection.getInstance();
 
     /** Creates a new instance of TagsResource */
     public TagsResource() {
@@ -42,6 +41,7 @@ public class TagsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public XmlChannels get(@PathParam("name") String name) {
+        DbConnection db = DbConnection.getInstance();
         XmlChannels result = null;
         try {
             db.getConnection();
@@ -66,6 +66,7 @@ public class TagsResource {
     @PUT
     @Consumes({"application/xml", "application/json"})
     public void put(@PathParam("name") String name, XmlChannels data) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -90,6 +91,7 @@ public class TagsResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public void post(@PathParam("name") String name, XmlChannels data) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -112,6 +114,7 @@ public class TagsResource {
      */
     @DELETE
     public void delete(@PathParam("name") String name) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -139,6 +142,7 @@ public class TagsResource {
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
     public void putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlChannel data) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -165,6 +169,7 @@ public class TagsResource {
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
     public void deleteSingle(@PathParam("name") String tag, @PathParam("chan") String chan) {
+        DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
@@ -179,5 +184,4 @@ public class TagsResource {
             db.releaseConnection();
         }
     }
-
 }
