@@ -40,8 +40,7 @@ public class AddTagQuery {
     public AddTagQuery(String name, String owner, XmlChannel data) {
         this.name = name;
         this.owner = owner;
-        this.data = new XmlChannels();
-        this.data.addChannel(data);
+        this.data = new XmlChannels(data);
     }
 
     /**
