@@ -64,6 +64,7 @@ public class DbConnection {
     public void releaseConnection() {
         if (con != null) {
             try {
+                con.rollback();
                 con.close();
                 con = null;
             } catch (Exception e) {
