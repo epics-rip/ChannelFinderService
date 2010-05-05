@@ -125,12 +125,21 @@ public class DbOwnerMap {
      */
     public boolean matchesOwnersIn(XmlChannels data) {
         for (XmlChannel c : data.getChannels()) {
-            if (!c.getOwner().equals(cowner.get(c.getName()))) return false;
+            if (cowner.get(c.getName()) != null
+                    && !c.getOwner().equals(cowner.get(c.getName()))) {
+                return false;
+            }
             for (XmlProperty p : c.getXmlProperties()) {
-                if (!p.getOwner().equals(powner.get(p.getName()))) return false;
+                if (powner.get(p.getName()) != null
+                        && !p.getOwner().equals(powner.get(p.getName()))) {
+                    return false;
+                }
             }
             for (XmlTag t : c.getXmlTags()) {
-                if (!t.getOwner().equals(powner.get(t.getName()))) return false;
+                if (powner.get(t.getName()) != null
+                        && !t.getOwner().equals(powner.get(t.getName()))) {
+                    return false;
+                }
             }
         }
         return true;
@@ -148,7 +157,36 @@ public class DbOwnerMap {
     }
 
     /**
+     * Returns the (database) owner of the specified property or tag, or,
+     * if tag is new, the owner from the specified XmlChannel <tt>data</tt>.
+     *
+     * @param name of tag/property to look up
+     * @param data XmlChannel data to use for new tag/property
+     * @return owner of specified <tt>name</tt>, null if undefined
+     */
+    public String enforcedPropertyOwner(String name, XmlChannels data) {
+        String owner = powner.get(name);
+        if (owner != null) {
+            return owner;
+        }
+        for (XmlChannel c : data.getChannels()) {
+            for (XmlProperty p : c.getXmlProperties()) {
+                if (name.equals(p.getName())) {
+                    return p.getOwner();
+                }
+            }
+            for (XmlTag t : c.getXmlTags()) {
+                if (name.equals(t.getName())) {
+                    return t.getOwner();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns the (database) owner of the specified property or tag.
+     *
      * @param name of tag/property to look up
      * @return owner of specified <tt>name</tt>, null if not in db
      */
@@ -158,6 +196,7 @@ public class DbOwnerMap {
 
     /**
      * Returns the (database) owner of the specified channel.
+     *
      * @param name of channel to look up
      * @return owner of specified <tt>name</tt>, null if not in db
      */
