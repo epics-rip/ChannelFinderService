@@ -72,7 +72,7 @@ public class CreateChannelQuery {
         }
 
         // Insert tags
-        if (this.chan.getXmlProperties().size() > 0) {
+        if (this.chan.getXmlTags().size() > 0) {
             params.clear();
             query = "INSERT INTO property (channel_id, property, owner) VALUES ";
             for (XmlTag tag : this.chan.getXmlTags()) {
@@ -92,5 +92,4 @@ public class CreateChannelQuery {
             ps.executeUpdate();
         }
     }
-
 }
