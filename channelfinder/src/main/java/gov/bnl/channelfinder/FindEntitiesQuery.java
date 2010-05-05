@@ -104,13 +104,16 @@ public class FindEntitiesQuery {
 
         StringBuffer query = new StringBuffer(q_base);
         for (String name : names) {
-            if (!query.toString().endsWith("OR")) {
+            if (!query.toString().endsWith(" OR")) {
                 query.append(" WHERE");
             }
             query.append(q_clause);
             name_params.add(name);
         }
-        query.delete(query.length()-3, query.length()).append(q_group);
+        if (query.toString().endsWith(" OR")) {
+            query.delete(query.length()-3, query.length());
+        }
+        query.append(q_group);
 
         ps = con.prepareStatement(query.toString());
         int i = 1;
