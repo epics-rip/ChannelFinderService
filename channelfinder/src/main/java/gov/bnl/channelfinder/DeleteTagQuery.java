@@ -19,7 +19,7 @@ public class DeleteTagQuery {
     private String channel = null;
 
     /**
-     * Creates a new instance of DeleteChannelQuery
+     * Creates a new instance of DeleteTagQuery
      *
      * @param tag  tag name
      */
@@ -28,9 +28,10 @@ public class DeleteTagQuery {
     }
 
     /**
-     * Creates a new instance of DeleteChannelQuery for a single channel delete
+     * Creates a new instance of DeleteTagQuery for a single tag delete
      *
-     * @param tag  tag name
+     * @param tag tag name
+     * @param channel channel to delete <tt>tag</tt> from
      */
     public DeleteTagQuery(String tag, String channel) {
         this.tag = tag;
@@ -38,9 +39,9 @@ public class DeleteTagQuery {
     }
 
     /**
-     * Creates and executes a JDBC based query
+     * Creates and executes the JDBC based query
      *
-     * @param con  connection to use
+     * @param con connection to use
      * @throws SQLException
      */
     public void executeQuery(Connection con) throws SQLException {

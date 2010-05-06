@@ -22,9 +22,11 @@ public class AddTagQuery {
     private String owner;
 
     /**
-     * Creates a new instance of AddTagQuery
+     * Creates a new instance of AddTagQuery.
      *
-     * @param data  channel data
+     * @param name name of tag to add
+     * @param data channel data (channels to add tag to)
+     * @param owner owner for tag to add
      */
     public AddTagQuery(String name, String owner, XmlChannels data) {
         this.name = name;
@@ -35,7 +37,9 @@ public class AddTagQuery {
     /**
      * Creates a new instance of AddTagQuery for a single channel
      *
-     * @param data  channel data
+     * @param name name of tag to add
+     * @param data channel data (channel to add tag to)
+     * @param owner owner for tag to add
      */
     public AddTagQuery(String name, String owner, XmlChannel data) {
         this.name = name;
