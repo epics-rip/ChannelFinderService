@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -26,28 +27,35 @@ public class CreateChannelQuery {
      * @param chan  channel name
      */
     public CreateChannelQuery(XmlChannel chan) {
-    this.chan = chan;
+        this.chan = chan;
     }
 
     /**
      * Creates and executes a JDBC based query to create a channel and its properties
      *
      * @param con  connection to use
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void executeQuery(Connection con) throws SQLException {
+    public void executeQuery(Connection con) throws CFException {
         List<List<String>> params = new ArrayList<List<String>>();
+        PreparedStatement ps;
         int i;
+        long id;
 
         // Insert channel
         String query = "INSERT INTO channel (name, owner) VALUE (?, ?)";
-        PreparedStatement ps = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-        ps.setString(1, chan.getName());
-        ps.setString(2, chan.getOwner());
-        ps.execute();
-        ResultSet rs = ps.getGeneratedKeys();
-        rs.first();
-        long id = rs.getLong(1);
+        try {
+            ps = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, chan.getName());
+            ps.setString(2, chan.getOwner());
+            ps.execute();
+            ResultSet rs = ps.getGeneratedKeys();
+            rs.first();
+            id = rs.getLong(1);
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while adding channel " + chan.getName(), e);
+        }
 
         // Insert properties
         if (this.chan.getXmlProperties().size() > 0) {
@@ -61,14 +69,20 @@ public class CreateChannelQuery {
                 par.add(prop.getOwner());
                 params.add(par);
             }
-            ps = con.prepareStatement(query.substring(0, query.length() - 1));
-            i = 1;
-            for (List<String> par : params) {
-                ps.setLong(i++, id);
-                for (int j = 0; j < 3; j++)
-                    ps.setString(i++, par.get(j));
+            try {
+                ps = con.prepareStatement(query.substring(0, query.length() - 1));
+                i = 1;
+                for (List<String> par : params) {
+                    ps.setLong(i++, id);
+                    for (int j = 0; j < 3; j++) {
+                        ps.setString(i++, par.get(j));
+                    }
+                }
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                        "SQL Exception while adding properties for channel " + chan.getName(), e);
             }
-            ps.executeUpdate();
         }
 
         // Insert tags
@@ -82,14 +96,20 @@ public class CreateChannelQuery {
                 par.add(tag.getOwner());
                 params.add(par);
             }
-            ps = con.prepareStatement(query.substring(0, query.length() - 1));
-            i = 1;
-            for (List<String> par : params) {
-                ps.setLong(i++, id);
-                for (int j = 0; j < 2; j++)
-                    ps.setString(i++, par.get(j));
+            try {
+                ps = con.prepareStatement(query.substring(0, query.length() - 1));
+                i = 1;
+                for (List<String> par : params) {
+                    ps.setLong(i++, id);
+                    for (int j = 0; j < 2; j++) {
+                        ps.setString(i++, par.get(j));
+                    }
+                }
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                        "SQL Exception while adding tags for channel " + chan.getName(), e);
             }
-            ps.executeUpdate();
         }
     }
 }

@@ -14,6 +14,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.WebServiceException;
 
@@ -35,11 +36,11 @@ public class ChannelResource {
      * GET method for retrieving an instance of Channel identified by <tt>name</tt>.
      *
      * @param name channel name
-     * @return XmlChannel channel data with all properties and tags
+     * @return HTTP Response
      */
     @GET
     @Produces({"application/xml", "application/json"})
-    public XmlChannel get(@PathParam("name") String name) {
+    public Response get(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
         XmlChannel result = null;
         try {
@@ -47,12 +48,16 @@ public class ChannelResource {
             db.beginTransaction();
             result = AccessManager.getInstance().findChannelByName(name);
             db.commit();
-        } catch (Exception e) {
-            throw new WebServiceException("SQLException during GET operation on channel " + name, e);
+            if (result == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            } else {
+                return Response.ok(result).build();
+            }
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
-        return result;
     }
 
     /**
@@ -62,10 +67,11 @@ public class ChannelResource {
      *
      * @param name name of channel to create or update
      * @param data new data (properties/tags) for channel <tt>name</tt>
+     * @return HTTP response
      */
     @PUT
     @Consumes({"application/xml", "application/json"})
-    public void put(@PathParam("name") String name, XmlChannel data) {
+    public Response put(@PathParam("name") String name, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -74,8 +80,9 @@ public class ChannelResource {
             DbOwnerMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().updateChannel(name, data);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during PUT operation on channel " + name, e);
+            return Response.noContent().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
@@ -87,10 +94,11 @@ public class ChannelResource {
      *
      * @param name name of channel to update
      * @param data new data (properties/tags) to be merged into channel <tt>name</tt>
+     * @return HTTP response
      */
     @POST
     @Consumes({"application/xml", "application/json"})
-    public void post(@PathParam("name") String name, XmlChannel data) {
+    public Response post(@PathParam("name") String name, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -99,8 +107,9 @@ public class ChannelResource {
             DbOwnerMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().mergeChannel(name, data);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during POST operation on channel " + name, e);
+            return Response.noContent().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
@@ -111,9 +120,10 @@ public class ChannelResource {
      * path parameter <tt>name</tt>.
      *
      * @param name channel to delete
+     * @return HTTP Response
      */
     @DELETE
-    public void delete(@PathParam("name") String name) {
+    public Response delete(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -122,8 +132,9 @@ public class ChannelResource {
             DbOwnerMap.getInstance().loadMapForChannel(name);
             AccessManager.getInstance().deleteChannel(name);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during DELETE operation on channel " + name, e);
+            return Response.ok().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }

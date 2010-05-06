@@ -13,6 +13,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.WebServiceException;
 
@@ -37,34 +38,34 @@ public class ChannelsResource {
      * based on a multi-parameter query specifiying patterns for tags, property values,
      * and channel names to match against.
      *
-     * @return matching channels with their properties and tags
+     * @return HTTP Response
      */
     @GET
     @Produces({"application/xml", "application/json"})
-    public XmlChannels get() {
+    public Response get() {
         DbConnection db = DbConnection.getInstance();
-        XmlChannels result = null;
         try {
             db.getConnection();
             db.beginTransaction();
-            result = AccessManager.getInstance().findChannelsByMultiMatch(uriInfo.getQueryParameters());
+            XmlChannels result = AccessManager.getInstance().findChannelsByMultiMatch(uriInfo.getQueryParameters());
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during channels GET operation", e);
+            return Response.ok(result).build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
-        return result;
     }
 
     /**
      * POST method for creating channel instances.
      *
      * @param data channels data (from payload)
+     * @return HTTP Response
      */
     @POST
     @Consumes({"application/xml", "application/json"})
-    public void post(XmlChannels data) {
+    public Response post(XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -73,8 +74,9 @@ public class ChannelsResource {
             DbOwnerMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().createChannels(data);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during channels POST operation", e);
+            return Response.noContent().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }

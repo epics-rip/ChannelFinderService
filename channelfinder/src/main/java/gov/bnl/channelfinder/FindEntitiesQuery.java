@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -83,9 +84,9 @@ public class FindEntitiesQuery {
      *
      * @param con connection to use
      * @return result set with columns named <tt>name</tt>, <tt>owner</tt>
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public ResultSet executeQuery(Connection con) throws SQLException {
+    public ResultSet executeQuery(Connection con) throws CFException {
         PreparedStatement ps;
         List<String> name_params = new ArrayList<String>();
 
@@ -115,9 +116,15 @@ public class FindEntitiesQuery {
         }
         query.append(q_group);
 
-        ps = con.prepareStatement(query.toString());
-        int i = 1;
-        for (String s : name_params) ps.setString(i++, s);
+        try {
+            ps = con.prepareStatement(query.toString());
+            int i = 1;
+            for (String s : name_params) ps.setString(i++, s);
 
-        return ps.executeQuery();    }
+            return ps.executeQuery();
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception in entity names query", e);
+        }
+    }
 }

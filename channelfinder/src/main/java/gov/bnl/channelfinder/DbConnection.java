@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import javax.ws.rs.core.Response;
 import javax.xml.ws.WebServiceException;
 
 /**
@@ -18,21 +19,23 @@ import javax.xml.ws.WebServiceException;
 public class DbConnection {
 
     private static ThreadLocal<DbConnection> instance = new ThreadLocal<DbConnection>() {
+
         @Override
         protected DbConnection initialValue() {
             return new DbConnection();
         }
     };
+    private static final String dbResourceName = "jdbc/channelfinder";
     private Connection con;
     private DataSource ds;
 
     private DbConnection() {
         try {
             InitialContext ic = new InitialContext();
-            ds = (DataSource) ic.lookup("java:comp/env/jdbc/channelfinder");
+            ds = (DataSource) ic.lookup("java:comp/env/" + dbResourceName);
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot find JDBC DataSource named 'channelfinder' "
-                    + "- check configuration", e);
+            throw new IllegalStateException("Cannot find JDBC DataSource '"
+                    + dbResourceName + "'", e);
         }
     }
 
@@ -49,11 +52,15 @@ public class DbConnection {
      * Returns the DataSource Connection, requesting a new one (thread local) if needed.
      *
      * @return Connection to the JDBC DataSource
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public Connection getConnection() throws SQLException {
+    public Connection getConnection() throws CFException {
         if (con == null) {
-            con = ds.getConnection();
+            try {
+                con = ds.getConnection();
+            } catch (SQLException e) {
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR, "Could not get db connection", e);
+            }
         }
         return con;
     }
@@ -68,28 +75,36 @@ public class DbConnection {
                 con.close();
                 con = null;
             } catch (Exception e) {
-                throw new WebServiceException("SQLException while releasing connection", e);
+                throw new WebServiceException("Could not release db connection", e);
             }
         }
     }
 
     /**
      * Begins a database transaction.
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void beginTransaction() throws SQLException {
+    public void beginTransaction() throws CFException {
         getConnection();
-        con.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        con.setAutoCommit(false);
+        try {
+            con.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            con.setAutoCommit(false);
+        } catch (Exception e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR, "Could not begin db transaction", e);
+        }
     }
 
     /**
      * Ends a transaction by committing.
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void commit() throws SQLException {
+    public void commit() throws CFException {
         if (con != null) {
-            con.commit();
+            try {
+                con.commit();
+            } catch (Exception e) {
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR, "Could not commit db transaction", e);
+            }
         }
     }
 
@@ -101,7 +116,7 @@ public class DbConnection {
             try {
                 con.rollback();
             } catch (Exception e) {
-                throw new WebServiceException("SQLException during rollback", e);
+                throw new WebServiceException("Could not rollback db transaction", e);
             }
         }
     }

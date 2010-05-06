@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -51,11 +52,13 @@ public class AddTagQuery {
      * Creates and executes a JDBC based query to add a tag to the listed channels
      *
      * @param con  connection to use
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void executeQuery(Connection con) throws SQLException {
+    public void executeQuery(Connection con) throws CFException {
         List<String> params = new ArrayList<String>();
         List<Long> ids = new ArrayList<Long>();
+        PreparedStatement ps;
+        int i;
 
         // Get Channel ids
         String query = "SELECT id FROM channel WHERE ";
@@ -64,16 +67,22 @@ public class AddTagQuery {
             params.add(chan.getName());
         }
         query = query.substring(0, query.length() - 3);
-        PreparedStatement ps = con.prepareStatement(query);
-        int i = 1;
-        for (String p : params) {
-            ps.setString(i++, p);
-        }
 
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            // Add key to list of matching channel ids
-            ids.add(rs.getLong(1));
+        try {
+            ps = con.prepareStatement(query);
+            i = 1;
+            for (String p : params) {
+                ps.setString(i++, p);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                // Add key to list of matching channel ids
+                ids.add(rs.getLong(1));
+            }
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while preparing insertion of tag " + name, e);
         }
 
         // Insert tags
@@ -84,14 +93,19 @@ public class AddTagQuery {
             params.add(name);
             params.add(owner);
         }
-        ps = con.prepareStatement(query.substring(0, query.length() - 1));
-        i = 1;
-        int j = 0;
-        for (Long id : ids) {
-            ps.setLong(i++, id);
-            ps.setString(i++, params.get(j++));
-            ps.setString(i++, params.get(j++));
+        try {
+            ps = con.prepareStatement(query.substring(0, query.length() - 1));
+            i = 1;
+            int j = 0;
+            for (Long id : ids) {
+                ps.setLong(i++, id);
+                ps.setString(i++, params.get(j++));
+                ps.setString(i++, params.get(j++));
+            }
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while inserting tag " + name, e);
         }
-        ps.executeUpdate();
     }
 }

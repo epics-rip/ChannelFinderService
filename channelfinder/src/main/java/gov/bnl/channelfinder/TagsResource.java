@@ -14,6 +14,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.WebServiceException;
 
@@ -40,7 +41,7 @@ public class TagsResource {
      */
     @GET
     @Produces({"application/xml", "application/json"})
-    public XmlChannels get(@PathParam("name") String name) {
+    public Response get(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
         XmlChannels result = null;
         try {
@@ -48,12 +49,12 @@ public class TagsResource {
             db.beginTransaction();
             result = AccessManager.getInstance().findChannelsByTag(name);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during GET operation on tag " + name, e);
+            return Response.ok(result).build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
-        return result;
     }
 
     /**
@@ -62,10 +63,11 @@ public class TagsResource {
      *
      * @param name URI path parameter: tag name
      * @param data list of channels to put the tag <tt>name</tt> on
+     * @return HTTP Response
      */
     @PUT
     @Consumes({"application/xml", "application/json"})
-    public void put(@PathParam("name") String name, XmlChannels data) {
+    public Response put(@PathParam("name") String name, XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -74,8 +76,9 @@ public class TagsResource {
             DbOwnerMap.getInstance().loadMapForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during PUT operation on tag " + name, e);
+            return Response.noContent().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
@@ -87,10 +90,11 @@ public class TagsResource {
      *
      * @param name URI path parameter: tag name
      * @param data list of channels to add the tag <tt>name</tt> to
+     * @return HTTP Response
      */
     @POST
     @Consumes({"application/xml", "application/json"})
-    public void post(@PathParam("name") String name, XmlChannels data) {
+    public Response post(@PathParam("name") String name, XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -99,8 +103,9 @@ public class TagsResource {
             DbOwnerMap.getInstance().loadMapForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during POST operation on tag " + name, e);
+            return Response.noContent().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
@@ -111,9 +116,10 @@ public class TagsResource {
      * from all channels.
      *
      * @param name URI path parameter: tag name to delete
+     * @return HTTP Response
      */
     @DELETE
-    public void delete(@PathParam("name") String name) {
+    public Response delete(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -122,8 +128,9 @@ public class TagsResource {
             DbOwnerMap.getInstance().loadMapForProperty(name);
             AccessManager.getInstance().deleteTag(name);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during DELETE operation on tag " + name, e);
+            return Response.ok().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
@@ -137,11 +144,12 @@ public class TagsResource {
      * @param tag URI path parameter: tag name
      * @param chan URI path parameter: channel to add <tt>tag</tt> to
      * @param data channel data (specifying tag ownership)
+     * @return HTTP Response
      */
     @PUT
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
-    public void putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlChannel data) {
+    public Response putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -150,9 +158,9 @@ public class TagsResource {
             DbOwnerMap.getInstance().loadMapForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during PUT operation on tag/channel "
-                    + tag + "/" + chan, e);
+            return Response.noContent().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }
@@ -164,11 +172,12 @@ public class TagsResource {
      *
      * @param tag URI path parameter: tag name to delete
      * @param chan URI path parameter: channel to delete <tt>tag</tt> from
+     * @return HTTP Response
      */
     @DELETE
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
-    public void deleteSingle(@PathParam("name") String tag, @PathParam("chan") String chan) {
+    public Response deleteSingle(@PathParam("name") String tag, @PathParam("chan") String chan) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
@@ -177,9 +186,9 @@ public class TagsResource {
             DbOwnerMap.getInstance().loadMapForProperty(tag);
             AccessManager.getInstance().deleteSingleTag(tag, chan);
             db.commit();
-        } catch (SQLException e) {
-            throw new WebServiceException("SQLException during DELETE operation on tag/channel "
-                    + tag + "/" + chan, e);
+            return Response.ok().build();
+        } catch (CFException e) {
+            return e.toResponse();
         } finally {
             db.releaseConnection();
         }

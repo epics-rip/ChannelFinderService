@@ -36,9 +36,9 @@ public class AccessManager {
      *
      * @param name name to look for
      * @return XmlChannel with found channel and its properties
-     * @throws SQLException
+     * @throws CFException for SQL errors
      */
-    public XmlChannel findChannelByName(String name) throws SQLException {
+    public XmlChannel findChannelByName(String name) throws CFException {
         return cm.findChannelByName(name);
     }
 
@@ -47,9 +47,9 @@ public class AccessManager {
      *
      * @param name name to look for
      * @return XmlChannel with found channel and its properties
-     * @throws SQLException
+     * @throws CFException
      */
-    public XmlChannels findChannelsByTag(String name) throws SQLException {
+    public XmlChannels findChannelsByTag(String name) throws CFException {
         return cm.findChannelsByTag(name);
     }
 
@@ -58,9 +58,9 @@ public class AccessManager {
      *
      * @param matches collection of channel name patterns to match
      * @return XmlChannels container with all found channels and their properties
-     * @throws SQLException
+     * @throws CFException
      */
-    public XmlChannels findChannelsByNameMatch(Collection<String> matches) throws SQLException {
+    public XmlChannels findChannelsByNameMatch(Collection<String> matches) throws CFException {
         return cm.findChannelsByNameMatch(matches);
     }
 
@@ -70,9 +70,9 @@ public class AccessManager {
      * @param matches multivalued map of property names and patterns to match
      * their values against.
      * @return XmlChannels container with all found channels and their properties
-     * @throws SQLException
+     * @throws CFException
      */
-    public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) throws SQLException {
+    public XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) throws CFException {
         return cm.findChannelsByMultiMatch(matches);
     }
 
@@ -80,9 +80,9 @@ public class AccessManager {
      * Deletes a channel identified by <tt>name</tt>.
      * 
      * @param name channel to delete
-     * @throws SQLException
+     * @throws CFException
      */
-    public void deleteChannel(String name) throws SQLException {
+    public void deleteChannel(String name) throws CFException {
         cm.deleteChannel(name);
     }
 
@@ -93,9 +93,9 @@ public class AccessManager {
      *
      * @param name channel to update
      * @param data XmlChannel data
-     * @throws SQLException
+     * @throws CFException for name or owner mismatch, SQL error in query
      */
-    public void updateChannel(String name, XmlChannel data) throws SQLException {
+    public void updateChannel(String name, XmlChannel data) throws CFException {
         cm.updateChannel(name, data);
     }
 
@@ -103,9 +103,9 @@ public class AccessManager {
      * Create channels specified in <tt>data</tt>.
      * 
      * @param data XmlChannels data
-     * @throws SQLException
+     * @throws CFException
      */
-    public void createChannels(XmlChannels data) throws SQLException {
+    public void createChannels(XmlChannels data) throws CFException {
         cm.createChannels(data);
     }
 
@@ -113,9 +113,9 @@ public class AccessManager {
      * Create a new channel using the property set in <tt>data</tt>.
      * 
      * @param data XmlChannel data
-     * @throws SQLException
+     * @throws CFException
      */
-    public void createChannel(XmlChannel data) throws SQLException {
+    public void createChannel(XmlChannel data) throws CFException {
         cm.createChannel(data);
     }
 
@@ -124,9 +124,9 @@ public class AccessManager {
      *
      * @param name channel to merge the properties and tags into
      * @param data XmlChannel data containing properties and tags
-     * @throws SQLException
+     * @throws CFException for name or owner mismatch, SQL error in query
      */
-    public void mergeChannel(String name, XmlChannel data) throws SQLException {
+    public void mergeChannel(String name, XmlChannel data) throws CFException {
         cm.mergeChannel(name, data);
     }
 
@@ -134,9 +134,9 @@ public class AccessManager {
      * Deletes a tag identified by <tt>name</tt> from all channels.
      * 
      * @param name tag to delete
-     * @throws SQLException
+     * @throws CFException
      */
-    public void deleteTag(String name) throws SQLException {
+    public void deleteTag(String name) throws CFException {
         cm.deleteTag(name);
     }
 
@@ -145,9 +145,9 @@ public class AccessManager {
      *
      * @param name tag to add
      * @param data XmlChannels data containing channel names
-     * @throws SQLException
+     * @throws CFException
      */
-    public void addTag(String name, XmlChannels data) throws SQLException {
+    public void addTag(String name, XmlChannels data) throws CFException {
         cm.addTag(name, data);
     }
 
@@ -157,9 +157,9 @@ public class AccessManager {
      *
      * @param name tag to add
      * @param data XmlChannels data containing channel names
-     * @throws SQLException
+     * @throws CFException
      */
-    public void putTag(String name, XmlChannels data) throws SQLException {
+    public void putTag(String name, XmlChannels data) throws CFException {
         cm.putTag(name, data);
     }
 
@@ -170,9 +170,9 @@ public class AccessManager {
      * @param name tag to add
      * @param chan channel to add tag to
      * @param data XmlChannels data containing tag ownership (for new tag)
-     * @throws SQLException
+     * @throws CFException
      */
-    public void addSingleTag(String name, String chan, XmlChannel data) throws SQLException {
+    public void addSingleTag(String name, String chan, XmlChannel data) throws CFException {
         cm.addSingleTag(name, chan, data);
     }
 
@@ -181,9 +181,9 @@ public class AccessManager {
      *
      * @param name tag to delete
      * @param chan channel to delete tag from
-     * @throws SQLException
+     * @throws CFException
      */
-    public void deleteSingleTag(String name, String chan) throws SQLException {
+    public void deleteSingleTag(String name, String chan) throws CFException {
         cm.deleteSingleTag(name, chan);
     }
 }

@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -44,14 +45,24 @@ public class DbOwnerMap {
         return instance.get();
     }
 
-    private void loadNewChannelMap(Collection<String> names) throws SQLException {
+    private void loadNewChannelMap(Collection<String> names) throws CFException {
         FindEntitiesQuery eq = FindEntitiesQuery.createFindChannelNamesQuery(names);
-        fillMap(cowner, eq.executeQuery(DbConnection.getInstance().getConnection()));
+        try {
+            fillMap(cowner, eq.executeQuery(DbConnection.getInstance().getConnection()));
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while loading channel name map", e);
+        }
     }
 
-    private void loadNewPropertyMap(Collection<String> names) throws SQLException {
+    private void loadNewPropertyMap(Collection<String> names) throws CFException {
         FindEntitiesQuery eq = FindEntitiesQuery.createFindPropertyNamesQuery(names);
-        fillMap(powner, eq.executeQuery(DbConnection.getInstance().getConnection()));
+        try {
+            fillMap(powner, eq.executeQuery(DbConnection.getInstance().getConnection()));
+       } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while loading property name map", e);
+        }
     }
 
     private void fillMap(Map<String, String> map, ResultSet rs) throws SQLException {
@@ -66,9 +77,9 @@ public class DbOwnerMap {
      * collection.
      *
      * @param data channels to create the owner maps for
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void loadMapsFor(XmlChannels data) throws SQLException {
+    public void loadMapsFor(XmlChannels data) throws CFException {
         List<String> cnames = new ArrayList<String>();
         List<String> pnames = new ArrayList<String>();
         for (XmlChannel c : data.getChannels()) {
@@ -88,9 +99,9 @@ public class DbOwnerMap {
      * Loads new owner maps for channels and properties/tags in the specified XmlChannel.
      *
      * @param data channel to create the owner maps for
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void loadMapsFor(XmlChannel data) throws SQLException {
+    public void loadMapsFor(XmlChannel data) throws CFException {
         loadMapsFor(new XmlChannels(data));
     }
 
@@ -98,9 +109,9 @@ public class DbOwnerMap {
      * Loads a new channel owner map for the single specified channel.
      *
      * @param name channel to create owner map for
-     * @throws SQLException
+     * @throws CFException wrapping an SQLException
      */
-    public void loadMapForChannel(String name) throws SQLException {
+    public void loadMapForChannel(String name) throws CFException {
         loadNewChannelMap(Collections.singleton(name));
         powner.clear();
     }
@@ -108,10 +119,10 @@ public class DbOwnerMap {
     /**
      * Loads a new property owner map for the single specified property.
      *
-     * @param name
-     * @throws SQLException
+     * @param name property/tag name to create owner map for
+     * @throws CFException wrapping an SQLException
      */
-    public void loadMapForProperty(String name) throws SQLException {
+    public void loadMapForProperty(String name) throws CFException {
         loadNewPropertyMap(Collections.singleton(name));
         cowner.clear();
     }
@@ -122,23 +133,29 @@ public class DbOwnerMap {
      *
      * @param data XmlChannels collection to check ownership for
      * @return <tt>true</tt> if owners match
+     * @throws CFException on owner mismatch
      */
-    public boolean matchesOwnersIn(XmlChannels data) {
+    public boolean matchesOwnersIn(XmlChannels data) throws CFException {
         for (XmlChannel c : data.getChannels()) {
             if (cowner.get(c.getName()) != null
                     && !c.getOwner().equals(cowner.get(c.getName()))) {
-                return false;
+                throw new CFException(Response.Status.BAD_REQUEST,
+                        "DB and payload owner for channel " + c.getName() + " do not match");
             }
             for (XmlProperty p : c.getXmlProperties()) {
                 if (powner.get(p.getName()) != null
                         && !p.getOwner().equals(powner.get(p.getName()))) {
-                    return false;
+                    throw new CFException(Response.Status.BAD_REQUEST,
+                            "DB and payload owner for channel " + c.getName() +
+                            " property " + p.getName() + " do not match");
                 }
             }
             for (XmlTag t : c.getXmlTags()) {
                 if (powner.get(t.getName()) != null
                         && !t.getOwner().equals(powner.get(t.getName()))) {
-                    return false;
+                    throw new CFException(Response.Status.BAD_REQUEST,
+                            "DB and payload owner for channel " + c.getName() +
+                            " tag " + t.getName() + " do not match");
                 }
             }
         }
@@ -151,8 +168,9 @@ public class DbOwnerMap {
      *
      * @param data XmlChannel to check ownership for
      * @return <tt>true</tt> if owners match
+     * @throws CFException on owner mismatch
      */
-    public boolean matchesOwnersIn(XmlChannel data) {
+    public boolean matchesOwnersIn(XmlChannel data) throws CFException {
         return matchesOwnersIn(new XmlChannels(data));
     }
 
@@ -203,5 +221,4 @@ public class DbOwnerMap {
     public String getChannelOwner(String name) {
         return cowner.get(name);
     }
-
 }
