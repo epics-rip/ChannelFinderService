@@ -335,8 +335,15 @@ public class ChannelManager {
      * @throws CFException on name or owner mismatch, or wrapping an SQLException
      */
     public void mergeChannel(String name, XmlChannel data) throws CFException {
-        XmlChannel dest = findChannelByName(name);
-        mergeXmlChannels(dest, data);
-        updateChannel(name, dest);
+        if (!name.equals(data.getName())) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Specified channel name " + name +
+                    " and payload channel name " + data.getName() + " do not match");
+        }
+        if (DbOwnerMap.getInstance().matchesOwnersIn(data)) {
+            XmlChannel dest = findChannelByName(name);
+            mergeXmlChannels(dest, data);
+            updateChannel(name, dest);
+        }
     }
 }
