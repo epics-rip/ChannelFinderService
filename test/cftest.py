@@ -1,9 +1,11 @@
 import unittest
 from simplejson import JSONDecoder, JSONEncoder
 from restful_lib import Connection
-from sys import exit
+import sys, os
 
-base_url = "http://localhost:8080/ChannelFinder"
+base_url = os.getenv("BASEURL")
+if base_url is None:
+    base_url = "http://localhost:8080/ChannelFinder"
 
 user_tag = "taggy"
 user_prop = "proppy"
@@ -488,6 +490,6 @@ if __name__ == '__main__':
     j1 = JSONDecoder().decode(response[u'body'])
     if (None != j1[u'channels']):
         print "Database not empty."
-        exit(1)
+        sys.exit(1)
 
     unittest.main()
