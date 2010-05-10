@@ -86,6 +86,10 @@ public class AddTagQuery {
         }
 
         // Insert tags
+        if (ids.isEmpty()) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "No such channels");
+        }
         params.clear();
         query = "INSERT INTO property (channel_id, property, owner) VALUES ";
         for (Long id : ids) {
