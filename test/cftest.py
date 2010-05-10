@@ -62,21 +62,23 @@ C1_full2_wrongcowner = JSONEncoder().encode({ '@name': 'C1', '@owner': 'xxxx',\
                                        {'@name': 'P2', '@value': 'prop22', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           })
-C1_full2_wrongpowner1 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
+_C1_full2_wrongpowner1 = { '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'xxxx'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
-          })
+          }
+C1_full2_wrongpowner1 = JSONEncoder().encode(_C1_full2_wrongpowner1)
 C1_full2_wrongpowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'xxxx'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           })
-C1_full2_wrongtowner1 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
+_C1_full2_wrongtowner1 = { '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'xxxx'}, {'@name': 'T2', '@owner': 'testt'} ] }\
-          })
+          }
+C1_full2_wrongtowner1 = JSONEncoder().encode(_C1_full2_wrongtowner1)
 C1_full2_wrongtowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
@@ -87,6 +89,8 @@ C1_full12_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property'
 
 C12_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full ]}})
 C12_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r]}}
+C12_full_wrongpowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner1, _C2_full ]}})
+C12_full_wrongtowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner1, _C2_full ]}})
 
 
 #############################################################################################
@@ -552,6 +556,20 @@ class createManyChannels(unittest.TestCase):
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_post(self.url, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+# using inconsistent property ownership in the payload
+    def test_AuthorizedAsChanInconsistentPropertyOwner(self):
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C12_full_wrongpowner1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminInconsistentPropertyOwner(self):
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongpowner1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+# using inconsistent tag ownership in the payload
+    def test_AuthorizedAsChanInconsistentTagOwner(self):
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminInconsistentTagOwner(self):
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
 
     def tearDown(self):

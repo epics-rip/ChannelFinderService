@@ -5,7 +5,6 @@
 
 package gov.bnl.channelfinder;
 
-import java.sql.SQLException;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
@@ -15,7 +14,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -71,7 +69,7 @@ public class ChannelsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            DbOwnerMap.getInstance().loadMapsFor(data);
+            OwnerMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().createChannels(data);
             db.commit();
             return Response.noContent().build();

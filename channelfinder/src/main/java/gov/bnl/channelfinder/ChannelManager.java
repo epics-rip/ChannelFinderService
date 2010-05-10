@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -227,7 +226,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addTag(String tag, XmlChannels data) throws CFException {
-        String owner = DbOwnerMap.getInstance().enforcedPropertyOwner(tag, data);
+        String owner = OwnerMap.getInstance().enforcedPropertyOwner(tag, data);
         if (owner == null) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
@@ -245,7 +244,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void putTag(String tag, XmlChannels data) throws CFException {
-        String owner = DbOwnerMap.getInstance().enforcedPropertyOwner(tag, data);
+        String owner = OwnerMap.getInstance().enforcedPropertyOwner(tag, data);
         if (owner == null) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
@@ -266,15 +265,15 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addSingleTag(String tag, String channel, XmlChannel data) throws CFException {
-        String owner = DbOwnerMap.getInstance().enforcedPropertyOwner(tag, new XmlChannels(data));
+        String owner = OwnerMap.getInstance().enforcedPropertyOwner(tag, new XmlChannels(data));
         if (owner == null) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
         }
         if (!channel.equals(data.getName())) {
             throw new CFException(Response.Status.BAD_REQUEST,
-                    "Specified channel name " + channel +
-                    " and payload channel name " + data.getName() + " do not match");
+                    "Specified channel name " + channel
+                    + " and payload channel name " + data.getName() + " do not match");
         }
         AddTagQuery aq = new AddTagQuery(tag, owner, data);
         aq.executeQuery(DbConnection.getInstance().getConnection());
@@ -292,16 +291,15 @@ public class ChannelManager {
     public void updateChannel(String name, XmlChannel data) throws CFException {
         if (!name.equals(data.getName())) {
             throw new CFException(Response.Status.BAD_REQUEST,
-                    "Specified channel name " + name +
-                    " and payload channel name " + data.getName() + " do not match");
+                    "Specified channel name " + name
+                    + " and payload channel name " + data.getName() + " do not match");
         }
         DbConnection db = DbConnection.getInstance();
-        if (DbOwnerMap.getInstance().matchesOwnersIn(data)) {
-            DeleteChannelQuery dq = new DeleteChannelQuery(name);
-            CreateChannelQuery cq = new CreateChannelQuery(data);
-            dq.executeQuery(db.getConnection());
-            cq.executeQuery(db.getConnection());
-        }
+        OwnerMap.getInstance().checkDbAndPayloadOwnersMatch();
+        DeleteChannelQuery dq = new DeleteChannelQuery(name);
+        CreateChannelQuery cq = new CreateChannelQuery(data);
+        dq.executeQuery(db.getConnection());
+        cq.executeQuery(db.getConnection());
     }
 
     /**
@@ -337,13 +335,12 @@ public class ChannelManager {
     public void mergeChannel(String name, XmlChannel data) throws CFException {
         if (!name.equals(data.getName())) {
             throw new CFException(Response.Status.BAD_REQUEST,
-                    "Specified channel name " + name +
-                    " and payload channel name " + data.getName() + " do not match");
+                    "Specified channel name " + name
+                    + " and payload channel name " + data.getName() + " do not match");
         }
-        if (DbOwnerMap.getInstance().matchesOwnersIn(data)) {
-            XmlChannel dest = findChannelByName(name);
-            mergeXmlChannels(dest, data);
-            updateChannel(name, dest);
-        }
+        OwnerMap.getInstance().checkDbAndPayloadOwnersMatch();
+        XmlChannel dest = findChannelByName(name);
+        mergeXmlChannels(dest, data);
+        updateChannel(name, dest);
     }
 }

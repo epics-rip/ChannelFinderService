@@ -73,7 +73,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            DbOwnerMap.getInstance().loadMapForProperty(name);
+            OwnerMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
             return Response.noContent().build();
@@ -100,7 +100,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            DbOwnerMap.getInstance().loadMapForProperty(name);
+            OwnerMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
             return Response.noContent().build();
@@ -125,7 +125,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            DbOwnerMap.getInstance().loadMapForProperty(name);
+            OwnerMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().deleteTag(name);
             db.commit();
             return Response.ok().build();
@@ -155,7 +155,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            DbOwnerMap.getInstance().loadMapForProperty(tag);
+            OwnerMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
             return Response.noContent().build();
@@ -183,7 +183,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            DbOwnerMap.getInstance().loadMapForProperty(tag);
+            OwnerMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().deleteSingleTag(tag, chan);
             db.commit();
             return Response.ok().build();
