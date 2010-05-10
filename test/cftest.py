@@ -46,6 +46,12 @@ _C2_full = { '@name': 'C2', '@owner': 'testc',\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'testt'} ] }\
           }
 C2_full = JSONEncoder().encode(_C2_full)
+_C3_full = { '@name': 'C3', '@owner': 'testc',\
+          'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
+                                       {'@name': 'P22', '@value': 'prop22', '@owner': 'testp'} ] },\
+          'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'testt'} ] }\
+          }
+C3_full = JSONEncoder().encode(_C3_full)
 C2_full_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}
 C1_full2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
@@ -73,12 +79,24 @@ C1_full2_wrongpowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'xxxx'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           })
+_C1_full2_wrongpowner3 = { '@name': 'C1', '@owner': 'testc',\
+          'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
+                                       {'@name': 'P22', '@value': 'prop2', '@owner': 'xxxx'} ] },\
+          'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
+          }
+C1_full2_wrongpowner3 = JSONEncoder().encode(_C1_full2_wrongpowner3)
 _C1_full2_wrongtowner1 = { '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'xxxx'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           }
 C1_full2_wrongtowner1 = JSONEncoder().encode(_C1_full2_wrongtowner1)
+_C1_full2_wrongtowner3 = { '@name': 'C1', '@owner': 'testc',\
+          'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
+                                       {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
+          'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'xxxx'} ] }\
+          }
+C1_full2_wrongtowner3 = JSONEncoder().encode(_C1_full2_wrongtowner3)
 C1_full2_wrongtowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
@@ -91,6 +109,8 @@ C12_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full ]}
 C12_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r]}}
 C12_full_wrongpowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner1, _C2_full ]}})
 C12_full_wrongtowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner1, _C2_full ]}})
+C12_full_wrongpowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner3, _C2_full ]}})
+C12_full_wrongtowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner3, _C2_full ]}})
 
 
 #############################################################################################
@@ -575,6 +595,39 @@ class createManyChannels(unittest.TestCase):
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
         response = conn_admin.request_delete(self.url2, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../channels POST                              restrictions by other (third) channel
+#############################################################################################
+class createManyChannelsThirdChannel(unittest.TestCase):
+    def setUp(self):
+        self.url1 = 'resources/channel/C1'
+        self.url2 = 'resources/channel/C2'
+        self.url3 = 'resources/channel/C3'
+        self.url = 'resources/channels'
+
+        response = conn_admin.request_put(self.url3, headers=jsonheader, body=C3_full)
+
+# add properties with wrong property owner (other channel's property) in payload
+    def test_AuthorizedAsChanWrongNewPropertyOwner(self):
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C1_full2_wrongpowner3)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C1_full2_wrongpowner3)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+# add properties with wrong tag owner (other channel's tag) in payload
+    def test_AuthorizedAsChanWrongNewTagOwner(self):
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C1_full2_wrongtowner3)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminWrongNewTagOwner(self):
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C1_full2_wrongtowner3)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.url1, headers=jsonheader)
+        response = conn_admin.request_delete(self.url2, headers=jsonheader)
+        response = conn_admin.request_delete(self.url3, headers=jsonheader)
 
 
 if __name__ == '__main__':
