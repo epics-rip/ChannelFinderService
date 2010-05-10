@@ -80,7 +80,8 @@ public class FindEntitiesQuery {
     }
 
     /**
-     * Creates and executes a JDBC based query using GROUP to collapse it by name.
+     * Creates and executes a JDBC based query returning names and owners,
+     * using GROUP to collapse it by name.
      *
      * @param con connection to use
      * @return result set with columns named <tt>name</tt>, <tt>owner</tt>
