@@ -209,6 +209,8 @@ public class FindChannelsQuery {
             name_params.add(convertFileGlobToSQLPattern(value));
         }
 
+        query = query + " ORDER BY channel, property";
+
         try {
             PreparedStatement ps = con.prepareStatement(query);
             int i = 1;
