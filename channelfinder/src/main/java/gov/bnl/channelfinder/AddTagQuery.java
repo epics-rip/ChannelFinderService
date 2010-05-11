@@ -85,11 +85,30 @@ public class AddTagQuery {
                     "SQL Exception while preparing insertion of tag " + name, e);
         }
 
-        // Insert tags
         if (ids.isEmpty()) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "No such channels");
         }
+
+        // Remove existing tags from channel set
+        query = "DELETE FROM property WHERE property = ? AND value IS NULL AND channel_id IN (";
+        for (Long id : ids) {
+            query = query + "?, ";
+        }
+        query = query.substring(0, query.length()-2) + ")";
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, name);
+            i = 2;
+            for (Long id : ids) {
+                ps.setLong(i++, id);
+            }
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while deleting tag " + name + " (before reinsert)", e);
+        }
+        // Add tags
         params.clear();
         query = "INSERT INTO property (channel_id, property, owner) VALUES ";
         for (Long id : ids) {
