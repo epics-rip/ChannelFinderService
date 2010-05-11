@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package gov.bnl.channelfinder;
 
 import java.sql.ResultSet;
@@ -61,7 +60,7 @@ public class OwnerMap {
         FindEntitiesQuery eq = FindEntitiesQuery.createFindPropertyNamesQuery(names);
         try {
             fillMap(db_powner, eq.executeQuery(DbConnection.getInstance().getConnection()));
-       } catch (SQLException e) {
+        } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while loading property name map", e);
         }
@@ -73,8 +72,8 @@ public class OwnerMap {
             String name = rs.getString("name");
             String owner = rs.getString("owner");
             if (map.get(name) != null && !map.get(name).equals(owner)) {
-                    throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "Inconsistent ownership in database for " + name);
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                        "Inconsistent ownership in database for " + name);
             }
             map.put(name, owner);
         }
@@ -138,19 +137,16 @@ public class OwnerMap {
             if (pl_cowner.get(c.getName()) == null) {
                 pl_cowner.put(c.getName(), c.getOwner());
             } else {
-                if (!c.getOwner().equals(pl_cowner.get(c.getName()))) {
                 throw new CFException(Response.Status.BAD_REQUEST,
-                        "Inconsistent payload owner for channel " + c.getName());
-                }
+                        "Payload contains multiple instances of channel " + c.getName());
             }
             for (XmlProperty p : c.getXmlProperties()) {
                 if (pl_powner.get(p.getName()) == null) {
                     pl_powner.put(p.getName(), p.getOwner());
                 } else {
                     if (!p.getOwner().equals(pl_powner.get(p.getName()))) {
-                    throw new CFException(Response.Status.BAD_REQUEST,
-                            "Inconsistent payload owner for channel " + c.getName() +
-                            " property " + p.getName());
+                        throw new CFException(Response.Status.BAD_REQUEST,
+                                "Inconsistent payload owner for property " + p.getName());
                     }
                 }
             }
@@ -159,9 +155,8 @@ public class OwnerMap {
                     pl_powner.put(t.getName(), t.getOwner());
                 } else {
                     if (!t.getOwner().equals(pl_powner.get(t.getName()))) {
-                    throw new CFException(Response.Status.BAD_REQUEST,
-                            "Inconsistent payload owner for channel " + c.getName() +
-                            " tag " + t.getName());
+                        throw new CFException(Response.Status.BAD_REQUEST,
+                                "Inconsistent payload owner for tag " + t.getName());
                     }
                 }
             }
@@ -183,66 +178,18 @@ public class OwnerMap {
         for (String n : pl_cowner.keySet()) {
             if (db_cowner.containsKey(n) && !pl_cowner.get(n).equals(db_cowner.get(n))) {
                 throw new CFException(Response.Status.BAD_REQUEST,
-                        "DB and payload owner for channel " + n + " do not match");
+                        "Database and payload owner for channel " + n + " do not match");
             }
         }
         for (String n : pl_powner.keySet()) {
             if (db_powner.containsKey(n) && !pl_powner.get(n).equals(db_powner.get(n))) {
                 throw new CFException(Response.Status.BAD_REQUEST,
-                        "DB and payload owner for property " + n + " do not match");
+                        "Database and payload owner for property/tag " + n + " do not match");
             }
         }
         return true;
     }
 
-//    /**
-//     * Checks if the owners of channels, properties, and tags in the specified
-//     * XmlChannels collection match the values in the current owner maps.
-//     *
-//     * @param data XmlChannels collection to check ownership for
-//     * @return <tt>true</tt> if owners match
-//     * @throws CFException on owner mismatch
-//     */
-//    public boolean dbMatchesOwnersIn(XmlChannels data) throws CFException {
-//        loadMapsFromPayloadFor(data);
-//        for (XmlChannel c : data.getChannels()) {
-//            if (db_cowner.get(c.getName()) != null
-//                    && !c.getOwner().equals(db_cowner.get(c.getName()))) {
-//                throw new CFException(Response.Status.BAD_REQUEST,
-//                        "DB and payload owner for channel " + c.getName() + " do not match");
-//            }
-//            for (XmlProperty p : c.getXmlProperties()) {
-//                if (db_powner.get(p.getName()) != null
-//                        && !p.getOwner().equals(db_powner.get(p.getName()))) {
-//                    throw new CFException(Response.Status.BAD_REQUEST,
-//                            "DB and payload owner for channel " + c.getName() +
-//                            " property " + p.getName() + " do not match");
-//                }
-//            }
-//            for (XmlTag t : c.getXmlTags()) {
-//                if (db_powner.get(t.getName()) != null
-//                        && !t.getOwner().equals(db_powner.get(t.getName()))) {
-//                    throw new CFException(Response.Status.BAD_REQUEST,
-//                            "DB and payload owner for channel " + c.getName() +
-//                            " tag " + t.getName() + " do not match");
-//                }
-//            }
-//        }
-//        return true;
-//    }
-//
-//    /**
-//     * Checks if the owners of channel, properties, and tags in the specified
-//     * XmlChannel match the values in the current owner maps.
-//     *
-//     * @param data XmlChannel to check ownership for
-//     * @return <tt>true</tt> if owners match
-//     * @throws CFException on owner mismatch
-//     */
-//    public boolean dbMatchesOwnersIn(XmlChannel data) throws CFException {
-//        return dbMatchesOwnersIn(new XmlChannels(data));
-//    }
-//
     /**
      * Returns the (database) owner of the specified property or tag, or,
      * if tag is new, the owner from the specified XmlChannel <tt>data</tt>.
