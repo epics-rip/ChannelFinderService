@@ -21,7 +21,8 @@ conn_admin = Connection(base_url, username=user_admin, password=passwd)
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
 
-C1_empty = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc' })
+_C1_empty = { '@name': 'C1', '@owner': 'testc' }
+C1_empty = JSONEncoder().encode(_C1_empty)
 C1_empty_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}
 C1_t1_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags':\
           {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}]}}
@@ -41,7 +42,13 @@ _C1_full = { '@name': 'C1', '@owner': 'testc',\
           }
 C1_full = JSONEncoder().encode(_C1_full)
 C1_full_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
-C2_empty = JSONEncoder().encode({ '@name': 'C2', '@owner': 'testc' })
+_C1_tx = { '@name': 'C1', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
+_C2_tx = { '@name': 'C2', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
+_C2_ty = { '@name': 'C2', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testy', u'@name': u'TX'}} }
+C12_tx = JSONEncoder().encode({'channels': {'channel': [ _C1_tx, _C2_tx ]}})
+C12_txy = JSONEncoder().encode({'channels': {'channel': [ _C1_tx, _C2_ty ]}})
+_C2_empty = { '@name': 'C2', '@owner': 'testc' }
+C2_empty = JSONEncoder().encode(_C2_empty)
 _C2_full = { '@name': 'C2', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P22', '@value': 'prop22', '@owner': 'testp'} ] },\
@@ -50,12 +57,12 @@ _C2_full = { '@name': 'C2', '@owner': 'testc',\
 C2_full = JSONEncoder().encode(_C2_full)
 _C3_full = { '@name': 'C3', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
-                                       {'@name': 'P22', '@value': 'prop22', '@owner': 'testp'} ] },\
+                                       {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           }
 C3_full = JSONEncoder().encode(_C3_full)
 _C4_full = { '@name': 'C4', '@owner': 'testc',\
-          'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
+          'properties': {'property': [ {'@name': 'P1', '@value': 'prop1', '@owner': 'testp'},\
                                        {'@name': 'P22', '@value': 'prop22', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T1', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'testt'} ] }\
           }
@@ -89,7 +96,7 @@ C1_full2_wrongpowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',
           })
 _C1_full2_wrongpowner3 = { '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
-                                       {'@name': 'P22', '@value': 'prop2', '@owner': 'xxxx'} ] },\
+                                       {'@name': 'P2', '@value': 'prop2', '@owner': 'xxxx'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           }
 C1_full2_wrongpowner3 = JSONEncoder().encode(_C1_full2_wrongpowner3)
@@ -102,7 +109,7 @@ C1_full2_wrongtowner1 = JSONEncoder().encode(_C1_full2_wrongtowner1)
 _C1_full2_wrongtowner3 = { '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
-          'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'xxxx'} ] }\
+          'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'xxxx'} ] }\
           }
 C1_full2_wrongtowner3 = JSONEncoder().encode(_C1_full2_wrongtowner3)
 C1_full2_wrongtowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
@@ -111,9 +118,12 @@ C1_full2_wrongtowner2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'xxxx'} ] }\
           })
 C1_full2_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
-C1_full12_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop22'}, {u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T11'}]}}
+C1_full12_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
 
 C12_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full ]}})
+C121_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full, _C1_full ]}})
+C2s_full = JSONEncoder().encode({'channels': {'channel': _C2_full }})
+C12_empty = JSONEncoder().encode({'channels': {'channel':[ _C1_empty, _C2_empty ]}})
 C34_full = JSONEncoder().encode({'channels': {'channel': [ _C3_full, _C4_full ]}})
 C12_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r]}}
 C12_full_wrongpowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner1, _C2_full ]}})
@@ -122,12 +132,20 @@ C12_full_wrongpowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full
 C12_full_wrongtowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner3, _C2_full ]}})
 C1234_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full, _C3_full, _C4_full ]}})
 # 4 channels, T1 being at C1, C2
-C1234_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T1'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testt', u'@name': u'T1'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
-C12_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T1'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testt', u'@name': u'T1'}]}}]}}
+C1234_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
+C12_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 # 4 channels, T1 being at C3, C4
-C1234_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T1'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testt', u'@name': u'T1'}]}}]}}
-C34_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T1'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testt', u'@name': u'T1'}]}}]}}
-
+C1234_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C34_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+# 4 channels, T1 being at C1, C2, C4
+C1234_t124_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C124_t124_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+# 4 channels, TX being at C1, C2
+C1234_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C12_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}]}}
+# 4 channels, no T1
+C1234_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
+None_r = {u'channels': None}
 
 #############################################################################################
 # Test .../channel/{name} DELETE
@@ -155,6 +173,7 @@ class DeleteOneChannel(unittest.TestCase):
         self.failUnlessEqual('403', response[u'headers']['status'])
         response = conn_prop.request_delete(self.url2, headers=jsonheader)
         self.failUnlessEqual('403', response[u'headers']['status'])
+
     def doTestAndCheck12(self, conn):
         response = conn.request_delete(self.url1, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
@@ -166,6 +185,11 @@ class DeleteOneChannel(unittest.TestCase):
         self.failUnlessEqual('200', response[u'headers']['status'])
         response = conn_none.request_get(self.url2, headers=jsonheader)
         self.failUnlessEqual('404', response[u'headers']['status'])
+    def test_AuthorizedAsChan12(self):
+        self.doTestAndCheck12(conn_chan)
+    def test_AuthorizedAsAdmin12(self):
+        self.doTestAndCheck12(conn_admin)
+
     def doTestAndCheck21(self, conn):
         response = conn.request_delete(self.url2, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
@@ -177,14 +201,10 @@ class DeleteOneChannel(unittest.TestCase):
         self.failUnlessEqual('200', response[u'headers']['status'])
         response = conn_none.request_get(self.url1, headers=jsonheader)
         self.failUnlessEqual('404', response[u'headers']['status'])
-    def test_AuthorizedAsChan12(self):
-        self.doTestAndCheck12(conn_chan)
     def test_AuthorizedAsChan21(self):
         self.doTestAndCheck21(conn_chan)
-    def test_AuthorizedAsAdmin12(self):
-        self.doTestAndCheck12(conn_admin)
     def test_AuthorizedAsAdmin21(self):
-        self.doTestAndCheck12(conn_admin)
+        self.doTestAndCheck21(conn_admin)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -209,6 +229,7 @@ class CreateOneChannel(unittest.TestCase):
     def test_EmptyAuthorizedAsProp(self):
         response = conn_prop.request_put(self.url1, headers=jsonheader, body=C1_empty)
         self.failUnlessEqual('403', response[u'headers']['status'])
+
     def doTestAndCheckEmpty(self, conn):
         response = conn.request_put(self.url1, headers=jsonheader, body=C1_empty)
         self.failUnlessEqual('204', response[u'headers']['status'])
@@ -220,13 +241,17 @@ class CreateOneChannel(unittest.TestCase):
         self.doTestAndCheckEmpty(conn_chan)
     def test_EmptyAuthorizedAsAdmin(self):
         self.doTestAndCheckEmpty(conn_admin)
+
 # add channel with wrong channel name in payload
     def test_EmptyAuthorizedAsChanWrongChannelName(self):
         response = conn_chan.request_put(self.url2, headers=jsonheader, body=C1_empty)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Specified channel name C2 and payload channel name C1 do not match") == -1)
     def test_EmptyAuthorizedAsAdminWrongChannelName(self):
         response = conn_admin.request_put(self.url2, headers=jsonheader, body=C1_empty)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Specified channel name C2 and payload channel name C1 do not match") == -1)
+
 # add one channel (only properties, no tags)
     def doTestAndCheckOnlyProp(self, conn):
         response = conn.request_put(self.url1, headers=jsonheader, body=C1_onlyp)
@@ -239,6 +264,7 @@ class CreateOneChannel(unittest.TestCase):
         self.doTestAndCheckOnlyProp(conn_chan)
     def test_OnlyPropAuthorizedAsAdmin(self):
         self.doTestAndCheckOnlyProp(conn_admin)
+
 # add one channel (no properties, only tags)
     def doTestAndCheckOnlyTag(self, conn):
         response = conn.request_put(self.url1, headers=jsonheader, body=C1_onlyt)
@@ -251,6 +277,7 @@ class CreateOneChannel(unittest.TestCase):
         self.doTestAndCheckOnlyTag(conn_chan)
     def test_OnlyTagAuthorizedAsAdmin(self):
         self.doTestAndCheckOnlyTag(conn_admin)
+
 # add one "full" channel (with properties and tags)
     def doTestAndCheckFull(self, conn):
         response = conn.request_put(self.url1, headers=jsonheader, body=C1_full)
@@ -262,7 +289,8 @@ class CreateOneChannel(unittest.TestCase):
     def test_FullAuthorizedAsChan(self):
         self.doTestAndCheckFull(conn_chan)
     def test_FullAuthorizedAsAdmin(self):
-        self.doTestAndCheckFull(conn_chan)
+        self.doTestAndCheckFull(conn_admin)
+
 # add properties with wrong payload format (channels instead of channel)
     def test_AuthorizedAsChanWrongFormat(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C12_full)
@@ -294,6 +322,7 @@ class UpdateOneChannel(unittest.TestCase):
     def test_AuthorizedAsProp(self):
         response = conn_prop.request_put(self.url1, headers=jsonheader, body=C1_full2)
         self.failUnlessEqual('403', response[u'headers']['status'])
+
     def doTestAndCheck(self, conn):
         response = conn.request_put(self.url1, headers=jsonheader, body=C1_full2)
         self.failUnlessEqual('204', response[u'headers']['status'])
@@ -305,13 +334,17 @@ class UpdateOneChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
 # update channel with wrong channel owner in payload
     def test_AuthorizedAsChanWrongChannelOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for channel C1 do not match") == -1)
     def test_AuthorizedAsAdminWrongChannelOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for channel C1 do not match") == -1)
+
 # add channel with wrong property owner (new property) in payload
     def test_AuthorizedAsChanWrongNewPropertyOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
@@ -319,13 +352,17 @@ class UpdateOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+
 # add channel with wrong property owner (existing property) in payload
     def test_AuthorizedAsChanWrongExistingPropertyOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
     def test_AuthorizedAsAdminWrongExistingPropertyOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
+
 # add channel with wrong tag owner (new tag) in payload
     def test_AuthorizedAsChanWrongNewTagOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
@@ -333,13 +370,16 @@ class UpdateOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+
 # add channel with wrong tag owner (existing tag) in payload
     def test_AuthorizedAsChanWrongExistingTagOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
     def test_AuthorizedAsAdminWrongExistingTagOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -359,16 +399,21 @@ class UpdateSecondChannel(unittest.TestCase):
     def test_AuthorizedAsChanWrongNewPropertyOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P11 do not match") == -1)
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P11 do not match") == -1)
+
 # add channel with wrong tag owner (other channel's tag) in payload
     def test_AuthorizedAsChanWrongNewTagOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T11 do not match") == -1)
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T11 do not match") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -391,6 +436,7 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsTag(self):
         response = conn_tag.request_post(self.url1, headers=jsonheader, body=C1_full2)
         self.failUnlessEqual('403', response[u'headers']['status'])
+
     def doTestAndCheck(self, conn):
         response = conn.request_post(self.url1, headers=jsonheader, body=C1_full2)
         self.failUnlessEqual('204', response[u'headers']['status'])
@@ -404,26 +450,31 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
 # add properties with wrong channel name in payload
+    def doTestAndCheckWrongChannelName(self, conn):
+        response = conn.request_post(self.url2, headers=jsonheader, body=C1_full2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Specified channel name C2 and payload channel name C1 do not match") == -1)
     def test_EmptyAuthorizedAsPropWrongChannelName(self):
-        response = conn_prop.request_post(self.url2, headers=jsonheader, body=C1_full2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongChannelName(conn_prop)
     def test_EmptyAuthorizedAsChanWrongChannelName(self):
-        response = conn_chan.request_post(self.url2, headers=jsonheader, body=C1_full2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongChannelName(conn_chan)
     def test_EmptyAuthorizedAsAdminWrongChannelName(self):
-        response = conn_admin.request_post(self.url2, headers=jsonheader, body=C1_full2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongChannelName(conn_admin)
+
 # update channel with wrong channel owner in payload
+    def doTestAndCheckWrongChannelOwner(self, conn):
+        response = conn.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for channel C1 do not match") == -1)
     def test_AuthorizedAsPropWrongChannelOwner(self):
-        response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongChannelOwner(conn_prop)
     def test_AuthorizedAsChanWrongChannelOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongChannelOwner(conn_chan)
     def test_AuthorizedAsAdminWrongChannelOwner(self):
-        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongChannelOwner(conn_admin)
+
 # add properties with wrong property owner (new property) in payload
     def test_AuthorizedAsPropWrongNewPropertyOwner(self):
         response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
@@ -434,16 +485,19 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+
 # add properties with wrong property owner (existing property) in payload
+    def doTestAndCheckWrongExistingPropertyOwner(self, conn):
+        response = conn.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
     def test_AuthorizedAsPropWrongExistingPropertyOwner(self):
-        response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongExistingPropertyOwner(conn_prop)
     def test_AuthorizedAsChanWrongExistingPropertyOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongExistingPropertyOwner(conn_chan)
     def test_AuthorizedAsAdminWrongExistingPropertyOwner(self):
-        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongExistingPropertyOwner(conn_admin)
+
 # add properties with wrong tag owner (new tag) in payload
     def test_AuthorizedAsPropWrongNewTagOwner(self):
         response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
@@ -454,16 +508,19 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+
 # add properties with wrong tag owner (existing tag) in payload
+    def doTestAndCheckWrongExistingTagOwner(self, conn):
+        response = conn.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
     def test_AuthorizedAsPropWrongExistingTagOwner(self):
-        response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongExistingTagOwner(conn_prop)
     def test_AuthorizedAsChanWrongExistingTagOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongExistingTagOwner(conn_chan)
     def test_AuthorizedAsAdminWrongExistingTagOwner(self):
-        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongExistingTagOwner(conn_admin)
+
 # add properties with wrong payload format (channels instead of channel)
     def test_AuthorizedAsPropWrongFormat(self):
         response = conn_prop.request_post(self.url1, headers=jsonheader, body=C12_full)
@@ -474,7 +531,6 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
-
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -491,25 +547,28 @@ class UpdatePropertiesSecondChannel(unittest.TestCase):
         response = conn_admin.request_put(self.url2, headers=jsonheader, body=C2_full)
 
 # add properties with wrong property owner (other channel's property) in payload
+    def doTestAndCheckWrongNewPropertyOwner(self, conn):
+        response = conn.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P11 do not match") == -1)
     def test_AuthorizedAsPropWrongNewPropertyOwner(self):
-        response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongNewPropertyOwner(conn_prop)
     def test_AuthorizedAsChanWrongNewPropertyOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongNewPropertyOwner(conn_chan)
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
-        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongNewPropertyOwner(conn_admin)
+
 # add properties with wrong tag owner (other channel's tag) in payload
+    def doTestAndCheckWrongNewPropertyOwner(self, conn):
+        response = conn.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T11 do not match") == -1)
     def test_AuthorizedAsPropWrongNewTagOwner(self):
-        response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongNewPropertyOwner(conn_prop)
     def test_AuthorizedAsChanWrongNewTagOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongNewPropertyOwner(conn_chan)
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
-        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
-        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.doTestAndCheckWrongNewPropertyOwner(conn_admin)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -535,6 +594,7 @@ class createManyChannels(unittest.TestCase):
     def test_AuthorizedAsProp(self):
         response = conn_prop.request_post(self.url, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('403', response[u'headers']['status'])
+
     def doTestAndCheck(self, conn):
         response = conn.request_post(self.url, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
@@ -546,6 +606,7 @@ class createManyChannels(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
 # using wrong payload format (channel instead of channels)
     def test_AuthorizedAsChanWrongFormat(self):
         response = conn_chan.request_post(self.url, headers=jsonheader, body=C1_full)
@@ -553,20 +614,36 @@ class createManyChannels(unittest.TestCase):
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_post(self.url, headers=jsonheader, body=C1_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
+
+# multiple channels of the same name in the payload
+    def test_AuthorizedAsChanMultipleSameChannel(self):
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C121_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Payload contains multiple instances of channel C1") == -1)
+    def test_AuthorizedAsAdminMultipleSameChannel(self):
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C121_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Payload contains multiple instances of channel C1") == -1)
+
 # using inconsistent property ownership in the payload
     def test_AuthorizedAsChanInconsistentPropertyOwner(self):
         response = conn_chan.request_post(self.url, headers=jsonheader, body=C12_full_wrongpowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Inconsistent payload owner for property P11") == -1)
     def test_AuthorizedAsAdminInconsistentPropertyOwner(self):
         response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongpowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Inconsistent payload owner for property P11") == -1)
+
 # using inconsistent tag ownership in the payload
     def test_AuthorizedAsChanInconsistentTagOwner(self):
         response = conn_chan.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Inconsistent payload owner for tag T11") == -1)
     def test_AuthorizedAsAdminInconsistentTagOwner(self):
         response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Inconsistent payload owner for tag T11") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -586,18 +663,23 @@ class createManyChannelsThirdChannel(unittest.TestCase):
 
 # add properties with wrong property owner (other channel's property) in payload
     def test_AuthorizedAsChanWrongNewPropertyOwner(self):
-        response = conn_chan.request_post(self.url, headers=jsonheader, body=C1_full2_wrongpowner3)
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C12_full_wrongpowner3)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
-        response = conn_admin.request_post(self.url, headers=jsonheader, body=C1_full2_wrongpowner3)
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongpowner3)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
+
 # add properties with wrong tag owner (other channel's tag) in payload
     def test_AuthorizedAsChanWrongNewTagOwner(self):
-        response = conn_chan.request_post(self.url, headers=jsonheader, body=C1_full2_wrongtowner3)
+        response = conn_chan.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner3)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
-        response = conn_admin.request_post(self.url, headers=jsonheader, body=C1_full2_wrongtowner3)
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner3)
         self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -623,6 +705,7 @@ class addTagExclusiveToChannel(unittest.TestCase):
     def test_Unauthorized(self):
         response = conn_none.request_put(self.t1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('401', response[u'headers']['status'])
+
     def doTestAndCheck(self, conn):
         response = conn.request_put(self.t1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
@@ -634,7 +717,7 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_t12_r)
-        response = conn_tag.request_put(self.t1, headers=jsonheader, body=C34_full)
+        response = conn.request_put(self.t1, headers=jsonheader, body=C34_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
         response = conn_none.request_get(self.c, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
@@ -652,6 +735,21 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
+# multiple channels of the same name in the payload
+    def doTestAndCheckMultiSameChannel(self, conn):
+        response = conn.request_put(self.t1, headers=jsonheader, body=C121_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Payload contains multiple instances of channel C1") == -1)
+    def test_AuthorizedAsTagMultipleSameChannel(self):
+        self.doTestAndCheckMultiSameChannel(conn_tag)
+    def test_AuthorizedAsPropMultipleSameChannel(self):
+        self.doTestAndCheckMultiSameChannel(conn_prop)
+    def test_AuthorizedAsChanMultipleSameChannel(self):
+        self.doTestAndCheckMultiSameChannel(conn_chan)
+    def test_AuthorizedAsAdminMultipleSameChannel(self):
+        self.doTestAndCheckMultiSameChannel(conn_admin)
+
 # using wrong payload format (channel instead of channels)
     def test_AuthorizedAsTagWrongFormat(self):
         response = conn_tag.request_put(self.t1, headers=jsonheader, body=C1_full)
@@ -664,6 +762,185 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_put(self.t1, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
+        response = conn_admin.request_delete(self.c3, headers=jsonheader)
+        response = conn_admin.request_delete(self.c4, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../tag DELETE
+#############################################################################################
+class deleteTag(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c3 = 'resources/channel/C3'
+        self.c4 = 'resources/channel/C4'
+        self.c = 'resources/channels'
+        self.t1 = 'resources/tags/T1'
+        self.tx = 'resources/tags/TX'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
+
+    def test_Unauthorized(self):
+        response = conn_none.request_delete(self.t1, headers=jsonheader)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+
+    def doTestAndCheck(self, conn):
+        response = conn.request_delete(self.t1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_nt1_r)
+        response = conn_none.request_get(self.t1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, None_r)
+    def test_AuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag)
+    def test_AuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# delete nonexisting tag
+    def doTestAndCheckNonexistingTag(self, conn):
+        response = conn.request_delete(self.tx, headers=jsonheader)
+        self.failUnlessEqual('404', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Tag TX does not exist") == -1)
+    def test_AuthorizedAsTagNonexistingTag(self):
+        self.doTestAndCheckNonexistingTag(conn_tag)
+    def test_AuthorizedAsPropNonexistingTag(self):
+        self.doTestAndCheckNonexistingTag(conn_prop)
+    def test_AuthorizedAsChanNonexistingTag(self):
+        self.doTestAndCheckNonexistingTag(conn_chan)
+    def test_AuthorizedAsAdminNonexistingTag(self):
+        self.doTestAndCheckNonexistingTag(conn_admin)
+
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
+        response = conn_admin.request_delete(self.c3, headers=jsonheader)
+        response = conn_admin.request_delete(self.c4, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../tag POST
+#############################################################################################
+class addTagToChannel(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c3 = 'resources/channel/C3'
+        self.c4 = 'resources/channel/C4'
+        self.c = 'resources/channels'
+        self.t1 = 'resources/tags/T1'
+        self.tx = 'resources/tags/TX'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
+
+    def test_Unauthorized(self):
+        response = conn_none.request_post(self.t1, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+
+# always checking that the complete channel list and the tags/T1 GET return the correct channels/tags 
+    def doTestAndCheck(self, conn, payload):
+        response = conn.request_post(self.t1, headers=jsonheader, body=payload)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_t124_r)
+        response = conn_none.request_get(self.t1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C124_t124_r)
+# add tag to channels 1,2 (using full [1,2] payload), using different roles
+    def test_FullAuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag, C12_full)
+    def test_FullAuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop, C12_full)
+    def test_FullAuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan, C12_full)
+    def test_FullAuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin, C12_full)
+# add tag to channels 1,2 (using empty [1,2] payload), using different roles
+    def test_EmptyAuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag, C12_empty)
+    def test_EmptyAuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop, C12_empty)
+    def test_EmptyAuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan, C12_empty)
+    def test_EmptyAuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin, C12_empty)
+
+# add tag to channels 1,2 (specifying owner in payload), using different roles
+    def doTestAndCheck12X(self, conn):
+        response = conn.request_post(self.tx, headers=jsonheader, body=C12_tx)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_tx_r)
+        response = conn_none.request_get(self.tx, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_tx_r)
+    def test_AuthorizedAsTagNewTagSpecOwner(self):
+        self.doTestAndCheck12X(conn_tag)
+    def test_AuthorizedAsPropNewTagSpecOwner(self):
+        self.doTestAndCheck12X(conn_prop)
+    def test_AuthorizedAsChanNewTagSpecOwner(self):
+        self.doTestAndCheck12X(conn_chan)
+    def test_AuthorizedAsAdminNewTagSpecOwner(self):
+        self.doTestAndCheck12X(conn_admin)
+
+# using unspecified owner for new tag
+    def doTestAndCheckNewTagUnspecifiedOwner(self, conn):
+        response = conn.request_post(self.tx, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Tag ownership for TX undefined in db and payload") == -1)
+    def test_AuthorizedAsTagNewTagUnspecifiedOwner(self):
+        self.doTestAndCheckNewTagUnspecifiedOwner(conn_tag)
+    def test_AuthorizedAsPropNewTagUnspecifiedOwner(self):
+        self.doTestAndCheckNewTagUnspecifiedOwner(conn_prop)
+    def test_AuthorizedAsChanNewTagUnspecifiedOwner(self):
+        self.doTestAndCheckNewTagUnspecifiedOwner(conn_chan)
+    def test_AuthorizedAsAdminNewTagUnspecifiedOwner(self):
+        self.doTestAndCheckNewTagUnspecifiedOwner(conn_admin)
+
+# using inconsistent owner for new tag
+    def doTestAndCheckNewTagInconsistentOwner(self, conn):
+        response = conn.request_post(self.tx, headers=jsonheader, body=C12_txy)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Inconsistent payload owner for tag TX") == -1)
+    def test_AuthorizedAsTagNewTagInconsistentOwner(self):
+        self.doTestAndCheckNewTagInconsistentOwner(conn_tag)
+    def test_AuthorizedAsPropNewTagInconsistentOwner(self):
+        self.doTestAndCheckNewTagInconsistentOwner(conn_prop)
+    def test_AuthorizedAsChanNewTagInconsistentOwner(self):
+        self.doTestAndCheckNewTagInconsistentOwner(conn_chan)
+    def test_AuthorizedAsAdminNewTagInconsistentOwner(self):
+        self.doTestAndCheckNewTagInconsistentOwner(conn_admin)
+
+# using wrong payload format (channel instead of channels)
+    def test_AuthorizedAsTagWrongFormat(self):
+        response = conn_tag.request_post(self.t1, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsPropWrongFormat(self):
+        response = conn_prop.request_post(self.t1, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanWrongFormat(self):
+        response = conn_chan.request_post(self.t1, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminWrongFormat(self):
+        response = conn_admin.request_post(self.t1, headers=jsonheader, body=C1_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
 
     def tearDown(self):
