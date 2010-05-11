@@ -77,7 +77,11 @@ public class DeleteTagQuery {
             if (id != null) {
                 ps.setLong(2, id);
             }
-            ps.executeUpdate();
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new CFException(Response.Status.NOT_FOUND,
+                        "Tag " + tag + " does not exist");
+            }
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while deleting tag " + tag +
