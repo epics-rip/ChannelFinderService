@@ -4,7 +4,6 @@
  */
 package gov.bnl.channelfinder;
 
-import java.sql.SQLException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -16,7 +15,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -73,6 +71,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            OwnerMap.getInstance().loadMapsFromPayloadFor(data);
             OwnerMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
@@ -100,6 +99,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
+            OwnerMap.getInstance().loadMapsFromPayloadFor(data);
             OwnerMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
