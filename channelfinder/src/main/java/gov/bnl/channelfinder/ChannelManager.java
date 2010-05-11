@@ -309,6 +309,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createChannels(XmlChannels data) throws CFException {
+        OwnerMap.getInstance().checkDbAndPayloadOwnersMatch();
         for (XmlChannel chan : data.getChannels()) {
             createChannel(chan);
         }
