@@ -42,10 +42,11 @@ public class AddTagQuery {
      * @param data channel data (channel to add tag to)
      * @param owner owner for tag to add
      */
-    public AddTagQuery(String name, String owner, XmlChannel data) {
+    public AddTagQuery(String name, String owner, String channel) {
         this.name = name;
         this.owner = owner;
-        this.data = new XmlChannels(data);
+        this.data = new XmlChannels();
+        this.data.addChannel(new XmlChannel(channel, "dontcare"));
     }
 
     /**

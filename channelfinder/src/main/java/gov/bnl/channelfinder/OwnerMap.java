@@ -164,6 +164,25 @@ public class OwnerMap {
     }
 
     /**
+     * Load the payload name map with the payload <tt>data</tt>.
+     *
+     * @param data XmlChannels collection to load
+     * @throws CFException on owner mismatch
+     */
+    public void loadMapsFromPayloadFor(XmlTag data) throws CFException {
+        pl_cowner.clear();
+        pl_powner.clear();
+        if (pl_powner.get(data.getName()) == null) {
+            pl_powner.put(data.getName(), data.getOwner());
+        } else {
+            if (!data.getOwner().equals(pl_powner.get(data.getName()))) {
+                throw new CFException(Response.Status.BAD_REQUEST,
+                        "Inconsistent payload owner for tag " + data.getName());
+            }
+        }
+    }
+
+    /**
      * Load the database and payload name maps for/from the payload <tt>data</tt>.
      *
      * @param data XmlChannel collection to load

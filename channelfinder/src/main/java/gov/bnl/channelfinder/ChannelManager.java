@@ -261,21 +261,24 @@ public class ChannelManager {
      *
      * @param tag tag to add
      * @param channel 
-     * @param data XmlChannel to add tag to
+     * @param data XmlTag specifying ownership
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
-    public void addSingleTag(String tag, String channel, XmlChannel data) throws CFException {
-        String owner = OwnerMap.getInstance().enforcedPropertyOwner(tag, new XmlChannels(data));
+    public void addSingleTag(String tag, String channel, XmlTag data) throws CFException {
+        if (!tag.equals(data.getName())) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Specified tag name " + tag
+                    + " and payload tag name " + data.getName() + " do not match");
+        }
+        String owner = OwnerMap.getInstance().getDbPropertyOwner(tag);
+        if (owner == null) {
+            owner = data.getOwner();
+        }
         if (owner == null) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
         }
-        if (!channel.equals(data.getName())) {
-            throw new CFException(Response.Status.BAD_REQUEST,
-                    "Specified channel name " + channel
-                    + " and payload channel name " + data.getName() + " do not match");
-        }
-        AddTagQuery aq = new AddTagQuery(tag, owner, data);
+        AddTagQuery aq = new AddTagQuery(tag, owner, channel);
         aq.executeQuery(DbConnection.getInstance().getConnection());
     }
 

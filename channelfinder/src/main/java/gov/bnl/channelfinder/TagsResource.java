@@ -143,18 +143,19 @@ public class TagsResource {
      *
      * @param tag URI path parameter: tag name
      * @param chan URI path parameter: channel to add <tt>tag</tt> to
-     * @param data channel data (specifying tag ownership)
+     * @param data tag data (specifying tag ownership)
      * @return HTTP Response
      */
     @PUT
     @Path("{chan}")
     @Consumes({"application/xml", "application/json"})
-    public Response putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlChannel data) {
+    public Response putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlTag data) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
+            OwnerMap.getInstance().loadMapsFromPayloadFor(data);
             OwnerMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
@@ -176,7 +177,6 @@ public class TagsResource {
      */
     @DELETE
     @Path("{chan}")
-    @Consumes({"application/xml", "application/json"})
     public Response deleteSingle(@PathParam("name") String tag, @PathParam("chan") String chan) {
         DbConnection db = DbConnection.getInstance();
         UserManager.getInstance().setUser(securityContext.getUserPrincipal());

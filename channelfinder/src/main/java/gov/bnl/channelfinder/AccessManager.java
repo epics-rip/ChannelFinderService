@@ -172,7 +172,7 @@ public class AccessManager {
      * @param data XmlChannels data containing tag ownership (for new tag)
      * @throws CFException
      */
-    public void addSingleTag(String name, String chan, XmlChannel data) throws CFException {
+    public void addSingleTag(String name, String chan, XmlTag data) throws CFException {
         cm.addSingleTag(name, chan, data);
     }
 
