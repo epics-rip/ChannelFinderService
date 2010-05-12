@@ -20,6 +20,7 @@ conn_chan = Connection(base_url, username=user_chan, password=passwd)
 conn_admin = Connection(base_url, username=user_admin, password=passwd)
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
+xmlheader = {'content-type':'application/xml','accept':'application/xml'}
 
 _C1_empty = { '@name': 'C1', '@owner': 'testc' }
 C1_empty = JSONEncoder().encode(_C1_empty)
@@ -41,6 +42,7 @@ _C1_full = { '@name': 'C1', '@owner': 'testc',\
           'tags':       {'tag':      [ {'@name': 'T1', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           }
 C1_full = JSONEncoder().encode(_C1_full)
+C1_full_xml = "<channel name=\"C1\" owner=\"testc\"><properties><property name=\"P1\" value=\"prop1\" owner=\"testp\"/><property name=\"P2\" value=\"prop2\" owner=\"testp\"/></properties><tags><tag name=\"T1\" owner=\"testt\"/><tag name=\"T2\" owner=\"testt\"/></tags></channel>"
 C1_full_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
 _C1_tx = { '@name': 'C1', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
 _C2_tx = { '@name': 'C2', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
@@ -145,7 +147,20 @@ C1234_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', 
 C12_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}]}}
 # 4 channels, no T1
 C1234_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
+# 2 channels, no T1
+C12_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 None_r = {u'channels': None}
+# One tag only
+_T1 = {u'@owner': u'testt', u'@name': u'T1'}
+T1 = JSONEncoder().encode(_T1)
+T1_xml = "<tag name=\"T1\" owner=\"testt\"/>"
+_T1_wrongowner = {u'@owner': u'xxxx', u'@name': u'T1'}
+T1_wrongowner = JSONEncoder().encode(_T1_wrongowner)
+_TX = {u'@owner': u'testt', u'@name': u'TX'}
+TX = JSONEncoder().encode(_TX)
+_TX_wrongowner = {u'@owner': u'xxxx', u'@name': u'TX'}
+TX_wrongowner = JSONEncoder().encode(_TX_wrongowner)
+
 
 #############################################################################################
 # Test .../channel/{name} DELETE
@@ -290,6 +305,19 @@ class CreateOneChannel(unittest.TestCase):
         self.doTestAndCheckFull(conn_chan)
     def test_FullAuthorizedAsAdmin(self):
         self.doTestAndCheckFull(conn_admin)
+
+# add one "full" channel (with properties and tags) as XML
+    def doTestAndCheckFullXml(self, conn):
+        response = conn.request_put(self.url1, headers=xmlheader, body=C1_full_xml)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1_full_r)
+    def test_FullAuthorizedAsChanXml(self):
+        self.doTestAndCheckFullXml(conn_chan)
+    def test_FullAuthorizedAsAdminXml(self):
+        self.doTestAndCheckFullXml(conn_admin)
 
 # add properties with wrong payload format (channels instead of channel)
     def test_AuthorizedAsChanWrongFormat(self):
@@ -688,7 +716,7 @@ class createManyChannelsThirdChannel(unittest.TestCase):
 
 
 #############################################################################################
-# Test .../tag PUT
+# Test .../tags/<name> PUT
 #############################################################################################
 class addTagExclusiveToChannel(unittest.TestCase):
     def setUp(self):
@@ -772,7 +800,7 @@ class addTagExclusiveToChannel(unittest.TestCase):
 
 
 #############################################################################################
-# Test .../tag DELETE
+# Test .../tags/<name> DELETE
 #############################################################################################
 class deleteTag(unittest.TestCase):
     def setUp(self):
@@ -832,7 +860,7 @@ class deleteTag(unittest.TestCase):
 
 
 #############################################################################################
-# Test .../tag POST
+# Test .../tags/<name> POST
 #############################################################################################
 class addTagToChannel(unittest.TestCase):
     def setUp(self):
@@ -948,6 +976,158 @@ class addTagToChannel(unittest.TestCase):
         response = conn_admin.request_delete(self.c2, headers=jsonheader)
         response = conn_admin.request_delete(self.c3, headers=jsonheader)
         response = conn_admin.request_delete(self.c4, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../tags/<name>/<channel> PUT
+#############################################################################################
+class addTagToOneChannel(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c = 'resources/channels'
+        self.t1 = 'resources/tags/T1/C2'
+        self.tx = 'resources/tags/TX/C2'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C12_full)
+
+# add tag to channel 2 using different roles
+    def test_Unauthorized(self):
+        response = conn_none.request_put(self.t1, headers=jsonheader, body=T1)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+
+# Add one tag
+    def doTestAndCheck(self, conn):
+        response = conn.request_put(self.t1, headers=jsonheader, body=T1)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_t12_r)
+    def test_AuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag)
+    def test_AuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# Same as XML
+    def doTestAndCheckXml(self, conn):
+        response = conn.request_put(self.t1, headers=xmlheader, body=T1_xml)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_t12_r)
+    def test_AuthorizedAsTagXml(self):
+        self.doTestAndCheckXml(conn_tag)
+    def test_AuthorizedAsPropXml(self):
+        self.doTestAndCheckXml(conn_prop)
+    def test_AuthorizedAsChanXml(self):
+        self.doTestAndCheckXml(conn_chan)
+    def test_AuthorizedAsAdminXml(self):
+        self.doTestAndCheckXml(conn_admin)
+
+# no payload (as tag already exists)
+    def doTestAndCheckNoPayload(self, conn):
+        response = conn.request_put(self.t1, headers=jsonheader)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_t12_r)
+    def test_AuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag)
+    def test_AuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# using wrong payload format (channel instead of tag)
+    def doTestAndCheckWrongFormat(self, conn):
+        response = conn.request_put(self.t1, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsTagWrongFormat(self):
+        self.doTestAndCheckWrongFormat(conn_tag)
+    def test_AuthorizedAsPropWrongFormat(self):
+        self.doTestAndCheckWrongFormat(conn_prop)
+    def test_AuthorizedAsChanWrongFormat(self):
+        self.doTestAndCheckWrongFormat(conn_chan)
+    def test_AuthorizedAsAdminWrongFormat(self):
+        self.doTestAndCheckWrongFormat(conn_admin)
+
+# using wrong payload format (channel instead of tag) as XML
+    def doTestAndCheckWrongFormatXml(self, conn):
+        response = conn.request_put(self.t1, headers=xmlheader, body=C1_full_xml)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("syntactically incorrect") == -1)
+    def test_AuthorizedAsTagWrongFormatXml(self):
+        self.doTestAndCheckWrongFormatXml(conn_tag)
+    def test_AuthorizedAsPropWrongFormatXml(self):
+        self.doTestAndCheckWrongFormatXml(conn_prop)
+    def test_AuthorizedAsChanWrongFormatXml(self):
+        self.doTestAndCheckWrongFormatXml(conn_chan)
+    def test_AuthorizedAsAdminWrongFormatXml(self):
+        self.doTestAndCheckWrongFormatXml(conn_admin)
+
+# using wrong name in payload (TX instead of T1)
+    def doTestAndCheckWrongTagName(self, conn):
+        response = conn.request_put(self.t1, headers=jsonheader, body=TX)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Specified tag name T1 and payload tag name TX do not match") == -1)
+    def test_AuthorizedAsTagWrongTagName(self):
+        self.doTestAndCheckWrongTagName(conn_tag)
+    def test_AuthorizedAsPropWrongTagName(self):
+        self.doTestAndCheckWrongTagName(conn_prop)
+    def test_AuthorizedAsChanWrongTagName(self):
+        self.doTestAndCheckWrongTagName(conn_chan)
+    def test_AuthorizedAsAdminWrongTagName(self):
+        self.doTestAndCheckWrongTagName(conn_admin)
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../tags/<name>/<channel> DELETE
+#############################################################################################
+class deleteTagFromOneChannel(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c = 'resources/channels'
+        self.t1 = 'resources/tags/T1/C1'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C12_full)
+
+# Delete tag from channel 1 using different roles
+    def test_Unauthorized(self):
+        response = conn_none.request_delete(self.t1, headers=jsonheader)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+
+# Delete tag
+    def doTestAndCheck(self, conn):
+        response = conn.request_delete(self.t1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_nt1_r)
+    def test_AuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag)
+    def test_AuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
 
 
 if __name__ == '__main__':
