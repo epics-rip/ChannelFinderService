@@ -6,13 +6,15 @@
 package gov.bnl.channelfinder;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
  *
  * @author rlange
  */
-@XmlType(name = "tag", propOrder = {"name","owner"})
+@XmlType(propOrder = {"name","owner"})
+@XmlRootElement(name = "tag")
 public class XmlTag {
     private String name = null;
     private String owner = null;
@@ -72,5 +74,4 @@ public class XmlTag {
     public void setOwner(String owner) {
         this.owner = owner;
     }
-
 }

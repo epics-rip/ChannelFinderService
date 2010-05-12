@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author rlange
  */
-@XmlType(name = "property", propOrder = {"name","value","owner"})
+@XmlType(propOrder = {"name","value","owner"})
 public class XmlProperty {
     private String name = null;
     private String value = null;
@@ -94,5 +94,4 @@ public class XmlProperty {
     public void setOwner(String owner) {
         this.owner = owner;
     }
-
 }

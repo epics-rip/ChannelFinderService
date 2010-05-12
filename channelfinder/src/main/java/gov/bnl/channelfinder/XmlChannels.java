@@ -57,5 +57,4 @@ public class XmlChannels {
     public void addChannel(XmlChannel item) {
         this.items.add(item);
     }
-
 }

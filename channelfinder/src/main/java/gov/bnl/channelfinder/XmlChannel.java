@@ -134,5 +134,4 @@ public class XmlChannel {
     public void addTag(XmlTag tag) {
         this.tags.add(tag);
     }
-
 }
