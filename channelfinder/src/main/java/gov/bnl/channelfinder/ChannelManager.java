@@ -226,11 +226,12 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addTag(String tag, XmlChannels data) throws CFException {
-        String owner = OwnerMap.getInstance().enforcedPropertyOwner(tag, data);
+        String owner = EntityMap.getInstance().enforcedPropertyOwner(tag, data);
         if (owner == null) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
         }
+        tag = EntityMap.getInstance().enforceDbPropertyName(tag);
         AddTagQuery q = new AddTagQuery(tag, owner, data);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
@@ -244,11 +245,12 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void putTag(String tag, XmlChannels data) throws CFException {
-        String owner = OwnerMap.getInstance().enforcedPropertyOwner(tag, data);
+        String owner = EntityMap.getInstance().enforcedPropertyOwner(tag, data);
         if (owner == null) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
         }
+        tag = EntityMap.getInstance().enforceDbPropertyName(tag);
         DeleteTagQuery dq = new DeleteTagQuery(tag);
         AddTagQuery aq = new AddTagQuery(tag, owner, data);
         dq.executeQuery(DbConnection.getInstance().getConnection());
@@ -270,7 +272,7 @@ public class ChannelManager {
                     "Specified tag name " + tag
                     + " and payload tag name " + data.getName() + " do not match");
         }
-        String owner = OwnerMap.getInstance().getDbPropertyOwner(tag);
+        String owner = EntityMap.getInstance().getDbPropertyOwner(tag);
         if (owner == null) {
             owner = data.getOwner();
         }
@@ -278,6 +280,8 @@ public class ChannelManager {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Tag ownership for " + tag + " undefined in db and payload");
         }
+        tag = EntityMap.getInstance().enforceDbPropertyName(tag);
+
         AddTagQuery aq = new AddTagQuery(tag, owner, channel);
         aq.executeQuery(DbConnection.getInstance().getConnection());
     }
@@ -298,7 +302,8 @@ public class ChannelManager {
                     + " and payload channel name " + data.getName() + " do not match");
         }
         DbConnection db = DbConnection.getInstance();
-        OwnerMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().enforceDbCapitalization(new XmlChannels(data));
         DeleteChannelQuery dq = new DeleteChannelQuery(name);
         CreateChannelQuery cq = new CreateChannelQuery(data);
         dq.executeQuery(db.getConnection());
@@ -312,7 +317,8 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createChannels(XmlChannels data) throws CFException {
-        OwnerMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().enforceDbCapitalization(data);
         for (XmlChannel chan : data.getChannels()) {
             createChannel(chan);
         }
@@ -324,7 +330,7 @@ public class ChannelManager {
      * @param data XmlChannel data
      * @throws CFException on ownership or name mismatch, or wrapping an SQLException
      */
-    public void createChannel(XmlChannel data) throws CFException {
+    private void createChannel(XmlChannel data) throws CFException {
         CreateChannelQuery q = new CreateChannelQuery(data);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
@@ -342,7 +348,8 @@ public class ChannelManager {
                     "Specified channel name " + name
                     + " and payload channel name " + data.getName() + " do not match");
         }
-        OwnerMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().enforceDbCapitalization(new XmlChannels(data));
         XmlChannel dest = findChannelByName(name);
         mergeXmlChannels(dest, data);
         updateChannel(name, dest);

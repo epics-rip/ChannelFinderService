@@ -69,7 +69,7 @@ public class ChannelsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapsFor(data);
+            EntityMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().createChannels(data);
             db.commit();
             return Response.noContent().build();

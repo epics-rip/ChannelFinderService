@@ -68,12 +68,12 @@ public class DeleteTagQuery {
         }
 
         try {
-            query = "DELETE FROM property WHERE property = ? AND value IS NULL";
+            query = "DELETE FROM property WHERE LOWER(property) = ? AND value IS NULL";
             if (id != null) {
                 query = query + " AND channel_id = ?";
             }
             ps = con.prepareStatement(query);
-            ps.setString(1, tag);
+            ps.setString(1, tag.toLowerCase());
             if (id != null) {
                 ps.setLong(2, id);
             }

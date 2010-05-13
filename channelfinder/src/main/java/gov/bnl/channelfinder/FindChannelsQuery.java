@@ -144,23 +144,22 @@ public class FindChannelsQuery {
 
         for (Map.Entry<String, Collection<String>> match : prop_matches.asMap().entrySet()) {
             String valueList = "p0.value LIKE";
-            params.add(match.getKey());
+            params.add(match.getKey().toLowerCase());
             for (String value : match.getValue()) {
                 valueList = valueList + " ? OR p0.value LIKE";
                 params.add(convertFileGlobToSQLPattern(value));
             }
-            query = query + " (p0.property = ? AND ("
+            query = query + " (LOWER(p0.property) = ? AND ("
                     + valueList.substring(0, valueList.length() - 17) + ")) OR";
         }
 
         for (String tag : tag_matches) {
-            params.add(convertFileGlobToSQLPattern(tag));
-            query = query + " (p0.property LIKE ? AND p0.value IS NULL) OR";
+            params.add(convertFileGlobToSQLPattern(tag).toLowerCase());
+            query = query + " (LOWER(p0.property) LIKE ? AND p0.value IS NULL) OR";
         }
 
         query = query.substring(0, query.length() - 2)
-                + "GROUP BY p0.channel_id HAVING COUNT(p0.channel_id) = "
-                + (prop_matches.size() + tag_matches.size());
+                + "GROUP BY p0.channel_id HAVING COUNT(p0.channel_id) = ?";
 
         try {
             PreparedStatement ps = con.prepareStatement(query);
@@ -168,6 +167,7 @@ public class FindChannelsQuery {
             for (String p : params) {
                 ps.setString(i++, p);
             }
+            ps.setLong(i++, prop_matches.asMap().size()  + tag_matches.size());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 // Add key to list of matching channel ids

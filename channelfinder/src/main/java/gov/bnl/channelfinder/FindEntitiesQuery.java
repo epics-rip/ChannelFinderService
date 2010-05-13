@@ -96,7 +96,7 @@ public class FindEntitiesQuery {
         String q_group;
         if (type == FindEntitiesQuery.SearchType.PROPERTY) {
             q_base = "SELECT property as name, owner FROM property";
-            q_clause = " property = ? OR";
+            q_clause = " LOWER(property) = ? OR";
             q_group = " GROUP BY property";
         } else {
             q_base = "SELECT name, owner FROM channel";

@@ -71,8 +71,8 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapsFromPayloadFor(data);
-            OwnerMap.getInstance().loadMapFromDbForProperty(name);
+            EntityMap.getInstance().loadMapsFromPayloadFor(data);
+            EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
             return Response.noContent().build();
@@ -99,8 +99,8 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapsFromPayloadFor(data);
-            OwnerMap.getInstance().loadMapFromDbForProperty(name);
+            EntityMap.getInstance().loadMapsFromPayloadFor(data);
+            EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
             return Response.noContent().build();
@@ -125,7 +125,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapFromDbForProperty(name);
+            EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().deleteTag(name);
             db.commit();
             return Response.ok().build();
@@ -155,8 +155,8 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapsFromPayloadFor(data);
-            OwnerMap.getInstance().loadMapFromDbForProperty(tag);
+            EntityMap.getInstance().loadMapsFromPayloadFor(data);
+            EntityMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
             return Response.noContent().build();
@@ -183,7 +183,7 @@ public class TagsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapFromDbForProperty(tag);
+            EntityMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().deleteSingleTag(tag, chan);
             db.commit();
             return Response.ok().build();

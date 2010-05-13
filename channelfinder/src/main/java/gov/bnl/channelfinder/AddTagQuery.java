@@ -92,14 +92,14 @@ public class AddTagQuery {
         }
 
         // Remove existing tags from channel set
-        query = "DELETE FROM property WHERE property = ? AND value IS NULL AND channel_id IN (";
+        query = "DELETE FROM property WHERE LOWER(property) = ? AND value IS NULL AND channel_id IN (";
         for (Long id : ids) {
             query = query + "?, ";
         }
         query = query.substring(0, query.length()-2) + ")";
         try {
             ps = con.prepareStatement(query);
-            ps.setString(1, name);
+            ps.setString(1, name.toLowerCase());
             i = 2;
             for (Long id : ids) {
                 ps.setLong(i++, id);

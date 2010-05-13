@@ -110,16 +110,6 @@ public class AccessManager {
     }
 
     /**
-     * Create a new channel using the property set in <tt>data</tt>.
-     * 
-     * @param data XmlChannel data
-     * @throws CFException
-     */
-    public void createChannel(XmlChannel data) throws CFException {
-        cm.createChannel(data);
-    }
-
-    /**
      * Merge property set in <tt>data</tt> into the existing channel <tt>name</tt>.
      *
      * @param name channel to merge the properties and tags into

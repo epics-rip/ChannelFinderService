@@ -44,6 +44,14 @@ _C1_full = { '@name': 'C1', '@owner': 'testc',\
 C1_full = JSONEncoder().encode(_C1_full)
 C1_full_xml = "<channel name=\"C1\" owner=\"testc\"><properties><property name=\"P1\" value=\"prop1\" owner=\"testp\"/><property name=\"P2\" value=\"prop2\" owner=\"testp\"/></properties><tags><tag name=\"T1\" owner=\"testt\"/><tag name=\"T2\" owner=\"testt\"/></tags></channel>"
 C1_full_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
+_C1_full_lc = { '@name': 'c1', '@owner': 'testc',\
+          'properties': {'property': [ {'@name': 'p1', '@value': 'prop1', '@owner': 'testp'},\
+                                       {'@name': 'p2', '@value': 'prop2', '@owner': 'testp'} ] },\
+          'tags':       {'tag':      [ {'@name': 't1', '@owner': 'testt'}, {'@name': 't2', '@owner': 'testt'} ] }\
+          }
+C1_full_lc = JSONEncoder().encode(_C1_full_lc)
+C1_full_lc_r = {u'@owner': u'testc', u'@name': u'c1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'p1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'p2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u't1'}, {u'@owner': u'testt', u'@name': u't2'}]}}
+
 _C1_tx = { '@name': 'C1', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
 _C2_tx = { '@name': 'C2', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
 _C2_ty = { '@name': 'C2', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testy', u'@name': u'TX'}} }
@@ -57,23 +65,32 @@ _C2_full = { '@name': 'C2', '@owner': 'testc',\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'testt'} ] }\
           }
 C2_full = JSONEncoder().encode(_C2_full)
+C2_full_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}
 _C3_full = { '@name': 'C3', '@owner': 'testc',\
-          'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
+          'properties': {'property': [ {'@name': 'P11', '@value': 'prop1', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           }
 C3_full = JSONEncoder().encode(_C3_full)
+C3_full_r = {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
+C3s_full_r = {u'channels': {u'channel': C3_full_r}}
 _C4_full = { '@name': 'C4', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P1', '@value': 'prop1', '@owner': 'testp'},\
                                        {'@name': 'P22', '@value': 'prop22', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T1', '@owner': 'testt'}, {'@name': 'T22', '@owner': 'testt'} ] }\
           }
 C4_full = JSONEncoder().encode(_C4_full)
-C2_full_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}
+C4s_full_r = {u'channels': {u'channel': {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}}}
+C23_full_r = {u'channels': {u'channel': [C2_full_r, C3_full_r]}}
 C1_full2 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop22', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
+          })
+C1_full3 = JSONEncoder().encode({ '@name': 'C1', '@owner': 'testc',\
+          'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
+                                       {'@name': 'p2', '@value': 'prop22', '@owner': 'testp'} ] },\
+          'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 't2', '@owner': 'testt'} ] }\
           })
 C2_full2 = JSONEncoder().encode({ '@name': 'C2', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
@@ -133,20 +150,21 @@ C12_full_wrongtowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full
 C12_full_wrongpowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner3, _C2_full ]}})
 C12_full_wrongtowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner3, _C2_full ]}})
 C1234_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full, _C3_full, _C4_full ]}})
-# 4 channels, T1 being at C1, C2
-C1234_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
+# 4 channels
+C1234_full_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C1234_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
 C12_t12_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 # 4 channels, T1 being at C3, C4
-C1234_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
-C34_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C1234_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C34_t34_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 # 4 channels, T1 being at C1, C2, C4
-C1234_t124_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C1234_t124_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 C124_t124_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 # 4 channels, TX being at C1, C2
-C1234_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+C1234_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 C12_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}]}}
 # 4 channels, no T1
-C1234_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
+C1234_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
 # 2 channels, no T1
 C12_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 None_r = {u'channels': None}
@@ -232,6 +250,7 @@ class DeleteOneChannel(unittest.TestCase):
 class CreateOneChannel(unittest.TestCase):
     def setUp(self):
         self.url1 = 'resources/channel/C1'
+        self.url1_lc = 'resources/channel/c1'
         self.url2 = 'resources/channel/C2'
 
 # add one "empty" channel (no properties or tags) using different roles
@@ -306,6 +325,19 @@ class CreateOneChannel(unittest.TestCase):
     def test_FullAuthorizedAsAdmin(self):
         self.doTestAndCheckFull(conn_admin)
 
+# add one "full" channel (with properties and tags) lowercase names
+    def doTestAndCheckFullLowercase(self, conn):
+        response = conn.request_put(self.url1_lc, headers=jsonheader, body=C1_full_lc)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1_full_lc_r)
+    def test_FullAuthorizedAsChanLowercase(self):
+        self.doTestAndCheckFullLowercase(conn_chan)
+    def test_FullAuthorizedAsAdminLowercase(self):
+        self.doTestAndCheckFullLowercase(conn_admin)
+
 # add one "full" channel (with properties and tags) as XML
     def doTestAndCheckFullXml(self, conn):
         response = conn.request_put(self.url1, headers=xmlheader, body=C1_full_xml)
@@ -329,6 +361,7 @@ class CreateOneChannel(unittest.TestCase):
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
+        response = conn_admin.request_delete(self.url1_lc, headers=jsonheader)
 
 
 #############################################################################################
@@ -362,6 +395,19 @@ class UpdateOneChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
+# test if property and tag name capitalization to database version works
+    def doTestAndCheckPropNameCapitalization(self, conn):
+        response = conn.request_put(self.url1, headers=jsonheader, body=C1_full3)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1_full2_r)
+    def test_AuthorizedAsChanPropNameCapitalization(self):
+        self.doTestAndCheckPropNameCapitalization(conn_chan)
+    def test_AuthorizedAsAdminPropNameCapitalization(self):
+        self.doTestAndCheckPropNameCapitalization(conn_admin)
 
 # update channel with wrong channel owner in payload
     def test_AuthorizedAsChanWrongChannelOwner(self):
@@ -479,6 +525,19 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
 
+# test if property and tag name capitalization to database version works
+    def doTestAndCheckPropNameCapitalization(self, conn):
+        response = conn.request_post(self.url1, headers=jsonheader, body=C1_full3)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1_full12_r)
+    def test_AuthorizedAsPropPropNameCapitalization(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsAdminPropNameCapitalization(self):
+        self.doTestAndCheck(conn_admin)
+
 # add properties with wrong channel name in payload
     def doTestAndCheckWrongChannelName(self, conn):
         response = conn.request_post(self.url2, headers=jsonheader, body=C1_full2)
@@ -486,8 +545,6 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Specified channel name C2 and payload channel name C1 do not match") == -1)
     def test_EmptyAuthorizedAsPropWrongChannelName(self):
         self.doTestAndCheckWrongChannelName(conn_prop)
-    def test_EmptyAuthorizedAsChanWrongChannelName(self):
-        self.doTestAndCheckWrongChannelName(conn_chan)
     def test_EmptyAuthorizedAsAdminWrongChannelName(self):
         self.doTestAndCheckWrongChannelName(conn_admin)
 
@@ -498,17 +555,12 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Database and payload owner for channel C1 do not match") == -1)
     def test_AuthorizedAsPropWrongChannelOwner(self):
         self.doTestAndCheckWrongChannelOwner(conn_prop)
-    def test_AuthorizedAsChanWrongChannelOwner(self):
-        self.doTestAndCheckWrongChannelOwner(conn_chan)
     def test_AuthorizedAsAdminWrongChannelOwner(self):
         self.doTestAndCheckWrongChannelOwner(conn_admin)
 
 # add properties with wrong property owner (new property) in payload
     def test_AuthorizedAsPropWrongNewPropertyOwner(self):
         response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
-        self.failUnlessEqual('204', response[u'headers']['status'])
-    def test_AuthorizedAsChanWrongNewPropertyOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
@@ -521,17 +573,12 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
     def test_AuthorizedAsPropWrongExistingPropertyOwner(self):
         self.doTestAndCheckWrongExistingPropertyOwner(conn_prop)
-    def test_AuthorizedAsChanWrongExistingPropertyOwner(self):
-        self.doTestAndCheckWrongExistingPropertyOwner(conn_chan)
     def test_AuthorizedAsAdminWrongExistingPropertyOwner(self):
         self.doTestAndCheckWrongExistingPropertyOwner(conn_admin)
 
 # add properties with wrong tag owner (new tag) in payload
     def test_AuthorizedAsPropWrongNewTagOwner(self):
         response = conn_prop.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
-        self.failUnlessEqual('204', response[u'headers']['status'])
-    def test_AuthorizedAsChanWrongNewTagOwner(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
@@ -544,17 +591,12 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
     def test_AuthorizedAsPropWrongExistingTagOwner(self):
         self.doTestAndCheckWrongExistingTagOwner(conn_prop)
-    def test_AuthorizedAsChanWrongExistingTagOwner(self):
-        self.doTestAndCheckWrongExistingTagOwner(conn_chan)
     def test_AuthorizedAsAdminWrongExistingTagOwner(self):
         self.doTestAndCheckWrongExistingTagOwner(conn_admin)
 
 # add properties with wrong payload format (channels instead of channel)
     def test_AuthorizedAsPropWrongFormat(self):
         response = conn_prop.request_post(self.url1, headers=jsonheader, body=C12_full)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-    def test_AuthorizedAsChanWrongFormat(self):
-        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_full)
@@ -581,8 +623,6 @@ class UpdatePropertiesSecondChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Database and payload owner for property/tag P11 do not match") == -1)
     def test_AuthorizedAsPropWrongNewPropertyOwner(self):
         self.doTestAndCheckWrongNewPropertyOwner(conn_prop)
-    def test_AuthorizedAsChanWrongNewPropertyOwner(self):
-        self.doTestAndCheckWrongNewPropertyOwner(conn_chan)
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
         self.doTestAndCheckWrongNewPropertyOwner(conn_admin)
 
@@ -593,8 +633,6 @@ class UpdatePropertiesSecondChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Database and payload owner for property/tag T11 do not match") == -1)
     def test_AuthorizedAsPropWrongNewTagOwner(self):
         self.doTestAndCheckWrongNewPropertyOwner(conn_prop)
-    def test_AuthorizedAsChanWrongNewTagOwner(self):
-        self.doTestAndCheckWrongNewPropertyOwner(conn_chan)
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         self.doTestAndCheckWrongNewPropertyOwner(conn_admin)
 
@@ -716,6 +754,73 @@ class createManyChannelsThirdChannel(unittest.TestCase):
 
 
 #############################################################################################
+# Test .../channels GET                             all kinds of queries
+#############################################################################################
+class queryChannels(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c3 = 'resources/channel/C3'
+        self.c4 = 'resources/channel/C4'
+        self.c  = 'resources/channels'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
+
+    def test_AllChans(self):
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_full_r)
+
+    def test_OnePropValue(self):
+        response = conn_none.request_get(self.c + "?P11=prop1", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C3s_full_r)
+
+    def test_TwoDifferentPropValues(self):
+        response = conn_none.request_get(self.c + "?P1=prop1&P22=prop22", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C4s_full_r)
+
+    def test_TwoPropValues(self):
+        response = conn_none.request_get(self.c + "?P11=prop1&P11=prop11", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C23_full_r)
+
+    def test_AndOrCombiPropValues(self):
+        response = conn_none.request_get(self.c + "?P11=prop1&P11=prop11&P2=prop2", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C3s_full_r)
+
+    def test_TagAndPropValues(self):
+        response = conn_none.request_get(self.c + "?p11=prop1&P11=prop11&~tag=t2", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C3s_full_r)
+
+    def test_TagAndPropPattern1(self):
+        response = conn_none.request_get(self.c + "?p11=prop*&~tag=t2", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C3s_full_r)
+
+    def test_ChannelAndPropValues(self):
+        response = conn_none.request_get(self.c + "?p11=prop1&P11=prop11&~name=c3", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C3s_full_r)
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
+        response = conn_admin.request_delete(self.c3, headers=jsonheader)
+        response = conn_admin.request_delete(self.c4, headers=jsonheader)
+
+
+#############################################################################################
 # Test .../tags/<name> PUT
 #############################################################################################
 class addTagExclusiveToChannel(unittest.TestCase):
@@ -726,6 +831,7 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.c4 = 'resources/channel/C4'
         self.c = 'resources/channels'
         self.t1 = 'resources/tags/T1'
+        self.t2 = 'resources/tags/t1'
         response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
 
 # add tag to channels [1,2] then [3,4], using different roles
@@ -734,35 +840,41 @@ class addTagExclusiveToChannel(unittest.TestCase):
         response = conn_none.request_put(self.t1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('401', response[u'headers']['status'])
 
-    def doTestAndCheck(self, conn):
-        response = conn.request_put(self.t1, headers=jsonheader, body=C12_full)
+    def doTestAndCheck(self, conn, url):
+        response = conn.request_put(url, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
         response = conn_none.request_get(self.c, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_t12_r)
-        response = conn_none.request_get(self.t1, headers=jsonheader)
+        response = conn_none.request_get(url, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_t12_r)
-        response = conn.request_put(self.t1, headers=jsonheader, body=C34_full)
+        response = conn.request_put(url, headers=jsonheader, body=C34_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
         response = conn_none.request_get(self.c, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_t34_r)
-        response = conn_none.request_get(self.t1, headers=jsonheader)
+        response = conn_none.request_get(url, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C34_t34_r)
     def test_AuthorizedAsTag(self):
-        self.doTestAndCheck(conn_tag)
+        self.doTestAndCheck(conn_tag, self.t1)
     def test_AuthorizedAsProp(self):
-        self.doTestAndCheck(conn_prop)
+        self.doTestAndCheck(conn_prop, self.t1)
     def test_AuthorizedAsChan(self):
-        self.doTestAndCheck(conn_chan)
+        self.doTestAndCheck(conn_chan, self.t1)
     def test_AuthorizedAsAdmin(self):
-        self.doTestAndCheck(conn_admin)
+        self.doTestAndCheck(conn_admin, self.t1)
+
+# tag name capitalization (of URL) to database version
+    def test_AuthorizedAsTag(self):
+        self.doTestAndCheck(conn_tag, self.t2)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin, self.t2)
 
 # multiple channels of the same name in the payload
     def doTestAndCheckMultiSameChannel(self, conn):
@@ -771,22 +883,12 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Payload contains multiple instances of channel C1") == -1)
     def test_AuthorizedAsTagMultipleSameChannel(self):
         self.doTestAndCheckMultiSameChannel(conn_tag)
-    def test_AuthorizedAsPropMultipleSameChannel(self):
-        self.doTestAndCheckMultiSameChannel(conn_prop)
-    def test_AuthorizedAsChanMultipleSameChannel(self):
-        self.doTestAndCheckMultiSameChannel(conn_chan)
     def test_AuthorizedAsAdminMultipleSameChannel(self):
         self.doTestAndCheckMultiSameChannel(conn_admin)
 
 # using wrong payload format (channel instead of channels)
     def test_AuthorizedAsTagWrongFormat(self):
         response = conn_tag.request_put(self.t1, headers=jsonheader, body=C1_full)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-    def test_AuthorizedAsPropWrongFormat(self):
-        response = conn_prop.request_put(self.t1, headers=jsonheader, body=C1_full)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-    def test_AuthorizedAsChanWrongFormat(self):
-        response = conn_chan.request_put(self.t1, headers=jsonheader, body=C1_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_put(self.t1, headers=jsonheader, body=C1_full)
@@ -844,10 +946,6 @@ class deleteTag(unittest.TestCase):
         self.failIf(response[u'body'].find("Tag TX does not exist") == -1)
     def test_AuthorizedAsTagNonexistingTag(self):
         self.doTestAndCheckNonexistingTag(conn_tag)
-    def test_AuthorizedAsPropNonexistingTag(self):
-        self.doTestAndCheckNonexistingTag(conn_prop)
-    def test_AuthorizedAsChanNonexistingTag(self):
-        self.doTestAndCheckNonexistingTag(conn_chan)
     def test_AuthorizedAsAdminNonexistingTag(self):
         self.doTestAndCheckNonexistingTag(conn_admin)
 
@@ -901,10 +999,6 @@ class addTagToChannel(unittest.TestCase):
 # add tag to channels 1,2 (using empty [1,2] payload), using different roles
     def test_EmptyAuthorizedAsTag(self):
         self.doTestAndCheck(conn_tag, C12_empty)
-    def test_EmptyAuthorizedAsProp(self):
-        self.doTestAndCheck(conn_prop, C12_empty)
-    def test_EmptyAuthorizedAsChan(self):
-        self.doTestAndCheck(conn_chan, C12_empty)
     def test_EmptyAuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin, C12_empty)
 
@@ -922,10 +1016,6 @@ class addTagToChannel(unittest.TestCase):
         self.failUnlessEqual(j1, C12_tx_r)
     def test_AuthorizedAsTagNewTagSpecOwner(self):
         self.doTestAndCheck12X(conn_tag)
-    def test_AuthorizedAsPropNewTagSpecOwner(self):
-        self.doTestAndCheck12X(conn_prop)
-    def test_AuthorizedAsChanNewTagSpecOwner(self):
-        self.doTestAndCheck12X(conn_chan)
     def test_AuthorizedAsAdminNewTagSpecOwner(self):
         self.doTestAndCheck12X(conn_admin)
 
@@ -936,10 +1026,6 @@ class addTagToChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Tag ownership for TX undefined in db and payload") == -1)
     def test_AuthorizedAsTagNewTagUnspecifiedOwner(self):
         self.doTestAndCheckNewTagUnspecifiedOwner(conn_tag)
-    def test_AuthorizedAsPropNewTagUnspecifiedOwner(self):
-        self.doTestAndCheckNewTagUnspecifiedOwner(conn_prop)
-    def test_AuthorizedAsChanNewTagUnspecifiedOwner(self):
-        self.doTestAndCheckNewTagUnspecifiedOwner(conn_chan)
     def test_AuthorizedAsAdminNewTagUnspecifiedOwner(self):
         self.doTestAndCheckNewTagUnspecifiedOwner(conn_admin)
 
@@ -950,22 +1036,12 @@ class addTagToChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Inconsistent payload owner for tag TX") == -1)
     def test_AuthorizedAsTagNewTagInconsistentOwner(self):
         self.doTestAndCheckNewTagInconsistentOwner(conn_tag)
-    def test_AuthorizedAsPropNewTagInconsistentOwner(self):
-        self.doTestAndCheckNewTagInconsistentOwner(conn_prop)
-    def test_AuthorizedAsChanNewTagInconsistentOwner(self):
-        self.doTestAndCheckNewTagInconsistentOwner(conn_chan)
     def test_AuthorizedAsAdminNewTagInconsistentOwner(self):
         self.doTestAndCheckNewTagInconsistentOwner(conn_admin)
 
 # using wrong payload format (channel instead of channels)
     def test_AuthorizedAsTagWrongFormat(self):
         response = conn_tag.request_post(self.t1, headers=jsonheader, body=C1_full)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-    def test_AuthorizedAsPropWrongFormat(self):
-        response = conn_prop.request_post(self.t1, headers=jsonheader, body=C1_full)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-    def test_AuthorizedAsChanWrongFormat(self):
-        response = conn_chan.request_post(self.t1, headers=jsonheader, body=C1_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminWrongFormat(self):
         response = conn_admin.request_post(self.t1, headers=jsonheader, body=C1_full)
@@ -1022,10 +1098,6 @@ class addTagToOneChannel(unittest.TestCase):
         self.failUnlessEqual(j1, C12_t12_r)
     def test_AuthorizedAsTagXml(self):
         self.doTestAndCheckXml(conn_tag)
-    def test_AuthorizedAsPropXml(self):
-        self.doTestAndCheckXml(conn_prop)
-    def test_AuthorizedAsChanXml(self):
-        self.doTestAndCheckXml(conn_chan)
     def test_AuthorizedAsAdminXml(self):
         self.doTestAndCheckXml(conn_admin)
 
@@ -1039,10 +1111,6 @@ class addTagToOneChannel(unittest.TestCase):
         self.failUnlessEqual(j1, C12_t12_r)
     def test_AuthorizedAsTag(self):
         self.doTestAndCheck(conn_tag)
-    def test_AuthorizedAsProp(self):
-        self.doTestAndCheck(conn_prop)
-    def test_AuthorizedAsChan(self):
-        self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
 
@@ -1052,10 +1120,6 @@ class addTagToOneChannel(unittest.TestCase):
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsTagWrongFormat(self):
         self.doTestAndCheckWrongFormat(conn_tag)
-    def test_AuthorizedAsPropWrongFormat(self):
-        self.doTestAndCheckWrongFormat(conn_prop)
-    def test_AuthorizedAsChanWrongFormat(self):
-        self.doTestAndCheckWrongFormat(conn_chan)
     def test_AuthorizedAsAdminWrongFormat(self):
         self.doTestAndCheckWrongFormat(conn_admin)
 
@@ -1066,10 +1130,6 @@ class addTagToOneChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("syntactically incorrect") == -1)
     def test_AuthorizedAsTagWrongFormatXml(self):
         self.doTestAndCheckWrongFormatXml(conn_tag)
-    def test_AuthorizedAsPropWrongFormatXml(self):
-        self.doTestAndCheckWrongFormatXml(conn_prop)
-    def test_AuthorizedAsChanWrongFormatXml(self):
-        self.doTestAndCheckWrongFormatXml(conn_chan)
     def test_AuthorizedAsAdminWrongFormatXml(self):
         self.doTestAndCheckWrongFormatXml(conn_admin)
 
@@ -1080,10 +1140,6 @@ class addTagToOneChannel(unittest.TestCase):
         self.failIf(response[u'body'].find("Specified tag name T1 and payload tag name TX do not match") == -1)
     def test_AuthorizedAsTagWrongTagName(self):
         self.doTestAndCheckWrongTagName(conn_tag)
-    def test_AuthorizedAsPropWrongTagName(self):
-        self.doTestAndCheckWrongTagName(conn_prop)
-    def test_AuthorizedAsChanWrongTagName(self):
-        self.doTestAndCheckWrongTagName(conn_chan)
     def test_AuthorizedAsAdminWrongTagName(self):
         self.doTestAndCheckWrongTagName(conn_admin)
 

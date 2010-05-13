@@ -77,7 +77,7 @@ public class ChannelResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapsFor(new XmlChannels(data));
+            EntityMap.getInstance().loadMapsFor(new XmlChannels(data));
             AccessManager.getInstance().updateChannel(name, data);
             db.commit();
             return Response.noContent().build();
@@ -104,7 +104,7 @@ public class ChannelResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapsFor(new XmlChannels(data));
+            EntityMap.getInstance().loadMapsFor(new XmlChannels(data));
             AccessManager.getInstance().mergeChannel(name, data);
             db.commit();
             return Response.noContent().build();
@@ -129,7 +129,7 @@ public class ChannelResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            OwnerMap.getInstance().loadMapFromDbForChannel(name);
+            EntityMap.getInstance().loadMapFromDbForChannel(name);
             AccessManager.getInstance().deleteChannel(name);
             db.commit();
             return Response.ok().build();
