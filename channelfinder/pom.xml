@@ -49,14 +49,8 @@
         <dependency>
             <groupId>com.sun.jersey.glassfish.v3</groupId>
             <artifactId>jersey-gfv3-core</artifactId>
-            <version>1.1.5.1</version>
+            <version>1.2</version>
             <type>pom</type>
-            <exclusions>
-                <exclusion>
-                    <artifactId>internal-api</artifactId>
-                    <groupId>org.glassfish.common</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.collections</groupId>
