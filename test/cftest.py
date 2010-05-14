@@ -44,6 +44,7 @@ _C1_full = { '@name': 'C1', '@owner': 'testc',\
 C1_full = JSONEncoder().encode(_C1_full)
 C1_full_xml = "<channel name=\"C1\" owner=\"testc\"><properties><property name=\"P1\" value=\"prop1\" owner=\"testp\"/><property name=\"P2\" value=\"prop2\" owner=\"testp\"/></properties><tags><tag name=\"T1\" owner=\"testt\"/><tag name=\"T2\" owner=\"testt\"/></tags></channel>"
 C1_full_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
+C1s_full_r = {u'channels': {u'channel': C1_full_r}}
 _C1_full_lc = { '@name': 'c1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'p1', '@value': 'prop1', '@owner': 'testp'},\
                                        {'@name': 'p2', '@value': 'prop2', '@owner': 'testp'} ] },\
@@ -66,6 +67,7 @@ _C2_full = { '@name': 'C2', '@owner': 'testc',\
           }
 C2_full = JSONEncoder().encode(_C2_full)
 C2_full_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}
+C2s_full_r = {u'channels': {u'channel': C2_full_r}}
 _C3_full = { '@name': 'C3', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop1', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
@@ -145,6 +147,7 @@ C2s_full = JSONEncoder().encode({'channels': {'channel': _C2_full }})
 C12_empty = JSONEncoder().encode({'channels': {'channel':[ _C1_empty, _C2_empty ]}})
 C34_full = JSONEncoder().encode({'channels': {'channel': [ _C3_full, _C4_full ]}})
 C12_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r]}}
+C13_full_r = {u'channels': {u'channel': [C1_full_r, C3_full_r]}}
 C12_full_wrongpowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner1, _C2_full ]}})
 C12_full_wrongtowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner1, _C2_full ]}})
 C12_full_wrongpowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner3, _C2_full ]}})
@@ -795,6 +798,24 @@ class queryChannels(unittest.TestCase):
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C3s_full_r)
 
+    def test_OneTagValue(self):
+        response = conn_none.request_get(self.c + "?~tag=t2", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C13_full_r)
+
+    def test_TwoTagValues(self):
+        response = conn_none.request_get(self.c + "?~tag=t2&~tag=T1", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1s_full_r)
+
+    def test_TwoTagValuesNoResult(self):
+        response = conn_none.request_get(self.c + "?~tag=T2&~tag=t3", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, None_r)
+
     def test_TagAndPropValues(self):
         response = conn_none.request_get(self.c + "?p11=prop1&P11=prop11&~tag=t2", headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
@@ -806,6 +827,18 @@ class queryChannels(unittest.TestCase):
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C3s_full_r)
+
+    def test_TagAndPropPattern2(self):
+        response = conn_none.request_get(self.c + "?p11=prop*&~tag=t?", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C3s_full_r)
+
+    def test_TagAndPropPattern3(self):
+        response = conn_none.request_get(self.c + "?p1=prop*&~tag=t?&~tag=t??", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C4s_full_r)
 
     def test_ChannelAndPropValues(self):
         response = conn_none.request_get(self.c + "?p11=prop1&P11=prop11&~name=c3", headers=jsonheader)

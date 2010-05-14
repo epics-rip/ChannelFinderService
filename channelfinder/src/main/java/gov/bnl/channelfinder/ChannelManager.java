@@ -89,15 +89,15 @@ public class ChannelManager {
 
         try {
             ResultSet rs = query.executeQuery(DbConnection.getInstance().getConnection());
-
-            while (rs.next()) {
-                String thischan = rs.getString("channel");
-                if (rs.isFirst()) {
-                    xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+            if (rs != null) {
+                while (rs.next()) {
+                    String thischan = rs.getString("channel");
+                    if (rs.isFirst()) {
+                        xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+                    }
+                    addProperty(xmlChan, rs);
                 }
-                addProperty(xmlChan, rs);
             }
-
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception during channel search request", e);
@@ -118,14 +118,16 @@ public class ChannelManager {
             ResultSet rs = query.executeQuery(DbConnection.getInstance().getConnection());
 
             String lastchan = "";
-            while (rs.next()) {
-                String thischan = rs.getString("channel");
-                if (!thischan.equals(lastchan) || rs.isFirst()) {
-                    xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
-                    xmlChans.addChannel(xmlChan);
-                    lastchan = thischan;
+            if (rs != null) {
+                while (rs.next()) {
+                    String thischan = rs.getString("channel");
+                    if (!thischan.equals(lastchan) || rs.isFirst()) {
+                        xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+                        xmlChans.addChannel(xmlChan);
+                        lastchan = thischan;
+                    }
+                    addProperty(xmlChan, rs);
                 }
-                addProperty(xmlChan, rs);
             }
             return xmlChans;
         } catch (SQLException e) {

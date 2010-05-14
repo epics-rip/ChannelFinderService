@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +35,22 @@ public class FindChannelsQuery {
     private Multimap<String, String> prop_matches = ArrayListMultimap.create();
     private List<String> chan_matches = new ArrayList();
     private List<String> tag_matches = new ArrayList();
+    private List<String> tag_patterns = new ArrayList();
+
+    private void addTagMatches(Collection<String> matches) {
+        for (String m : matches) {
+            if (m.contains("?") || m.contains("*")) {
+                tag_patterns.add(m);
+            } else {
+                tag_matches.add(m);
+            }
+        }
+    }
 
     /**
      * Creates a new instance of FindChannelsQuery, sorting the query parameters.
-     * Property and tag matches go to the inner query,
+     * Property matches and tag string matches go to the first inner query,
+     * tag pattern matches are queried separately,
      * name matches go to the outer query.
      * Property and tag names are converted to lowercase before being matched.
      *
@@ -49,7 +62,7 @@ public class FindChannelsQuery {
             if (key.equals("~name")) {
                 chan_matches.addAll(match.getValue());
             } else if (key.equals("~tag")) {
-                tag_matches.addAll(match.getValue());
+                addTagMatches(match.getValue());
             } else {
                 prop_matches.putAll(key, match.getValue());
             }
@@ -65,7 +78,7 @@ public class FindChannelsQuery {
         if (type == SearchType.CHANNEL) {
             chan_matches.addAll(matches);
         } else {
-            tag_matches.addAll(matches);
+            addTagMatches(matches);
         }
     }
 
@@ -78,7 +91,7 @@ public class FindChannelsQuery {
         if (type == SearchType.CHANNEL) {
             chan_matches.add(name);
         } else {
-            tag_matches.add(name);
+            addTagMatches(Collections.singleton(name));
         }
     }
 
@@ -128,19 +141,15 @@ public class FindChannelsQuery {
     }
 
     /**
-     * Creates and executes the property match subquery using GROUP.
+     * Creates and executes the property and tag string match subquery using GROUP.
      *
-     * @param con  connection to use
+     * @param con connection to use
      * @return a set of channel ids that match
      */
-    private Set<Long> getIdsForPropertyMatch(Connection con) throws CFException {
+    private Set<Long> getIdsFromPropertyMatch(Connection con) throws CFException {
         String query = "SELECT p0.channel_id FROM property p0 WHERE";
         Set<Long> ids = new HashSet<Long>();           // set of matching channel ids
         List<String> params = new ArrayList<String>(); // parameter list for this query
-
-        if (prop_matches.size() == 0 && tag_matches.size() == 0) {
-            return null;
-        }
 
         for (Map.Entry<String, Collection<String>> match : prop_matches.asMap().entrySet()) {
             String valueList = "p0.value LIKE";
@@ -155,7 +164,7 @@ public class FindChannelsQuery {
 
         for (String tag : tag_matches) {
             params.add(convertFileGlobToSQLPattern(tag).toLowerCase());
-            query = query + " (LOWER(p0.property) LIKE ? AND p0.value IS NULL) OR";
+            query = query + " (LOWER(p0.property) = ? AND p0.value IS NULL) OR";
         }
 
         query = query.substring(0, query.length() - 2)
@@ -175,16 +184,44 @@ public class FindChannelsQuery {
             }
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception while getting ids in channels query", e);
+                    "SQL Exception while getting ids in property match query", e);
         }
         return ids;
     }
 
     /**
-     * Creates and executes a JDBC based query using the GROUP based subquery
+     * Creates and executes the property and tag string match subquery using GROUP.
+     *
+     * @param con connection to use
+     * @return a set of channel ids that match
+     */
+    private Set<Long> getIdsFromTagMatch(Connection con, String match) throws CFException {
+        String query = "SELECT p0.channel_id FROM property p0"
+                + " WHERE LOWER(p0.property) LIKE ? AND p0.value IS NULL"
+                + " GROUP BY p0.channel_id";
+        Set<Long> ids = new HashSet<Long>();
+
+        try {
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setString(1, convertFileGlobToSQLPattern(match));
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getLong(1));
+            }
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while getting ids in tag match query", e);
+        }
+        return ids;
+    }
+
+    /**
+     * Creates and executes a JDBC based query using subqueries for
+     * property and tag matches.
      *
      * @param con  connection to use
-     * @return  result set with columns named <tt>channel</tt>, <tt>property</tt>, <tt>value</tt>
+     * @return result set with columns named <tt>channel</tt>, <tt>property</tt>,
+     *         <tt>value</tt>, null if no results
      * @throws CFException wrapping an SQLException
      */
     public ResultSet executeQuery(Connection con) throws CFException {
@@ -192,12 +229,36 @@ public class FindChannelsQuery {
                 + " FROM channel c LEFT JOIN property p ON c.id = p.channel_id WHERE 1=1";
         List<Long> id_params = new ArrayList<Long>();       // parameter lists for the outer query
         List<String> name_params = new ArrayList<String>();
+        Set<Long> result = new HashSet<Long>();
 
-        Set<Long> ids = getIdsForPropertyMatch(con);
+        if (!prop_matches.isEmpty() || !tag_matches.isEmpty()) {
+            Set<Long> ids = getIdsFromPropertyMatch(con);
+            if (ids.isEmpty()) {
+                return null;
+            }
+            result = ids;
+        }
 
-        if (ids != null) {
-            query = query + " AND c.id IN (0,"; // 0 added to avoid SQL error with empty id list
-            for (long i : ids) {
+        if (!tag_patterns.isEmpty()) {
+            for (String p : tag_patterns) {
+                Set<Long> ids = getIdsFromTagMatch(con, p);
+                if (ids.isEmpty()) {
+                    return null;
+                }
+                if (result.isEmpty()) {
+                    result = ids;
+                } else {
+                    result.retainAll(ids);
+                    if (result.isEmpty()) {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        if (!result.isEmpty()) {
+            query = query + " AND c.id IN (";
+            for (long i : result) {
                 query = query + "?,";
                 id_params.add(i);
             }
