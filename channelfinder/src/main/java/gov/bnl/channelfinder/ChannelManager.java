@@ -7,6 +7,7 @@ package gov.bnl.channelfinder;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -85,7 +86,7 @@ public class ChannelManager {
      */
     public XmlChannel findChannelByName(String name) throws CFException {
         XmlChannel xmlChan = null;
-        FindChannelsQuery query = FindChannelsQuery.createSingleChannelMatchQuery(name);
+        FindChannelsQuery query = FindChannelsQuery.createChannelMatchQuery(Collections.singleton(name));
 
         try {
             ResultSet rs = query.executeQuery(DbConnection.getInstance().getConnection());
@@ -157,18 +158,6 @@ public class ChannelManager {
      */
     public XmlChannels findChannelsByTagMatch(Collection<String> matches) throws CFException {
         FindChannelsQuery query = FindChannelsQuery.createTagMatchQuery(matches);
-        return findChannelsByMatch(query);
-    }
-
-    /**
-     * Return channels found by matching tags against a single name pattern.
-     *
-     * @param name tag name pattern to match
-     * @return XmlChannels container with all found channels and their properties
-     * @throws CFException wrapping an SQLException
-     */
-    public XmlChannels findChannelsByTag(String name) throws CFException {
-        FindChannelsQuery query = FindChannelsQuery.createSingleTagMatchQuery(name);
         return findChannelsByMatch(query);
     }
 

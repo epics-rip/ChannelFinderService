@@ -5,8 +5,8 @@
 
 package gov.bnl.channelfinder;
 
-import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -50,7 +50,7 @@ public class AccessManager {
      * @throws CFException
      */
     public XmlChannels findChannelsByTag(String name) throws CFException {
-        return cm.findChannelsByTag(name);
+        return cm.findChannelsByTagMatch(Collections.singleton(name));
     }
 
     /**

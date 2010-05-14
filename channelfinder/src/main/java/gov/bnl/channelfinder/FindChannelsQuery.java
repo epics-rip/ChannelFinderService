@@ -114,30 +114,12 @@ public class FindChannelsQuery {
     }
 
     /**
-     * Creates a channel FindChannelsQuery (single channel name)
-     * @param name channel name
-     * @return new FindChannelsQuery instance
-     */
-    public static FindChannelsQuery createSingleChannelMatchQuery(String name) {
-        return new FindChannelsQuery(SearchType.CHANNEL, name);
-    }
-
-    /**
      * Creates a tag FindChannelsQuery (multiple tag names)
      * @param matches String collection of name query parameters
      * @return new FindChannelsQuery instance
      */
     public static FindChannelsQuery createTagMatchQuery(Collection<String> matches) {
         return new FindChannelsQuery(SearchType.TAG, matches);
-    }
-
-    /**
-     * Creates a tag FindChannelsQuery (single tag name)
-     * @param name tag name
-     * @return new FindChannelsQuery instance
-     */
-    public static FindChannelsQuery createSingleTagMatchQuery(String name) {
-        return new FindChannelsQuery(SearchType.TAG, name);
     }
 
     /**
