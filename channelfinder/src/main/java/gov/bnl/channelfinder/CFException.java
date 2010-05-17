@@ -61,4 +61,20 @@ public class CFException extends Exception {
                     .entity(responseMessage())
                     .build();
     }
+
+    /**
+     * Returns the HTTP Response status code for this exception.
+     * @return HTTP response
+     */
+    public Response.Status getResponseStatusString() {
+        return status;
+    }
+
+    /**
+     * Returns the HTTP Response status code for this exception.
+     * @return HTTP response
+     */
+    public int getResponseStatusCode() {
+        return status.getStatusCode();
+    }
 }

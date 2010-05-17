@@ -5,6 +5,13 @@
 
 package gov.bnl.channelfinder;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
@@ -12,8 +19,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.ext.MessageBodyWriter;
+import javax.ws.rs.ext.Providers;
 
 /**
  *
@@ -26,6 +36,9 @@ public class ChannelsResource {
     private UriInfo uriInfo;
     @Context
     private SecurityContext securityContext;
+
+    private Logger audit = Logger.getLogger(this.getClass().getPackage().getName() + ".audit");
+    private Logger log = Logger.getLogger(this.getClass().getName());
   
     /** Creates a new instance of ChannelsResource */
     public ChannelsResource() {
@@ -42,13 +55,19 @@ public class ChannelsResource {
     @Produces({"application/xml", "application/json"})
     public Response get() {
         DbConnection db = DbConnection.getInstance();
+        String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         try {
             db.getConnection();
             db.beginTransaction();
             XmlChannels result = AccessManager.getInstance().findChannelsByMultiMatch(uriInfo.getQueryParameters());
             db.commit();
-            return Response.ok(result).build();
+            Response r = Response.ok(result).build();
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
+                    + "|returns " + result.getChannels().size() + " channels");
+            return r;
         } catch (CFException e) {
+            log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
+                    + e.getResponseStatusCode() +  "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
@@ -63,17 +82,23 @@ public class ChannelsResource {
      */
     @POST
     @Consumes({"application/xml", "application/json"})
-    public Response post(XmlChannels data) {
+    public Response post(XmlChannels data) throws IOException {
         DbConnection db = DbConnection.getInstance();
-        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
             EntityMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().createChannels(data);
             db.commit();
-            return Response.noContent().build();
+            Response r = Response.noContent().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
+                    + "|data=" + XmlChannels.toLog(data));
+            return r;
         } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
+                    + "|data=" + XmlChannels.toLog(data) + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();

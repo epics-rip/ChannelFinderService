@@ -94,4 +94,13 @@ public class XmlProperty {
     public void setOwner(String owner) {
         this.owner = owner;
     }
+
+    /**
+     * Creates a compact string representation for the log.
+     *
+     * @param data the XmlProperty to log
+     */
+    public static String toLog(XmlProperty data) {
+        return data.getName() + "(" + data.getOwner() + "):" + data.getValue();
+    }
 }

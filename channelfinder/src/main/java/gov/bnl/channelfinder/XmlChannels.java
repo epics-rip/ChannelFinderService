@@ -57,4 +57,24 @@ public class XmlChannels {
     public void addChannel(XmlChannel item) {
         this.items.add(item);
     }
+
+    /**
+     * Creates a compact string representation for the log.
+     *
+     * @param item the XmlChannel to add
+     */
+    public static String toLog(XmlChannels data) {
+        if (data.getChannels().size() == 0) {
+            return "[None]";
+        } else {
+            StringBuilder s = new StringBuilder();
+            s.append("[");
+            for (XmlChannel c : data.getChannels()) {
+                s.append(XmlChannel.toLog(c) + ",");
+            }
+            s.delete(s.length()-1, s.length());
+            s.append("]");
+            return s.toString();
+        }
+    }
 }

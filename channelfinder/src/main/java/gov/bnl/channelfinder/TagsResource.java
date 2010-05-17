@@ -4,6 +4,7 @@
  */
 package gov.bnl.channelfinder;
 
+import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -15,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 /**
  *
@@ -22,9 +24,13 @@ import javax.ws.rs.core.SecurityContext;
  */
 @Path("/tags/{name}")
 public class TagsResource {
-
+    @Context
+    private UriInfo uriInfo;
     @Context
     private SecurityContext securityContext;
+
+    private Logger audit = Logger.getLogger(this.getClass().getPackage().getName() + ".audit");
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of TagsResource */
     public TagsResource() {
@@ -41,14 +47,20 @@ public class TagsResource {
     @Produces({"application/xml", "application/json"})
     public Response get(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
+        String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlChannels result = null;
         try {
             db.getConnection();
             db.beginTransaction();
             result = AccessManager.getInstance().findChannelsByTag(name);
             db.commit();
-            return Response.ok(result).build();
+            Response r = Response.ok(result).build();
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
+                    + "|returns " + result.getChannels().size() + " channels");
+            return r;
         } catch (CFException e) {
+            log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
+                    + e.getResponseStatusCode() +  "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
@@ -67,7 +79,8 @@ public class TagsResource {
     @Consumes({"application/xml", "application/json"})
     public Response put(@PathParam("name") String name, XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
-        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
@@ -75,8 +88,13 @@ public class TagsResource {
             EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
-            return Response.noContent().build();
+            Response r = Response.noContent().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus()
+                    + "|data=" + XmlChannels.toLog(data));
+            return r;
         } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|ERROR|" + e.getResponseStatusCode()
+                    + "|data=" + XmlChannels.toLog(data) + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
@@ -95,7 +113,8 @@ public class TagsResource {
     @Consumes({"application/xml", "application/json"})
     public Response post(@PathParam("name") String name, XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
-        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
@@ -103,8 +122,13 @@ public class TagsResource {
             EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
-            return Response.noContent().build();
+            Response r = Response.noContent().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
+                    + "|data=" + XmlChannels.toLog(data));
+            return r;
         } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
+                    + "|data=" + XmlChannels.toLog(data) + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
@@ -121,15 +145,20 @@ public class TagsResource {
     @DELETE
     public Response delete(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
-        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
             EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().deleteTag(name);
             db.commit();
-            return Response.ok().build();
+            Response r = Response.ok().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+            return r;
         } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
+                    + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
@@ -151,7 +180,8 @@ public class TagsResource {
     @Consumes({"application/xml", "application/json"})
     public Response putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlTag data) {
         DbConnection db = DbConnection.getInstance();
-        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
@@ -159,8 +189,13 @@ public class TagsResource {
             EntityMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
-            return Response.noContent().build();
+            Response r = Response.noContent().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus()
+                    + "|data=" + XmlTag.toLog(data));
+            return r;
         } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|ERROR|" + e.getResponseStatusCode()
+                    + "|data=" + XmlTag.toLog(data) + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
@@ -179,15 +214,20 @@ public class TagsResource {
     @Path("{chan}")
     public Response deleteSingle(@PathParam("name") String tag, @PathParam("chan") String chan) {
         DbConnection db = DbConnection.getInstance();
-        UserManager.getInstance().setUser(securityContext.getUserPrincipal());
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal());
         try {
             db.getConnection();
             db.beginTransaction();
             EntityMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().deleteSingleTag(tag, chan);
             db.commit();
-            return Response.ok().build();
+            Response r = Response.ok().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+            return r;
         } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
+                    + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();

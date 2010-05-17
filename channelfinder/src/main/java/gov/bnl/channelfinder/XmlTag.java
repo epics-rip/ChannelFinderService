@@ -74,4 +74,13 @@ public class XmlTag {
     public void setOwner(String owner) {
         this.owner = owner;
     }
+
+    /**
+     * Creates a compact string representation for the log.
+     *
+     * @param data the XmlTag to log
+     */
+    public static String toLog(XmlTag data) {
+        return data.getName() + "(" + data.getOwner() + ")";
+    }
 }

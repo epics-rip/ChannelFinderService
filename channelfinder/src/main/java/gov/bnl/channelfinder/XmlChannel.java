@@ -134,4 +134,25 @@ public class XmlChannel {
     public void addTag(XmlTag tag) {
         this.tags.add(tag);
     }
+
+    /**
+     * Creates a compact string representation for the log.
+     *
+     * @param item the XmlChannel to add
+     */
+    public static String toLog(XmlChannel data) {
+        StringBuilder s = new StringBuilder();
+        s.append(data.getName() + "(" + data.getOwner() + "):[");
+        for (XmlProperty p : data.getXmlProperties()) {
+            s.append(XmlProperty.toLog(p) + ",");
+        }
+        for (XmlTag t : data.getXmlTags()) {
+            s.append(XmlTag.toLog(t) + ",");
+        }
+        if (data.getXmlProperties().size() > 0 || data.getXmlTags().size() > 0) {
+            s.delete(s.length()-1, s.length());
+        }
+        s.append("]");
+        return s.toString();
+    }
 }
