@@ -39,7 +39,6 @@
             <version>6.0</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -50,6 +49,7 @@
             <groupId>com.sun.jersey.glassfish.v3</groupId>
             <artifactId>jersey-gfv3-core</artifactId>
             <version>1.2</version>
+            <scope>provided</scope>
             <type>pom</type>
         </dependency>
         <dependency>
