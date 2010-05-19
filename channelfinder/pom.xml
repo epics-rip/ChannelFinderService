@@ -6,11 +6,14 @@
     <packaging>war</packaging>
     <version>0.1-SNAPSHOT</version>
     <name>ChannelFinder Directory Service</name>
+    <description>ChannelFinder is a directory server, implemented as a REST style web service.
+    Its intended use is within control systems, namely the EPICS Control system, for which it
+    has been written.</description>
     <url>http://sourceforge.net/projects/channelfinder/</url>
     <developers>
         <developer>
             <name>Ralph Lange</name>
-            <organization>BNL / NSLS-II, Helmholtz-Zentrum Berlin / BESSY-II</organization>
+            <organization>BNL / NSLS-II, Helmholtz-Zentrum Berlin / BESSY II</organization>
             <roles>
                 <role>Project Manager</role>
                 <role>Architect</role>
@@ -19,6 +22,7 @@
     </developers>
     <scm>
         <connection>scm:hg:http://channelfinder.hg.sourceforge.net:8000/hgroot/channelfinder/channelfinder</connection>
+        <developerConnection>scm:hg:ssh://user@channelfinder.hg.sourceforge.net/hgroot/channelfinder/channelfinder</developerConnection>
         <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/channelfinder/</url>
     </scm>
     <issueManagement>
