@@ -342,6 +342,11 @@ public class ChannelManager {
         EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
         EntityMap.getInstance().enforceDbCapitalization(new XmlChannels(data));
         XmlChannel dest = findChannelByName(name);
+        if (dest == null) {
+            throw new CFException(Response.Status.FORBIDDEN,
+                    "Specified channel " + name
+                    + " does not exist");
+        }
         mergeXmlChannels(dest, data);
         updateChannel(name, dest);
     }

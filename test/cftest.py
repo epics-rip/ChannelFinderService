@@ -605,8 +605,19 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
 
+# add properties for nonexisting channel
+    def test_AuthorizedAsPropNewChannel(self):
+        response = conn_prop.request_post(self.url2, headers=jsonheader, body=C2_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Specified channel C2 does not exist") == -1)
+    def test_AuthorizedAsAdminNewChannel(self):
+        response = conn_admin.request_post(self.url2, headers=jsonheader, body=C2_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Specified channel C2 does not exist") == -1)
+
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
+        response = conn_admin.request_delete(self.url2, headers=jsonheader)
 
 
 #############################################################################################
