@@ -45,7 +45,7 @@ public class DeleteTagQuery {
      * @param con connection to use
      * @throws CFException wrapping an SQLException
      */
-    public void executeQuery(Connection con) throws CFException {
+    public void executeQuery(Connection con, boolean ignoreNoExist) throws CFException {
         Long id = null;
         PreparedStatement ps;
         String query;
@@ -78,7 +78,7 @@ public class DeleteTagQuery {
                 ps.setLong(2, id);
             }
             int rows = ps.executeUpdate();
-            if (rows == 0) {
+            if (rows == 0 && !ignoreNoExist) {
                 throw new CFException(Response.Status.NOT_FOUND,
                         "Tag " + tag + " does not exist");
             }

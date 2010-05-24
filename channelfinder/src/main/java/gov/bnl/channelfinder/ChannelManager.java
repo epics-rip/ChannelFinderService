@@ -193,7 +193,7 @@ public class ChannelManager {
      */
     public void deleteTag(String tag) throws CFException {
         DeleteTagQuery dq = new DeleteTagQuery(tag);
-        dq.executeQuery(DbConnection.getInstance().getConnection());
+        dq.executeQuery(DbConnection.getInstance().getConnection(), false);
     }
 
     /**
@@ -205,7 +205,7 @@ public class ChannelManager {
      */
     public void deleteSingleTag(String tag, String chan) throws CFException {
         DeleteTagQuery dq = new DeleteTagQuery(tag, chan);
-        dq.executeQuery(DbConnection.getInstance().getConnection());
+        dq.executeQuery(DbConnection.getInstance().getConnection(), false);
     }
 
     /**
@@ -244,7 +244,7 @@ public class ChannelManager {
         tag = EntityMap.getInstance().enforceDbPropertyName(tag);
         DeleteTagQuery dq = new DeleteTagQuery(tag);
         AddTagQuery aq = new AddTagQuery(tag, owner, data);
-        dq.executeQuery(DbConnection.getInstance().getConnection());
+        dq.executeQuery(DbConnection.getInstance().getConnection(), true);
         aq.executeQuery(DbConnection.getInstance().getConnection());
     }
 

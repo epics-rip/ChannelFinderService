@@ -875,7 +875,8 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.c4 = 'resources/channel/C4'
         self.c = 'resources/channels'
         self.t1 = 'resources/tags/T1'
-        self.t2 = 'resources/tags/t1'
+        self.t1_ = 'resources/tags/t1'
+        self.tx = 'resources/tags/TX'
         response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
 
 # add tag to channels [1,2] then [3,4], using different roles
@@ -915,10 +916,37 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.doTestAndCheck(conn_admin, self.t1)
 
 # tag name capitalization (of URL) to database version
-    def test_AuthorizedAsTag(self):
-        self.doTestAndCheck(conn_tag, self.t2)
-    def test_AuthorizedAsAdmin(self):
-        self.doTestAndCheck(conn_admin, self.t2)
+    def test_AuthorizedAsTagDbSpelling(self):
+        self.doTestAndCheck(conn_tag, self.t1_)
+    def test_AuthorizedAsAdminDbSpelling(self):
+        self.doTestAndCheck(conn_admin, self.t1_)
+
+# add new tag to channels 1,2 (specifying owner in payload)
+    def doTestAndCheck12X(self, conn):
+        response = conn.request_put(self.tx, headers=jsonheader, body=C12_tx)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_tx_r)
+        response = conn_none.request_get(self.tx, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_tx_r)
+    def test_AuthorizedAsTagNewTagSpecOwner(self):
+        self.doTestAndCheck12X(conn_tag)
+    def test_AuthorizedAsAdminNewTagSpecOwner(self):
+        self.doTestAndCheck12X(conn_admin)
+
+# using unspecified owner for new tag
+    def doTestAndCheckNewTagUnspecifiedOwner(self, conn):
+        response = conn.request_post(self.tx, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Tag ownership for TX undefined in db and payload") == -1)
+    def test_AuthorizedAsTagNewTagUnspecifiedOwner(self):
+        self.doTestAndCheckNewTagUnspecifiedOwner(conn_tag)
+    def test_AuthorizedAsAdminNewTagUnspecifiedOwner(self):
+        self.doTestAndCheckNewTagUnspecifiedOwner(conn_admin)
 
 # multiple channels of the same name in the payload
     def doTestAndCheckMultiSameChannel(self, conn):
