@@ -948,6 +948,16 @@ class addTagExclusiveToChannel(unittest.TestCase):
     def test_AuthorizedAsAdminNewTagUnspecifiedOwner(self):
         self.doTestAndCheckNewTagUnspecifiedOwner(conn_admin)
 
+# using inconsistent owner for new tag
+    def doTestAndCheckNewTagInconsistentOwner(self, conn):
+        response = conn.request_put(self.tx, headers=jsonheader, body=C12_txy)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Inconsistent payload owner for tag TX") == -1)
+    def test_AuthorizedAsTagNewTagInconsistentOwner(self):
+        self.doTestAndCheckNewTagInconsistentOwner(conn_tag)
+    def test_AuthorizedAsAdminNewTagInconsistentOwner(self):
+        self.doTestAndCheckNewTagInconsistentOwner(conn_admin)
+
 # multiple channels of the same name in the payload
     def doTestAndCheckMultiSameChannel(self, conn):
         response = conn.request_put(self.t1, headers=jsonheader, body=C121_full)
