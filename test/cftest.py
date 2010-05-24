@@ -940,7 +940,7 @@ class addTagExclusiveToChannel(unittest.TestCase):
 
 # using unspecified owner for new tag
     def doTestAndCheckNewTagUnspecifiedOwner(self, conn):
-        response = conn.request_post(self.tx, headers=jsonheader, body=C12_full)
+        response = conn.request_put(self.tx, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
         self.failIf(response[u'body'].find("Tag ownership for TX undefined in db and payload") == -1)
     def test_AuthorizedAsTagNewTagUnspecifiedOwner(self):
