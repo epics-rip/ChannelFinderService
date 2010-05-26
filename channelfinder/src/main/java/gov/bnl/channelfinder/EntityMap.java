@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
@@ -340,5 +341,35 @@ public class EntityMap {
                 }
             }
         }
+    }
+
+    /**
+     * Returns all owners contained in the Db entity map.
+     */
+
+    public Collection<String> getAllDbOwners() {
+        Collection<String> owners = new HashSet<String>();
+        for (List<String> s : db_cowner.values()) {
+            owners.add(s.get(1));
+        }
+        for (List<String> s : db_powner.values()) {
+            owners.add(s.get(1));
+        }
+        return owners;
+    }
+
+    /**
+     * Returns all owners contained in the payload entity map.
+     */
+
+    public Collection<String> getAllPayloadOwners() {
+        Collection<String> owners = new HashSet<String>();
+        for (List<String> s : pl_cowner.values()) {
+            owners.add(s.get(1));
+        }
+        for (List<String> s : pl_powner.values()) {
+            owners.add(s.get(1));
+        }
+        return owners;
     }
 }

@@ -8,6 +8,7 @@ package gov.bnl.channelfinder;
 import java.util.Collection;
 import java.util.Collections;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -175,5 +176,33 @@ public class AccessManager {
      */
     public void deleteSingleTag(String name, String chan) throws CFException {
         cm.deleteSingleTag(name, chan);
+    }
+
+    /**
+     * Checks if the authenticated user is a member of all payload owner groups
+     * for entities specified there.
+     */
+    private void checkUserBelongsToPayloadOwnerGroups(XmlChannels data) throws CFException {
+        for (String grp : EntityMap.getInstance().getAllPayloadOwners()) {
+            if (!UserManager.getInstance().userIsInGroup(grp)) {
+                throw new CFException(Response.Status.FORBIDDEN,
+                    "User " + UserManager.getInstance().getUserName()
+                    + " does not belong to group " + grp + " specified in payload");
+            }
+        }
+    }
+
+    /**
+     * Checks if the authenticated user is a member of all db owner groups
+     * for entities specified in the payload.
+     */
+    private void checkUserBelongsToDbOwnerGroups(XmlChannels data) throws CFException {
+        for (String grp : EntityMap.getInstance().getAllDbOwners()) {
+            if (!UserManager.getInstance().userIsInGroup(grp)) {
+                throw new CFException(Response.Status.FORBIDDEN,
+                    "User " + UserManager.getInstance().getUserName()
+                    + " does not belong to group " + grp + " needed to modify database");
+            }
+        }
     }
 }
