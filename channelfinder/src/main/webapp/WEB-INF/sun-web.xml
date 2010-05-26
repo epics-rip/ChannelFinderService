@@ -4,19 +4,19 @@
   <context-root>/ChannelFinder</context-root>
   <security-role-mapping>
     <role-name>ChannelMod</role-name>
-    <group-name>channels</group-name>
+    <group-name>cf-channels</group-name>
   </security-role-mapping>
   <security-role-mapping>
     <role-name>TagMod</role-name>
-    <group-name>tags</group-name>
+    <group-name>cf-tags</group-name>
   </security-role-mapping>
   <security-role-mapping>
     <role-name>PropertyMod</role-name>
-    <group-name>properties</group-name>
+    <group-name>cf-properties</group-name>
   </security-role-mapping>
   <security-role-mapping>
     <role-name>Administrator</role-name>
-    <group-name>admins</group-name>
+    <group-name>cf-admins</group-name>
   </security-role-mapping>
   <class-loader delegate="true"/>
   <jsp-config>
