@@ -311,6 +311,7 @@ public class ChannelManager {
         EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
         EntityMap.getInstance().enforceDbCapitalization(data);
         for (XmlChannel chan : data.getChannels()) {
+            deleteChannel(chan.getName());
             createChannel(chan);
         }
     }
