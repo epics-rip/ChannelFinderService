@@ -53,30 +53,12 @@ public class FindEntitiesQuery {
     }
 
     /**
-     * Creates a channel FindEntitiesQuery for a single channel name.
-     * @param name channel name
-     * @return new FindEntitiesQuery instance
-     */
-    public static FindEntitiesQuery createFindChannelNamesQuery(String name) {
-        return new FindEntitiesQuery(FindEntitiesQuery.SearchType.CHANNEL, name);
-    }
-
-    /**
      * Creates a FindEntitiesQuery for multiple property or tag names.
      * @param names String collection of property/tag names
      * @return new FindEntitiesQuery instance
      */
     public static FindEntitiesQuery createFindPropertyNamesQuery(Collection<String> names) {
         return new FindEntitiesQuery(FindEntitiesQuery.SearchType.PROPERTY, names);
-    }
-
-    /**
-     * Creates a channel FindEntitiesQuery for a single property or tag name.
-     * @param name property/tag name
-     * @return new FindEntitiesQuery instance
-     */
-    public static FindEntitiesQuery createFindPropertyNamesQuery(String name) {
-        return new FindEntitiesQuery(FindEntitiesQuery.SearchType.PROPERTY, name);
     }
 
     /**
