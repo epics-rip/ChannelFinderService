@@ -84,11 +84,10 @@ public class ChannelResource {
     public Response put(@PathParam("name") String name, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapsFor(new XmlChannels(data));
             AccessManager.getInstance().updateChannel(name, data);
             db.commit();
             Response r = Response.noContent().build();
@@ -117,11 +116,10 @@ public class ChannelResource {
     public Response post(@PathParam("name") String name, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapsFor(new XmlChannels(data));
             AccessManager.getInstance().mergeChannel(name, data);
             db.commit();
             Response r = Response.noContent().build();
@@ -148,11 +146,10 @@ public class ChannelResource {
     public Response delete(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapFromDbForChannel(name);
             AccessManager.getInstance().deleteChannel(name);
             db.commit();
             Response r = Response.ok().build();

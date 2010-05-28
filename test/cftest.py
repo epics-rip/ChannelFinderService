@@ -9,14 +9,20 @@ if base_url is None:
 
 user_tag = "taggy"
 user_prop = "proppy"
+user_prop2 = "proppy2"
 user_chan = "channy"
+user_chan2 = "channy2"
+user_chan3 = "channy3"
 user_admin = "boss"
 passwd = "1234"
 
-conn_none = Connection(base_url)
-conn_tag  = Connection(base_url, username=user_tag, password=passwd)
-conn_prop = Connection(base_url, username=user_prop, password=passwd)
-conn_chan = Connection(base_url, username=user_chan, password=passwd)
+conn_none  = Connection(base_url)
+conn_tag   = Connection(base_url, username=user_tag,   password=passwd)
+conn_prop  = Connection(base_url, username=user_prop,  password=passwd)
+conn_prop2 = Connection(base_url, username=user_prop2, password=passwd)
+conn_chan  = Connection(base_url, username=user_chan,  password=passwd)
+conn_chan2 = Connection(base_url, username=user_chan2, password=passwd)
+conn_chan3 = Connection(base_url, username=user_chan3, password=passwd)
 conn_admin = Connection(base_url, username=user_admin, password=passwd)
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
@@ -60,6 +66,7 @@ C12_tx = JSONEncoder().encode({'channels': {'channel': [ _C1_tx, _C2_tx ]}})
 C12_txy = JSONEncoder().encode({'channels': {'channel': [ _C1_tx, _C2_ty ]}})
 _C2_empty = { '@name': 'C2', '@owner': 'testc' }
 C2_empty = JSONEncoder().encode(_C2_empty)
+C2_empty_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': None}
 _C2_full = { '@name': 'C2', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P22', '@value': 'prop22', '@owner': 'testp'} ] },\
@@ -147,6 +154,7 @@ C2s_full = JSONEncoder().encode({'channels': {'channel': _C2_full }})
 C12_empty = JSONEncoder().encode({'channels': {'channel':[ _C1_empty, _C2_empty ]}})
 C34_full = JSONEncoder().encode({'channels': {'channel': [ _C3_full, _C4_full ]}})
 C12_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r]}}
+C12_empty_r = {u'channels': {u'channel': [C1_empty_r, C2_empty_r]}}
 C13_full_r = {u'channels': {u'channel': [C1_full_r, C3_full_r]}}
 C12_full_wrongpowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner1, _C2_full ]}})
 C12_full_wrongtowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner1, _C2_full ]}})
@@ -241,6 +249,18 @@ class DeleteOneChannel(unittest.TestCase):
         self.doTestAndCheck21(conn_chan)
     def test_AuthorizedAsAdmin21(self):
         self.doTestAndCheck21(conn_admin)
+
+# delete as channy2 (does not belong to testt)
+    def test_AuthorizedAsChan1GroupNonMember(self):
+        response = conn_chan2.request_delete(self.url2, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        response = conn_none.request_get(self.url2, headers=jsonheader)
+        self.failUnlessEqual('404', response[u'headers']['status'])
+        response = conn_none.request_get(self.url1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        response = conn_chan2.request_delete(self.url1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -354,7 +374,13 @@ class CreateOneChannel(unittest.TestCase):
     def test_FullAuthorizedAsAdminXml(self):
         self.doTestAndCheckFullXml(conn_admin)
 
-# add properties with wrong payload format (channels instead of channel)
+# add one full channel as channy2 (not member of testt)
+    def test_FullAuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_put(self.url1, headers=jsonheader, body=C1_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt specified in payload") == -1)
+
+# add channel with wrong payload format (channels instead of channel)
     def test_AuthorizedAsChanWrongFormat(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
@@ -447,6 +473,11 @@ class UpdateOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+# same as channy3 (member of testt, but not of xxxx)
+    def test_FullAuthorizedAsChanWrongNewTagOwnerGroupNonMember(self):
+        response = conn_chan3.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy3 does not belong to group xxxx specified in payload") == -1)
 
 # add channel with wrong tag owner (existing tag) in payload
     def test_AuthorizedAsChanWrongExistingTagOwner(self):
@@ -457,6 +488,12 @@ class UpdateOneChannel(unittest.TestCase):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
         self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
+
+# add channel as channy2 (not member of testt)
+    def test_FullAuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_put(self.url1, headers=jsonheader, body=C1_full2)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -568,6 +605,11 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewPropertyOwner(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+# same as channy3 (member of testt, but not of xxxx)
+    def test_AuthorizedAsChanWrongNewPropertyOwnerGroupNonMember(self):
+        response = conn_chan3.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner1)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy3 does not belong to group xxxx specified in payload") == -1)
 
 # add properties with wrong property owner (existing property) in payload
     def doTestAndCheckWrongExistingPropertyOwner(self, conn):
@@ -586,6 +628,11 @@ class UpdatePropertiesOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminWrongNewTagOwner(self):
         response = conn_admin.request_post(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('204', response[u'headers']['status'])
+# same as channy3 (member of testt, but not of xxxx)
+    def test_AuthorizedAsChanWrongNewTagOwnerGroupNonMember(self):
+        response = conn_chan3.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy3 does not belong to group xxxx specified in payload") == -1)
 
 # add properties with wrong tag owner (existing tag) in payload
     def doTestAndCheckWrongExistingTagOwner(self, conn):
@@ -656,9 +703,9 @@ class UpdatePropertiesSecondChannel(unittest.TestCase):
 
 
 #############################################################################################
-# Test .../channels POST
+# Test .../channels POST               for non-existing channels
 #############################################################################################
-class createManyChannels(unittest.TestCase):
+class CreateManyChannels(unittest.TestCase):
     def setUp(self):
         self.url1 = 'resources/channel/C1'
         self.url2 = 'resources/channel/C2'
@@ -686,6 +733,12 @@ class createManyChannels(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_post(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt specified in payload") == -1)
 
 # using wrong payload format (channel instead of channels)
     def test_AuthorizedAsChanWrongFormat(self):
@@ -731,9 +784,112 @@ class createManyChannels(unittest.TestCase):
 
 
 #############################################################################################
+# Test .../channels POST                to existing channels
+#############################################################################################
+class ReplaceManyChannelsFullWithEmpty(unittest.TestCase):
+    def setUp(self):
+        self.url1 = 'resources/channel/C1'
+        self.url2 = 'resources/channel/C2'
+        self.url = 'resources/channels'
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full)
+
+# add two channels using different roles
+    def test_Unauthorized(self):
+        response = conn_none.request_post(self.url, headers=jsonheader, body=C12_empty)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+    def test_AuthorizedAsTag(self):
+        response = conn_tag.request_post(self.url, headers=jsonheader, body=C12_empty)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+    def test_AuthorizedAsProp(self):
+        response = conn_prop.request_post(self.url, headers=jsonheader, body=C12_empty)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+
+    def doTestAndCheck(self, conn):
+        response = conn.request_post(self.url, headers=jsonheader, body=C12_empty)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_empty_r)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_post(self.url, headers=jsonheader, body=C12_empty)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.url1, headers=jsonheader)
+        response = conn_admin.request_delete(self.url2, headers=jsonheader)
+
+# The other way round: full replaces empty
+class ReplaceManyChannelsEmptyWithFull(unittest.TestCase):
+    def setUp(self):
+        self.url1 = 'resources/channel/C1'
+        self.url2 = 'resources/channel/C2'
+        self.url = 'resources/channels'
+        response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_empty)
+
+# add two channels using different roles
+    def test_Unauthorized(self):
+        response = conn_none.request_post(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+    def test_AuthorizedAsTag(self):
+        response = conn_tag.request_post(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+    def test_AuthorizedAsProp(self):
+        response = conn_prop.request_post(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+
+    def doTestAndCheck(self, conn):
+        response = conn.request_post(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_full_r)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_post(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt specified in payload") == -1)
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.url1, headers=jsonheader)
+        response = conn_admin.request_delete(self.url2, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../channels PUT                          not implemented
+#############################################################################################
+class PutManyChannels(unittest.TestCase):
+    def setUp(self):
+        self.url1 = 'resources/channel/C1'
+        self.url2 = 'resources/channel/C2'
+        self.url = 'resources/channels'
+
+    def test_AuthorizedAsAdmin(self):
+        response = conn_admin.request_put(self.url, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('405', response[u'headers']['status'])
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.url1, headers=jsonheader)
+        response = conn_admin.request_delete(self.url2, headers=jsonheader)
+
+
+#############################################################################################
 # Test .../channels POST                              restrictions by other (third) channel
 #############################################################################################
-class createManyChannelsThirdChannel(unittest.TestCase):
+class CreateManyChannelsThirdChannel(unittest.TestCase):
     def setUp(self):
         self.url1 = 'resources/channel/C1'
         self.url2 = 'resources/channel/C2'
@@ -770,7 +926,7 @@ class createManyChannelsThirdChannel(unittest.TestCase):
 #############################################################################################
 # Test .../channels GET                             all kinds of queries
 #############################################################################################
-class queryChannels(unittest.TestCase):
+class QueryChannels(unittest.TestCase):
     def setUp(self):
         self.c1 = 'resources/channel/C1'
         self.c2 = 'resources/channel/C2'
@@ -867,7 +1023,7 @@ class queryChannels(unittest.TestCase):
 #############################################################################################
 # Test .../tags/<name> PUT
 #############################################################################################
-class addTagExclusiveToChannel(unittest.TestCase):
+class AddTagExclusiveToChannel(unittest.TestCase):
     def setUp(self):
         self.c1 = 'resources/channel/C1'
         self.c2 = 'resources/channel/C2'
@@ -914,6 +1070,11 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan, self.t1)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin, self.t1)
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_put(self.t1, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
 # tag name capitalization (of URL) to database version
     def test_AuthorizedAsTagDbSpelling(self):
@@ -937,6 +1098,11 @@ class addTagExclusiveToChannel(unittest.TestCase):
         self.doTestAndCheck12X(conn_tag)
     def test_AuthorizedAsAdminNewTagSpecOwner(self):
         self.doTestAndCheck12X(conn_admin)
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanNewTagGroupNonMember(self):
+        response = conn_chan2.request_put(self.tx, headers=jsonheader, body=C12_tx)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testx specified in payload") == -1)
 
 # using unspecified owner for new tag
     def doTestAndCheckNewTagUnspecifiedOwner(self, conn):
@@ -986,7 +1152,7 @@ class addTagExclusiveToChannel(unittest.TestCase):
 #############################################################################################
 # Test .../tags/<name> DELETE
 #############################################################################################
-class deleteTag(unittest.TestCase):
+class DeleteTag(unittest.TestCase):
     def setUp(self):
         self.c1 = 'resources/channel/C1'
         self.c2 = 'resources/channel/C2'
@@ -1021,6 +1187,12 @@ class deleteTag(unittest.TestCase):
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
 
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_delete(self.t1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+
 # delete nonexisting tag
     def doTestAndCheckNonexistingTag(self, conn):
         response = conn.request_delete(self.tx, headers=jsonheader)
@@ -1042,7 +1214,7 @@ class deleteTag(unittest.TestCase):
 #############################################################################################
 # Test .../tags/<name> POST
 #############################################################################################
-class addTagToChannel(unittest.TestCase):
+class AddTagToChannel(unittest.TestCase):
     def setUp(self):
         self.c1 = 'resources/channel/C1'
         self.c2 = 'resources/channel/C2'
@@ -1083,6 +1255,15 @@ class addTagToChannel(unittest.TestCase):
         self.doTestAndCheck(conn_tag, C12_empty)
     def test_EmptyAuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin, C12_empty)
+# same as channy2 (not member of testt)
+    def test_FullAuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_post(self.t1, headers=jsonheader, body=C12_full)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+    def test_EmptyAuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_post(self.t1, headers=jsonheader, body=C12_empty)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
 # add tag to channels 1,2 (specifying owner in payload), using different roles
     def doTestAndCheck12X(self, conn):
@@ -1100,6 +1281,11 @@ class addTagToChannel(unittest.TestCase):
         self.doTestAndCheck12X(conn_tag)
     def test_AuthorizedAsAdminNewTagSpecOwner(self):
         self.doTestAndCheck12X(conn_admin)
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanNewTagGroupNonMember(self):
+        response = conn_chan2.request_post(self.tx, headers=jsonheader, body=C12_tx)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testx specified in payload") == -1)
 
 # using unspecified owner for new tag
     def doTestAndCheckNewTagUnspecifiedOwner(self, conn):
@@ -1139,7 +1325,7 @@ class addTagToChannel(unittest.TestCase):
 #############################################################################################
 # Test .../tags/<name>/<channel> PUT
 #############################################################################################
-class addTagToOneChannel(unittest.TestCase):
+class AddTagToOneChannel(unittest.TestCase):
     def setUp(self):
         self.c1 = 'resources/channel/C1'
         self.c2 = 'resources/channel/C2'
@@ -1169,6 +1355,11 @@ class addTagToOneChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_put(self.t1, headers=jsonheader, body=T1)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
 # Same as XML
     def doTestAndCheckXml(self, conn):
@@ -1191,10 +1382,15 @@ class addTagToOneChannel(unittest.TestCase):
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_t12_r)
-    def test_AuthorizedAsTag(self):
+    def test_AuthorizedAsTagNoPayload(self):
         self.doTestAndCheck(conn_tag)
-    def test_AuthorizedAsAdmin(self):
+    def test_AuthorizedAsAdminNoPayload(self):
         self.doTestAndCheck(conn_admin)
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanNoPayloadGroupNonMember(self):
+        response = conn_chan2.request_put(self.t1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
 # using wrong payload format (channel instead of tag)
     def doTestAndCheckWrongFormat(self, conn):
@@ -1233,7 +1429,7 @@ class addTagToOneChannel(unittest.TestCase):
 #############################################################################################
 # Test .../tags/<name>/<channel> DELETE
 #############################################################################################
-class deleteTagFromOneChannel(unittest.TestCase):
+class DeleteTagFromOneChannel(unittest.TestCase):
     def setUp(self):
         self.c1 = 'resources/channel/C1'
         self.c2 = 'resources/channel/C2'
@@ -1262,6 +1458,12 @@ class deleteTagFromOneChannel(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
+
+# same as channy2 (not member of testt)
+    def test_AuthorizedAsChanGroupNonMember(self):
+        response = conn_chan2.request_delete(self.t1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.c1, headers=jsonheader)

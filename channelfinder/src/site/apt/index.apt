@@ -22,7 +22,7 @@ which applications can query for a list of channels that match certain condition
 such as physical functionality or location. It also provides mechanisms to create channel name aliases,
 allowing for different perspectives of the same set of channel names.
 
-* Directory Structure
+* Directory Data Structure
 
  Each directory entry consists of a channel <name>, an arbitrary set of <properties> (name-value pairs),
 and an arbitrary set of <tags> (names).

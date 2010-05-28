@@ -85,11 +85,10 @@ public class ChannelsResource {
     public Response post(XmlChannels data) throws IOException {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapsFor(data);
             AccessManager.getInstance().createChannels(data);
             db.commit();
             Response r = Response.noContent().build();

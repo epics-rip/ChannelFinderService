@@ -25,6 +25,7 @@ import javax.naming.directory.SearchResult;
 public class UserManager {
     private static UserManager instance = new UserManager();
     private ThreadLocal<Principal> user = new ThreadLocal<Principal>();
+    private ThreadLocal<Boolean> hasAdminRole = new ThreadLocal<Boolean>();
     private ThreadLocal<Collection<String>> groups = new ThreadLocal<Collection<String>>();
     private ThreadLocal<DirContext> ctx = new ThreadLocal<DirContext>();
     private static final String ldapResourceName = "channelfinderGroups";
@@ -74,8 +75,9 @@ public class UserManager {
      *
      * @param user principal
      */
-    public void setUser(Principal user) {
+    public void setUser(Principal user, boolean isAdmin) {
         this.user.set(user);
+        this.hasAdminRole.set(isAdmin);
         clearGroups();
         DirContext dirctx = getJndiContext();
         try {
@@ -104,7 +106,17 @@ public class UserManager {
      * @return true if user is a member of <tt>group</tt>
      */
     public boolean userIsInGroup(String group) {
-        return groups.get().contains(group);
+        return group == null ? true : groups.get().contains(group);
+    }
+
+    /**
+     * Checks if the user has admin role.
+     *
+     * @param group name of the group to check membership
+     * @return true if user is a member of <tt>group</tt>
+     */
+    public boolean userHasAdminRole() {
+        return hasAdminRole.get();
     }
 
     /**

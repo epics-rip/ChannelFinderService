@@ -80,12 +80,10 @@ public class TagsResource {
     public Response put(@PathParam("name") String name, XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapsFromPayloadFor(data);
-            EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().putTag(name, data);
             db.commit();
             Response r = Response.noContent().build();
@@ -114,12 +112,10 @@ public class TagsResource {
     public Response post(@PathParam("name") String name, XmlChannels data) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapsFromPayloadFor(data);
-            EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().addTag(name, data);
             db.commit();
             Response r = Response.noContent().build();
@@ -146,11 +142,10 @@ public class TagsResource {
     public Response delete(@PathParam("name") String name) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapFromDbForProperty(name);
             AccessManager.getInstance().deleteTag(name);
             db.commit();
             Response r = Response.ok().build();
@@ -181,12 +176,10 @@ public class TagsResource {
     public Response putSingle(@PathParam("name") String tag, @PathParam("chan") String chan, XmlTag data) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapsFromPayloadFor(data);
-            EntityMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().addSingleTag(tag, chan, data);
             db.commit();
             Response r = Response.noContent().build();
@@ -215,11 +208,10 @@ public class TagsResource {
     public Response deleteSingle(@PathParam("name") String tag, @PathParam("chan") String chan) {
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal());
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             db.getConnection();
             db.beginTransaction();
-            EntityMap.getInstance().loadMapFromDbForProperty(tag);
             AccessManager.getInstance().deleteSingleTag(tag, chan);
             db.commit();
             Response r = Response.ok().build();

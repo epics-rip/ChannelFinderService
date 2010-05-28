@@ -48,10 +48,15 @@ public class EntityMap {
         return instance.get();
     }
 
-    private void loadNewDbChannelMap(Collection<String> names) throws CFException {
-        FindEntitiesQuery eq = FindEntitiesQuery.createFindChannelNamesQuery(names);
+    private void loadNewDbChannelMap(Collection<String> names, boolean includeProperties) throws CFException {
         try {
-            fillMap(db_cowner, eq.executeQuery(DbConnection.getInstance().getConnection()), false);
+            db_cowner.clear();
+            FindEntitiesQuery eq = FindEntitiesQuery.createFindChannelNamesQuery(names);
+            addToMap(db_cowner, eq.executeQuery(DbConnection.getInstance().getConnection()), false);
+            if (includeProperties) {
+                FindEntitiesQuery pq = FindEntitiesQuery.createFindPropertiesForChannelNamesQuery(names);
+                addToMap(db_cowner, pq.executeQuery(DbConnection.getInstance().getConnection()), false);
+            }
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while loading channel name map", e);
@@ -61,27 +66,29 @@ public class EntityMap {
     private void loadNewDbPropertyMap(Collection<String> names) throws CFException {
         FindEntitiesQuery eq = FindEntitiesQuery.createFindPropertyNamesQuery(names);
         try {
-            fillMap(db_powner, eq.executeQuery(DbConnection.getInstance().getConnection()), true);
+            db_powner.clear();
+            addToMap(db_powner, eq.executeQuery(DbConnection.getInstance().getConnection()), true);
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while loading property name map", e);
         }
     }
 
-    private void fillMap(Map<String, List<String>> map, ResultSet rs, boolean ignoreCase) throws CFException, SQLException {
-        map.clear();
-        while (rs.next()) {
-            String name = rs.getString("name");
-            String key = name;
-            if (ignoreCase) {
-                key = name.toLowerCase();
+    private void addToMap(Map<String, List<String>> map, ResultSet rs, boolean ignoreCase) throws CFException, SQLException {
+        if (rs != null) {
+            while (rs.next()) {
+                String name = rs.getString("name");
+                String key = name;
+                if (ignoreCase) {
+                    key = name.toLowerCase();
+                }
+                String owner = rs.getString("owner").toLowerCase();
+                if (map.containsKey(key) && !map.get(key).get(1).equals(owner)) {
+                    throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                            "Inconsistent ownership in database for " + name);
+                }
+                map.put(key, Arrays.asList(name, owner));
             }
-            String owner = rs.getString("owner").toLowerCase();
-            if (map.containsKey(key) && !map.get(key).get(1).equals(owner)) {
-                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                        "Inconsistent ownership in database for " + name);
-            }
-            map.put(key, Arrays.asList(name, owner));
         }
     }
 
@@ -92,7 +99,7 @@ public class EntityMap {
      * @param data channels to create the db owner maps for
      * @throws CFException wrapping an SQLException
      */
-    public void loadMapsFromDbFor(XmlChannels data) throws CFException {
+    public void loadDbMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
         List<String> cnames = new ArrayList<String>();
         List<String> pnames = new ArrayList<String>();
         for (XmlChannel c : data.getChannels()) {
@@ -104,7 +111,7 @@ public class EntityMap {
                 pnames.add(t.getName());
             }
         }
-        loadNewDbChannelMap(cnames);
+        loadNewDbChannelMap(cnames, includeProperties);
         loadNewDbPropertyMap(pnames);
     }
 
@@ -114,8 +121,8 @@ public class EntityMap {
      * @param name channel to create owner map for
      * @throws CFException wrapping an SQLException
      */
-    public void loadMapFromDbForChannel(String name) throws CFException {
-        loadNewDbChannelMap(Collections.singleton(name));
+    public void loadDbMapForChannel(String name, boolean includeProperties) throws CFException {
+        loadNewDbChannelMap(Collections.singleton(name), includeProperties);
         db_powner.clear();
     }
 
@@ -125,18 +132,19 @@ public class EntityMap {
      * @param name property/tag name to create owner map for
      * @throws CFException wrapping an SQLException
      */
-    public void loadMapFromDbForProperty(String name) throws CFException {
+    public void loadDbPropertyMapFor(String name) throws CFException {
         loadNewDbPropertyMap(Collections.singleton(name));
         db_cowner.clear();
     }
 
     /**
      * Load the payload name map with the payload <tt>data</tt>.
+     * If name != null, only load this name from payload.
      *
      * @param data XmlChannels collection to load
      * @throws CFException on owner mismatch
      */
-    public void loadMapsFromPayloadFor(XmlChannels data) throws CFException {
+    private void loadPayloadMapsWithFilterFor(XmlChannels data, String name) throws CFException {
         pl_cowner.clear();
         pl_powner.clear();
         for (XmlChannel c : data.getChannels()) {
@@ -144,7 +152,9 @@ public class EntityMap {
                 throw new CFException(Response.Status.BAD_REQUEST,
                         "Payload contains multiple instances of channel " + c.getName());
             } else {
-                pl_cowner.put(c.getName(), Arrays.asList(c.getName(), c.getOwner()));
+                if (name == null) {
+                    pl_cowner.put(c.getName(), Arrays.asList(c.getName(), c.getOwner()));
+                }
             }
             for (XmlProperty p : c.getXmlProperties()) {
                 String key = p.getName().toLowerCase();
@@ -154,7 +164,9 @@ public class EntityMap {
                                 "Inconsistent payload owner for property " + p.getName());
                     }
                 } else {
-                    pl_powner.put(key, Arrays.asList(p.getName(), p.getOwner()));
+                    if (name == null || name.equals(p.getName())) {
+                        pl_powner.put(key, Arrays.asList(p.getName(), p.getOwner()));
+                    }
                 }
             }
             for (XmlTag t : c.getXmlTags()) {
@@ -165,7 +177,9 @@ public class EntityMap {
                                 "Inconsistent payload owner for tag " + t.getName());
                     }
                 } else {
-                    pl_powner.put(key, Arrays.asList(t.getName(), t.getOwner()));
+                    if (name == null || name.equals(t.getName())) {
+                        pl_powner.put(key, Arrays.asList(t.getName(), t.getOwner()));
+                    }
                 }
             }
         }
@@ -174,10 +188,30 @@ public class EntityMap {
     /**
      * Load the payload name map with the payload <tt>data</tt>.
      *
+     * @param data XmlChannels collection to load
+     * @throws CFException on owner mismatch
+     */
+    public void loadPayloadMapsFor(XmlChannels data) throws CFException {
+        loadPayloadMapsWithFilterFor(data, null);
+    }
+
+    /**
+     * Load the payload name map with <tt>name</tt> from the payload <tt>data</tt>.
+     *
+     * @param data XmlChannels collection to load
+     * @throws CFException on owner mismatch
+     */
+    public void loadPayloadMapsFor(XmlChannels data, String name) throws CFException {
+        loadPayloadMapsWithFilterFor(data, name);
+    }
+
+    /**
+     * Load the payload name map with the payload <tt>data</tt>.
+     *
      * @param data XmlTag to load
      * @throws CFException on owner mismatch
      */
-    public void loadMapsFromPayloadFor(XmlTag data) throws CFException {
+    public void loadPayloadMapsFor(XmlTag data) throws CFException {
         pl_cowner.clear();
         pl_powner.clear();
         String key = data.getName().toLowerCase();
@@ -197,9 +231,20 @@ public class EntityMap {
      * @param data XmlChannel collection to load
      * @throws CFException on owner mismatch
      */
-    public void loadMapsFor(XmlChannels data) throws CFException {
-        loadMapsFromDbFor(data);
-        loadMapsFromPayloadFor(data);
+    public void loadMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
+        loadDbMapsFor(data, includeProperties);
+        loadPayloadMapsFor(data);
+    }
+
+    /**
+     * Load the database and payload name maps for/from the payload <tt>data</tt>.
+     *
+     * @param data XmlChannel collection to load
+     * @throws CFException on owner mismatch
+     */
+    public void loadPropertyMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
+        loadDbMapsFor(data, includeProperties);
+        loadPayloadMapsFor(data);
     }
 
     public boolean checkDbAndPayloadOwnersMatch() throws CFException {
@@ -279,13 +324,28 @@ public class EntityMap {
     }
 
     /**
-     * Returns the (database) owner of the specified property or tag.
+     * Returns the database owner of the specified property or tag.
      *
      * @param name of tag/property to look up
      * @return owner of specified <tt>name</tt>, null if not in db
      */
     public String getDbPropertyOwner(String name) {
         List<String> val = db_powner.get(name.toLowerCase());
+        if (val != null) {
+            return val.get(1);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the payload owner of the specified property or tag.
+     *
+     * @param name of tag/property to look up
+     * @return owner of specified <tt>name</tt>, null if not in payload
+     */
+    public String getPayloadPropertyOwner(String name) {
+        List<String> val = pl_powner.get(name.toLowerCase());
         if (val != null) {
             return val.get(1);
         } else {
@@ -347,10 +407,12 @@ public class EntityMap {
      * Returns all owners contained in the Db entity map.
      */
 
-    public Collection<String> getAllDbOwners() {
+    public Collection<String> getAllDbOwners(boolean includeChannelNames) {
         Collection<String> owners = new HashSet<String>();
-        for (List<String> s : db_cowner.values()) {
-            owners.add(s.get(1));
+        if (includeChannelNames) {
+            for (List<String> s : db_cowner.values()) {
+                owners.add(s.get(1));
+            }
         }
         for (List<String> s : db_powner.values()) {
             owners.add(s.get(1));
@@ -362,10 +424,12 @@ public class EntityMap {
      * Returns all owners contained in the payload entity map.
      */
 
-    public Collection<String> getAllPayloadOwners() {
+    public Collection<String> getAllPayloadOwners(boolean includeChannelNames) {
         Collection<String> owners = new HashSet<String>();
-        for (List<String> s : pl_cowner.values()) {
-            owners.add(s.get(1));
+        if (includeChannelNames) {
+            for (List<String> s : pl_cowner.values()) {
+                owners.add(s.get(1));
+            }
         }
         for (List<String> s : pl_powner.values()) {
             owners.add(s.get(1));
