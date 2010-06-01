@@ -1,6 +1,7 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2010 Brookhaven National Laboratory
+ * Copyright (c) 2010 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * Subject to license terms and conditions.
  */
 
 package gov.bnl.channelfinder;
@@ -10,7 +11,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * @author rlange
+ * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
 @XmlType(propOrder = {"name","value","owner"})
 public class XmlProperty {
