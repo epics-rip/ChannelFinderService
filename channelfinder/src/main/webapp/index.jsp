@@ -18,7 +18,7 @@
         <h2>External Design Documents</h2>
         <ul>
             <li><a href="ChannelFinder-Design.pdf">Design Document</a> (Jan 2010)</li>
-            <li><a href="ChannelFinder-API.pdf">API Description</a> (Apr 2010)</li>
+            <li><a href="ChannelFinder-API.pdf">API Description</a> (Jun 2010)</li>
         </ul>
 
         <h2>ChannelFinder Project on SourceForge</h2>
