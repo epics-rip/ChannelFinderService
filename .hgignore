@@ -7,3 +7,4 @@
 /target/
 /.cache/
 \.pyc$
+channelfinder/buildNumber.properties
