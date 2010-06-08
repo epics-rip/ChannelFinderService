@@ -6,12 +6,7 @@
 
 package gov.bnl.channelfinder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
@@ -20,11 +15,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Providers;
 
 /**
  *
