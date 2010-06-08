@@ -9,7 +9,7 @@
 java.util.jar.Manifest manifest = new java.util.jar.Manifest();
 java.io.InputStream is = getServletContext().getResourceAsStream("/META-INF/MANIFEST.MF");
 if (is == null) {
-    out.println("Can't find /META-INF/MANIFEST.MF ?!");
+    out.println("Can't find /META-INF/MANIFEST.MF");
 } else {
     manifest.read(is);
 }
@@ -26,7 +26,8 @@ java.util.jar.Attributes attributes = manifest.getMainAttributes();
     </head>
     <body>
         <h1>ChannelFinder Directory Service</h1>
-        <h2>Build: <%=attributes.getValue("Implementation-Version")%> - <%=attributes.getValue("Implementation-Build")%></h2>
+        <h3>Version: <%=attributes.getValue("Implementation-Version")%> &nbsp;&nbsp;&nbsp;&nbsp;
+            Build: <%=attributes.getValue("Implementation-Build")%></h3>
         <h2>External Design Documents</h2>
         <ul>
             <li><a href="ChannelFinder-Design.pdf">Design Document</a> (Jan 2010)</li>
