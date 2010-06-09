@@ -89,7 +89,6 @@
                             <Build-Number>${env.BUILD_NUMBER}</Build-Number>
                             <Build-Id>${env.BUILD_ID}</Build-Id>
                             <Build-Tag>${env.BUILD_TAG}</Build-Tag>
-                            <Build-Server>${env.BUILD_URL}</Build-Server>
                         </manifestEntries>
                     </archive>
                 </configuration>
