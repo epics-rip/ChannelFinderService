@@ -98,6 +98,7 @@ public class EntityMap {
      * collection.
      *
      * @param data channels to create the db owner maps for
+     * @param includeProperties flag: true = include the db properties of channels in map
      * @throws CFException wrapping an SQLException
      */
     public void loadDbMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
@@ -120,6 +121,7 @@ public class EntityMap {
      * Loads a new channel owner map for the single specified channel.
      *
      * @param name channel to create owner map for
+     * @param includeProperties flag: true = include the db properties of channel in map
      * @throws CFException wrapping an SQLException
      */
     public void loadDbMapForChannel(String name, boolean includeProperties) throws CFException {
@@ -200,6 +202,7 @@ public class EntityMap {
      * Load the payload name map with <tt>name</tt> from the payload <tt>data</tt>.
      *
      * @param data XmlChannels collection to load
+     * @param name name in payload to add data for
      * @throws CFException on owner mismatch
      */
     public void loadPayloadMapsFor(XmlChannels data, String name) throws CFException {
@@ -230,6 +233,7 @@ public class EntityMap {
      * Load the database and payload name maps for/from the payload <tt>data</tt>.
      *
      * @param data XmlChannel collection to load
+     * @param includeProperties flag: true = include the db properties of channels in map
      * @throws CFException on owner mismatch
      */
     public void loadMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
@@ -241,6 +245,7 @@ public class EntityMap {
      * Load the database and payload name maps for/from the payload <tt>data</tt>.
      *
      * @param data XmlChannel collection to load
+     * @param includeProperties flag: true = include the db properties of channels in map
      * @throws CFException on owner mismatch
      */
     public void loadPropertyMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
@@ -248,7 +253,12 @@ public class EntityMap {
         loadPayloadMapsFor(data);
     }
 
-    public boolean checkDbAndPayloadOwnersMatch() throws CFException {
+    /**
+     * Check if owners in database and payload maps match.
+     *
+     * @throws CFException when owners do not match
+     */
+    public void checkDbAndPayloadOwnersMatch() throws CFException {
         for (String n : pl_cowner.keySet()) {
             if (db_cowner.containsKey(n) && !pl_cowner.get(n).get(1).equals(db_cowner.get(n).get(1))) {
                 throw new CFException(Response.Status.BAD_REQUEST,
@@ -263,7 +273,6 @@ public class EntityMap {
                         + pl_powner.get(n).get(0) + " do not match");
             }
         }
-        return true;
     }
 
     /**
@@ -406,6 +415,9 @@ public class EntityMap {
 
     /**
      * Returns all owners contained in the Db entity map.
+     *
+     * @param includeChannelNames flag: true = include channel owners in result
+     * @return list of owners
      */
 
     public Collection<String> getAllDbOwners(boolean includeChannelNames) {
@@ -423,6 +435,9 @@ public class EntityMap {
 
     /**
      * Returns all owners contained in the payload entity map.
+     * 
+     * @param includeChannelNames flag: true = include channel owners in result
+     * @return list of owners
      */
 
     public Collection<String> getAllPayloadOwners(boolean includeChannelNames) {

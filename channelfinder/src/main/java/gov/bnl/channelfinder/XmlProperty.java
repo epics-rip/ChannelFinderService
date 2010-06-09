@@ -100,6 +100,7 @@ public class XmlProperty {
      * Creates a compact string representation for the log.
      *
      * @param data the XmlProperty to log
+     * @return string representation for log
      */
     public static String toLog(XmlProperty data) {
         return data.getName() + "(" + data.getOwner() + "):" + data.getValue();

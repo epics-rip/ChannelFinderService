@@ -44,6 +44,7 @@ public class DeleteTagQuery {
      * Creates and executes the JDBC based query
      *
      * @param con connection to use
+     * @param ignoreNoExist flag: true = do not generate an error if tag does not exist
      * @throws CFException wrapping an SQLException
      */
     public void executeQuery(Connection con, boolean ignoreNoExist) throws CFException {

@@ -40,8 +40,8 @@ public class AddTagQuery {
      * Creates a new instance of AddTagQuery for a single channel
      *
      * @param name name of tag to add
-     * @param data channel data (channel to add tag to)
      * @param owner owner for tag to add
+     * @param channel channel to add tag to
      */
     public AddTagQuery(String name, String owner, String channel) {
         this.name = name;

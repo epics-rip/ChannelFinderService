@@ -80,6 +80,7 @@ public class XmlTag {
      * Creates a compact string representation for the log.
      *
      * @param data the XmlTag to log
+     * @return string representation for log
      */
     public static String toLog(XmlTag data) {
         return data.getName() + "(" + data.getOwner() + ")";

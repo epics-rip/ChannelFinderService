@@ -31,7 +31,14 @@ public class UserManager {
     private ThreadLocal<DirContext> ctx = new ThreadLocal<DirContext>();
     private static final String ldapResourceName = "channelfinderGroups";
 
+    /**
+     * LDAP field name for the member UID
+     */
     @Resource(name="ldapGroupMemberField") protected String memberUidField = "memberUid";
+
+    /**
+     * LDAP field name for the group name in group entries
+     */
     @Resource(name="ldapGroupTargetField") protected String groupTargetField = "cn";
 
     private UserManager() {
@@ -75,6 +82,7 @@ public class UserManager {
      * mapping for the given user.
      *
      * @param user principal
+     * @param isAdmin flag: true = user has Admin role
      */
     public void setUser(Principal user, boolean isAdmin) {
         this.user.set(user);
@@ -113,7 +121,6 @@ public class UserManager {
     /**
      * Checks if the user has admin role.
      *
-     * @param group name of the group to check membership
      * @return true if user is a member of <tt>group</tt>
      */
     public boolean userHasAdminRole() {

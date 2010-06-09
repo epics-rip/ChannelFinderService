@@ -72,6 +72,7 @@ public class ChannelsResource {
      *
      * @param data channels data (from payload)
      * @return HTTP Response
+     * @throws IOException when audit or log fail
      */
     @POST
     @Consumes({"application/xml", "application/json"})
