@@ -26,8 +26,8 @@ java.util.jar.Attributes attributes = manifest.getMainAttributes();
     </head>
     <body>
         <h1>ChannelFinder Directory Service</h1>
-        <h3>Version: <%=attributes.getValue("Implementation-Version")%></h3>
-        <h3>Build: <%=attributes.getValue("Build-Number")%> <%=attributes.getValue("Build-Id")%> <%=attributes.getValue("Build-Tag")%></h3>
+        <h3>Version: <%=attributes.getValue("Implementation-Version")%> &nbsp;&nbsp;&nbsp;&nbsp;
+            Build: <%=attributes.getValue("Build-Number")%></h3>
         <h2>External Design Documents</h2>
         <ul>
             <li><a href="ChannelFinder-Design.pdf">Design Document</a> (Jan 2010)</li>
@@ -41,5 +41,10 @@ java.util.jar.Attributes attributes = manifest.getMainAttributes();
             <li><a href="http://sourceforge.net/apps/trac/channelfinder/">Wiki / Issue Tracker</a></li>
             <li><a href="http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/">Repository Browser</a></li>
         </ul>
+        <h3>Build Info</h3>
+        Number: <%=attributes.getValue("Build-Number")%><br/>
+        Id: <%=attributes.getValue("Build-Id")%><br/>
+        Tag: <%=attributes.getValue("Build-Tag")%><br/>
+        Server: <%=attributes.getValue("Build-Server")%>
     </body>
 </html>
