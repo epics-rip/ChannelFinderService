@@ -44,7 +44,6 @@ java.util.jar.Attributes attributes = manifest.getMainAttributes();
         <h3>Build Info</h3>
         Number: <%=attributes.getValue("Build-Number")%><br/>
         Id: <%=attributes.getValue("Build-Id")%><br/>
-        Tag: <%=attributes.getValue("Build-Tag")%><br/>
-        Server: <%=attributes.getValue("Build-Server")%>
+        Tag: <%=attributes.getValue("Build-Tag")%>
     </body>
 </html>
