@@ -176,6 +176,10 @@ C1234_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', 
 C12_tx_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testx', u'@name': u'TX'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}, {u'@owner': u'testx', u'@name': u'TX'}]}}]}}
 # 4 channels, no T1
 C1234_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T22'}}}]}}
+# 4 channels, no P1 on C1
+C1234_n1p1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
+# 4 channels, no P1
+C1234_np1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 # 2 channels, no T1
 C12_nt1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P22', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T22'}]}}]}}
 None_r = {u'channels': None}
@@ -1470,6 +1474,116 @@ class DeleteTagFromOneChannel(unittest.TestCase):
         response = conn_admin.request_delete(self.c2, headers=jsonheader)
 
 
+#############################################################################################
+# Test .../properties/<name> DELETE
+#############################################################################################
+class DeleteProperty(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c3 = 'resources/channel/C3'
+        self.c4 = 'resources/channel/C4'
+        self.c = 'resources/channels'
+        self.p1 = 'resources/properties/P1'
+        self.px = 'resources/properties/PX'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
+
+    def test_Unauthorized(self):
+        response = conn_none.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+
+    def test_AuthorizedAsTag(self):
+        response = conn_tag.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+
+    def doTestAndCheck(self, conn):
+        response = conn.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_np1_r)
+    def test_AuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# same as proppy2 (not member of testp)
+    def test_AuthorizedAsPropGroupNonMember(self):
+        response = conn_prop2.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User proppy2 does not belong to group testp needed to modify database") == -1)
+
+# delete nonexisting tag
+    def doTestAndCheckNonexistingTag(self, conn):
+        response = conn.request_delete(self.px, headers=jsonheader)
+        self.failUnlessEqual('404', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Property PX does not exist") == -1)
+    def test_AuthorizedAsPropNonexistingTag(self):
+        self.doTestAndCheckNonexistingTag(conn_prop)
+    def test_AuthorizedAsAdminNonexistingTag(self):
+        self.doTestAndCheckNonexistingTag(conn_admin)
+
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
+        response = conn_admin.request_delete(self.c3, headers=jsonheader)
+        response = conn_admin.request_delete(self.c4, headers=jsonheader)
+
+
+#############################################################################################
+# Test .../properties/<name>/<channel> DELETE
+#############################################################################################
+class DeletePropertyFromOneChannel(unittest.TestCase):
+    def setUp(self):
+        self.c1 = 'resources/channel/C1'
+        self.c2 = 'resources/channel/C2'
+        self.c3 = 'resources/channel/C3'
+        self.c4 = 'resources/channel/C4'
+        self.c = 'resources/channels'
+        self.p1 = 'resources/properties/P1/C1'
+        response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
+
+# Delete property from channel 1 using different roles
+    def test_Unauthorized(self):
+        response = conn_none.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('401', response[u'headers']['status'])
+
+    def test_AuthorizedAsTag(self):
+        response = conn_tag.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+
+# Delete tag
+    def doTestAndCheck(self, conn):
+        response = conn.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        response = conn_none.request_get(self.c, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_n1p1_r)
+    def test_AuthorizedAsProp(self):
+        self.doTestAndCheck(conn_prop)
+    def test_AuthorizedAsChan(self):
+        self.doTestAndCheck(conn_chan)
+    def test_AuthorizedAsAdmin(self):
+        self.doTestAndCheck(conn_admin)
+
+# same as proppy2 (not member of testp)
+    def test_AuthorizedAsPropGroupNonMember(self):
+        response = conn_prop2.request_delete(self.p1, headers=jsonheader)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("User proppy2 does not belong to group testp needed to modify database") == -1)
+
+    def tearDown(self):
+        response = conn_admin.request_delete(self.c1, headers=jsonheader)
+        response = conn_admin.request_delete(self.c2, headers=jsonheader)
+        response = conn_admin.request_delete(self.c3, headers=jsonheader)
+        response = conn_admin.request_delete(self.c4, headers=jsonheader)
+
+
 if __name__ == '__main__':
 
 # Check if database is empty
@@ -1478,6 +1592,9 @@ if __name__ == '__main__':
     j1 = JSONDecoder().decode(response[u'body'])
     if (None != j1[u'channels']):
         print "Database not empty."
-        sys.exit(1)
+        print "Continue anyway? [y/N] ",
+        d = sys.stdin.read()
+        if d != "y":
+            sys.exit(1)
 
     unittest.main()

@@ -210,6 +210,29 @@ public class ChannelManager {
     }
 
     /**
+     * Deletes a property identified by <tt>name</tt> from all channels.
+     *
+     * @param property tag to delete
+     * @throws CFException wrapping an SQLException
+     */
+    public void deleteProperty(String property) throws CFException {
+        DeletePropertyQuery dq = new DeletePropertyQuery(property);
+        dq.executeQuery(DbConnection.getInstance().getConnection(), false);
+    }
+
+    /**
+     * Deletes a property identified by <tt>name</tt> from a single channel.
+     *
+     * @param property tag to delete
+     * @param chan channel to delete it from
+     * @throws CFException wrapping an SQLException
+     */
+    public void deleteSingleProperty(String property, String chan) throws CFException {
+        DeletePropertyQuery dq = new DeletePropertyQuery(property, chan);
+        dq.executeQuery(DbConnection.getInstance().getConnection(), false);
+    }
+
+    /**
      * Add the tag identified by <tt>tag</tt> and <tt>owner</tt> to the channels
      * specified in the XmlChannels <tt>data</tt>.
      *

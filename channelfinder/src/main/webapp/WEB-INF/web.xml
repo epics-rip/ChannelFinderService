@@ -47,6 +47,12 @@
             <url-pattern>/resources/channel/*</url-pattern>
             <http-method>POST</http-method>
         </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>delete properties</web-resource-name>
+            <description/>
+            <url-pattern>/resources/properties/*</url-pattern>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
         <auth-constraint>
             <description/>
             <role-name>PropertyMod</role-name>

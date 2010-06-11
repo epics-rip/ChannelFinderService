@@ -235,6 +235,37 @@ public class AccessManager {
     }
 
     /**
+     * Deletes a property identified by <tt>name</tt> from all channels.
+     *
+     * Needs db group membership for the named property.
+     *
+     * @param name tag to delete
+     * @throws CFException
+     */
+    public void deleteProperty(String name) throws CFException {
+        EntityMap.getInstance().loadDbPropertyMapFor(name);
+        if (!UserManager.getInstance().userHasAdminRole()) {
+            checkUserBelongsToDbOwners();
+        }
+       cm.deleteProperty(name);
+    }
+
+    /**
+     * Deletes a property identified by <tt>name</tt> from channel <tt>chan</tt>.
+     *
+     * @param name property to delete
+     * @param chan channel to delete tag from
+     * @throws CFException
+     */
+    public void deleteSingleProperty(String name, String chan) throws CFException {
+        EntityMap.getInstance().loadDbPropertyMapFor(name);
+        if (!UserManager.getInstance().userHasAdminRole()) {
+            checkUserBelongsToDbOwners();
+        }
+        cm.deleteSingleProperty(name, chan);
+    }
+
+    /**
      * Checks if the authenticated user is a member of all payload owner groups
      * for entities specified there.
      */
