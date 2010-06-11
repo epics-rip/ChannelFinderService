@@ -1592,9 +1592,8 @@ if __name__ == '__main__':
     j1 = JSONDecoder().decode(response[u'body'])
     if (None != j1[u'channels']):
         print "Database not empty."
-        print "Continue anyway? [y/N] ",
-        d = sys.stdin.read()
-        if d != "y":
+        d = raw_input('Continue anyway? [y/N] ')
+        if d != "y" and d != "Y":
             sys.exit(1)
 
     unittest.main()
