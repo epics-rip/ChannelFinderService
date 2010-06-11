@@ -26,8 +26,8 @@
         <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/channelfinder/</url>
     </scm>
     <issueManagement>
-        <system>Trac</system>
-        <url>http://sourceforge.net/apps/trac/channelfinder/report</url>
+        <system>trac</system>
+        <url>http://sourceforge.net/apps/trac/channelfinder/</url>
     </issueManagement>
     <repositories>
         <repository>
@@ -145,10 +145,6 @@
                 <reportSets>
                     <reportSet>
                         <id>html</id>
-                        <configuration>
-                            <doctitle>API for ${project.name} ${project.version}</doctitle>
-                            <windowtitle>API for ${project.name} ${project.version}</windowtitle>
-                        </configuration>
                         <reports>
                             <report>javadoc</report>
                         </reports>
@@ -159,6 +155,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
             </plugin>
-        </plugins>
+         </plugins>
     </reporting>
 </project>
