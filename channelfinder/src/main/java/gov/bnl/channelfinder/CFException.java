@@ -46,11 +46,13 @@ public class CFException extends Exception {
                 " \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
                 "<html><head><title>ChannelServer - Error report</title></head>" +
                 "<body><h1>HTTP Status " + this.status.getStatusCode() + " - " + this.status.getReasonPhrase() + "</h1><hr/>" +
-                "<p><b>message</b></p><p>" + getMessage() + "</p>";
+                "<p><b>type</b> Status report</p>" +
+                "<p><b>message</b></p>" +
+                "<p><b>description</b> " + getMessage() + "</p>";
         if (this.getCause() != null) {
             msg = msg + "<p><b>caused by:</b></p><p>" + this.getCause().getMessage() + "</p>";
         }
-        return msg + "</body></html>";
+        return msg + "<hr/><h3>ChannelFinder</h3></body></html>";
     }
 
     /**
