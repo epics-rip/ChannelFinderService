@@ -21,14 +21,18 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:hg:http://channelfinder.hg.sourceforge.net:8000/hgroot/channelfinder/channelfinder</connection>
-        <developerConnection>scm:hg:ssh://user@channelfinder.hg.sourceforge.net/hgroot/channelfinder/channelfinder</developerConnection>
-        <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/channelfinder/</url>
+        <connection>scm:hg:http://channelfinder.hg.sourceforge.net:8000/hgroot/channelfinder/ChannelFinder</connection>
+        <developerConnection>scm:hg:ssh://user@channelfinder.hg.sourceforge.net/hgroot/channelfinder/ChannelFinder</developerConnection>
+        <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/ChannelFinder/</url>
     </scm>
     <issueManagement>
         <system>trac</system>
         <url>http://sourceforge.net/apps/trac/channelfinder/</url>
     </issueManagement>
+    <ciManagement>
+        <system>Hudson</system>
+        <url>https://irmis-dev.bnl.gov/hudson/view/ChannelFinder/</url>
+    </ciManagement>
     <repositories>
         <repository>
             <id>java.net2</id>
@@ -42,12 +46,6 @@
             <artifactId>javaee-web-api</artifactId>
             <version>6.0</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.2</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey.glassfish.v3</groupId>
@@ -96,42 +94,6 @@
         </plugins>
         <finalName>ChannelFinder</finalName>
     </build>
-    <profiles>
-        <profile>
-            <id>endorsed</id>
-            <activation>
-                <property>
-                    <name>sun.boot.class.path</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>2.0.2</version>
-                        <configuration>
-                            <!-- javaee6 contains upgrades of APIs contained within the JDK itself.
-                                 As such these need to be placed on the bootclasspath, rather than classpath of the
-                                 compiler.
-                                 If you don't make use of these new updated API, you can delete the profile.
-                                 On non-SUN jdk, you will need to create a similar profile for your jdk, with the similar property as sun.boot.class.path in Sun's JDK.-->
-                            <compilerArguments>
-                                <bootclasspath>${settings.localRepository}/javax/javaee-endorsed-api/6.0/javaee-endorsed-api-6.0.jar${path.separator}${sun.boot.class.path}</bootclasspath>
-                            </compilerArguments>
-                        </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>javax</groupId>
-                                <artifactId>javaee-endorsed-api</artifactId>
-                                <version>6.0</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
     <properties>
         <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
