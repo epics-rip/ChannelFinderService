@@ -89,7 +89,7 @@ public class AccessManager {
         if (!UserManager.getInstance().userHasAdminRole()) {
             checkUserBelongsToDbOwners();
         }
-        cm.deleteChannel(name);
+        cm.deleteChannel(name, false);
     }
 
     /**

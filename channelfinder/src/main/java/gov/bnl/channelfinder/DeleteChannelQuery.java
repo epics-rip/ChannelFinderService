@@ -34,7 +34,7 @@ public class DeleteChannelQuery {
      * @param con db connection to use
      * @throws CFException wrapping an SQLException
      */
-    public void executeQuery(Connection con) throws CFException {
+    public void executeQuery(Connection con, boolean ignoreNoExist) throws CFException {
         String query;
         PreparedStatement ps;
         long id;
@@ -44,10 +44,15 @@ public class DeleteChannelQuery {
             ps.setString(1, name);
             ResultSet rs = ps.executeQuery();
             if (!rs.first()) {
-                return;
+                if (ignoreNoExist) {
+                    return;
+                } else {
+                    throw new CFException(Response.Status.NOT_FOUND,
+                            "Channel " + name + " does not exist");
+                }
             }
             id = rs.getLong(1);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while preparing deletion of channel " + name, e);
         }

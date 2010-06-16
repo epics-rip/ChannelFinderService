@@ -181,9 +181,9 @@ public class ChannelManager {
      * @param name channel to delete
      * @throws CFException wrapping an SQLException
      */
-    public void deleteChannel(String name) throws CFException {
+    public void deleteChannel(String name, boolean ignoreNoExist) throws CFException {
         DeleteChannelQuery dq = new DeleteChannelQuery(name);
-        dq.executeQuery(DbConnection.getInstance().getConnection());
+        dq.executeQuery(DbConnection.getInstance().getConnection(), ignoreNoExist);
     }
 
     /**
@@ -321,7 +321,7 @@ public class ChannelManager {
         EntityMap.getInstance().enforceDbCapitalization(new XmlChannels(data));
         DeleteChannelQuery dq = new DeleteChannelQuery(name);
         CreateChannelQuery cq = new CreateChannelQuery(data);
-        dq.executeQuery(db.getConnection());
+        dq.executeQuery(db.getConnection(), true);
         cq.executeQuery(db.getConnection());
     }
 
@@ -335,7 +335,7 @@ public class ChannelManager {
         EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
         EntityMap.getInstance().enforceDbCapitalization(data);
         for (XmlChannel chan : data.getChannels()) {
-            deleteChannel(chan.getName());
+            deleteChannel(chan.getName(), true);
             createChannel(chan);
         }
     }
