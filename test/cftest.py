@@ -202,8 +202,10 @@ class DeleteOneChannel(unittest.TestCase):
     def setUp(self):
         self.url1 = 'resources/channel/C1'
         self.url2 = 'resources/channel/C2'
+        self.urlx = 'resources/channel/CX'
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full)
         response = conn_admin.request_put(self.url2, headers=jsonheader, body=C2_empty)
+        response = conn_admin.request_delete(self.urlx, headers=jsonheader)
 
 # delete channels using different roles, orders, channel types
     def test_Unauthorized(self):
@@ -265,6 +267,16 @@ class DeleteOneChannel(unittest.TestCase):
         response = conn_chan2.request_delete(self.url1, headers=jsonheader)
         self.failUnlessEqual('403', response[u'headers']['status'])
         self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+
+# delete nonexisting channel
+    def doTestAndCheckNonexistingChannel(self, conn):
+        response = conn.request_delete(self.urlx, headers=jsonheader)
+        self.failUnlessEqual('404', response[u'headers']['status'])
+        self.failIf(response[u'body'].find("Channel CX does not exist") == -1)
+    def test_AuthorizedAsChanNonexistingChannel(self):
+        self.doTestAndCheckNonexistingChannel(conn_chan)
+    def test_AuthorizedAsAdminNonexistingChannel(self):
+        self.doTestAndCheckNonexistingChannel(conn_admin)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
