@@ -179,6 +179,7 @@ public class ChannelManager {
      * Deletes a channel identified by <tt>name</tt>.
      *
      * @param name channel to delete
+     * @param ignoreNoExist flag: true = do not generate an error if channel does not exist
      * @throws CFException wrapping an SQLException
      */
     public void deleteChannel(String name, boolean ignoreNoExist) throws CFException {

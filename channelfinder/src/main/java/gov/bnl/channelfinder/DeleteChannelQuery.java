@@ -32,6 +32,7 @@ public class DeleteChannelQuery {
      * Creates and executes a JDBC based query for deleting one channel.
      *
      * @param con db connection to use
+     * @param ignoreNoExist flag: true = do not generate an error if channel does not exist
      * @throws CFException wrapping an SQLException
      */
     public void executeQuery(Connection con, boolean ignoreNoExist) throws CFException {
