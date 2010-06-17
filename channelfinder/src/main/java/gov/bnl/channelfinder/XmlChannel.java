@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
 /**
+ * Channel object that can be represented as XML/JSON in payload data.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

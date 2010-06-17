@@ -12,6 +12,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
+ * Intermediate layer to enforce ownership restrictions on all accesses.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

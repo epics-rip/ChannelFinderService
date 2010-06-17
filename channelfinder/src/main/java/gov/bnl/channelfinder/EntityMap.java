@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 /**
+ * Utility containing maps of payload and database owners for channels and properties/tags.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

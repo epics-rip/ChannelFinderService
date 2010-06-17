@@ -9,6 +9,7 @@ package gov.bnl.channelfinder;
 import javax.ws.rs.core.Response;
 
 /**
+ * ChannelFinder Exception that creates the matching HTTP Response.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

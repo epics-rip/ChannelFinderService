@@ -13,7 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.xml.ws.WebServiceException;
 
 /**
- * Utility class for dealing with database connection.
+ * Database connection handling: connections and transactions.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

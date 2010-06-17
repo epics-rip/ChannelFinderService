@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
+ * Tag object that can be represented as XML/JSON in payload data.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

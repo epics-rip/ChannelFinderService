@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import javax.ws.rs.core.Response;
 
 /**
+ * JDBC query to delete one channel.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

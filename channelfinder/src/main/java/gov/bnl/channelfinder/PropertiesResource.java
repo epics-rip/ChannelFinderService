@@ -15,6 +15,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 /**
+ * Top level Jersey HTTP methods for the .../properties URL
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

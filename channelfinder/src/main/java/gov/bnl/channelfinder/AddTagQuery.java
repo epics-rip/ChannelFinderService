@@ -14,7 +14,8 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 /**
- *
+ * JDBC query to add a tag to channel(s).
+ * 
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
 public class AddTagQuery {

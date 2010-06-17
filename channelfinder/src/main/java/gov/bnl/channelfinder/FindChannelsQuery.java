@@ -24,6 +24,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
+ *  JDBC query to retrieve channels from the directory .
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

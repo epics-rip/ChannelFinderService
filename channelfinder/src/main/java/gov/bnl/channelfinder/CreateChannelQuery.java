@@ -15,6 +15,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 /**
+ * JDBC query to create one channel.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

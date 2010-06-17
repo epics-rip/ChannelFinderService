@@ -19,7 +19,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 /**
- *
+ * Top level Jersey HTTP methods for the .../channels URL
+ * 
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
 

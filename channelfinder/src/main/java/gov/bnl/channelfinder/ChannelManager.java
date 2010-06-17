@@ -13,7 +13,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
- *
+ * Central business logic layer that implements all directory operations.
+ * 
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
 public class ChannelManager {

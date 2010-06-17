@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import javax.ws.rs.core.Response;
 
 /**
+ * JDBC query to delete a tag from one or all channel(s).
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

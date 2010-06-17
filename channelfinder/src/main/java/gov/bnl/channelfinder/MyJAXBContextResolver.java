@@ -13,6 +13,7 @@ import javax.ws.rs.ext.ContextResolver;
 import javax.xml.bind.JAXBContext;
 
 /**
+ * Gets inserted into JAXB to configure JSON marshalling.
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */

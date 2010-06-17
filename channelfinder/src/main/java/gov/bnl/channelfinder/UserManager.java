@@ -20,7 +20,8 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 /**
- * Group Manager: Manages user -> group map
+ * Owner (group) membership management: LDAP connection and binding.
+ *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
 public class UserManager {
