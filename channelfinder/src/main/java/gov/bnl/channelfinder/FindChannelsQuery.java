@@ -209,8 +209,8 @@ public class FindChannelsQuery {
      * @throws CFException wrapping an SQLException
      */
     public ResultSet executeQuery(Connection con) throws CFException {
-        String query = "SELECT c.name as channel, c.owner as cowner, p.property, p.value, p.owner"
-                + " FROM channel c LEFT JOIN property p ON c.id = p.channel_id WHERE 1=1";
+        StringBuilder query = new StringBuilder("SELECT c.name as channel, c.owner as cowner, p.property, p.value, p.owner"
+                + " FROM channel c LEFT JOIN property p ON c.id = p.channel_id WHERE 1=1");
         List<Long> id_params = new ArrayList<Long>();       // parameter lists for the outer query
         List<String> name_params = new ArrayList<String>();
         Set<Long> result = new HashSet<Long>();
@@ -241,23 +241,27 @@ public class FindChannelsQuery {
         }
 
         if (!result.isEmpty()) {
-            query = query + " AND c.id IN (";
+            query.append(" AND c.id IN (");
             for (long i : result) {
-                query = query + "?,";
+                query.append("?,");
                 id_params.add(i);
             }
-            query = query.substring(0, query.length() - 1) + ")";
+            query.replace(query.length() - 1, query.length(), ")");
         }
 
-        for (String value : chan_matches) {
-            query = query + " AND c.name LIKE ?";
-            name_params.add(convertFileGlobToSQLPattern(value));
+        if (!chan_matches.isEmpty()) {
+            query.append(" AND (");
+            for (String value : chan_matches) {
+                query.append("c.name LIKE ? OR ");
+                name_params.add(convertFileGlobToSQLPattern(value));
+            }
+            query.replace(query.length() - 4, query.length(), ")");
         }
 
-        query = query + " ORDER BY channel, property";
+        query.append(" ORDER BY channel, property");
 
         try {
-            PreparedStatement ps = con.prepareStatement(query);
+            PreparedStatement ps = con.prepareStatement(query.toString());
             int i = 1;
             for (long p : id_params) {
                 ps.setLong(i++, p);
