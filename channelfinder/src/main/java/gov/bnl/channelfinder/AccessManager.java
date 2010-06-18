@@ -105,7 +105,7 @@ public class AccessManager {
      * @throws CFException for name or owner mismatch, SQL error in query
      */
     public void updateChannel(String name, XmlChannel data) throws CFException {
-        EntityMap.getInstance().loadMapsFor(new XmlChannels(data), false);
+        EntityMap.getInstance().loadMapsFor(new XmlChannels(data));
         if (!UserManager.getInstance().userHasAdminRole()) {
             checkUserBelongsToDbOwners();
             checkUserBelongsToPayloadOwners();
@@ -122,7 +122,7 @@ public class AccessManager {
      * @throws CFException
      */
     public void createChannels(XmlChannels data) throws CFException {
-        EntityMap.getInstance().loadMapsFor(data, false);
+        EntityMap.getInstance().loadMapsFor(data);
         if (!UserManager.getInstance().userHasAdminRole()) {
             checkUserBelongsToDbOwners();
             checkUserBelongsToPayloadOwners();
@@ -140,7 +140,7 @@ public class AccessManager {
      * @throws CFException for name or owner mismatch, SQL error in query
      */
     public void mergeChannel(String name, XmlChannel data) throws CFException {
-        EntityMap.getInstance().loadMapsFor(new XmlChannels(data), false);
+        EntityMap.getInstance().loadMapsFor(new XmlChannels(data));
         if (!UserManager.getInstance().userHasAdminRole()) {
             checkUserBelongsToDbPropertyOwners();
             checkUserBelongsToPayloadPropertyOwners();

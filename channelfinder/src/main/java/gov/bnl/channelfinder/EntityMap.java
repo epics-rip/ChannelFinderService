@@ -102,7 +102,7 @@ public class EntityMap {
      * @param includeProperties flag: true = include the db properties of channels in map
      * @throws CFException wrapping an SQLException
      */
-    public void loadDbMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
+    public void loadDbMapsFor(XmlChannels data) throws CFException {
         List<String> cnames = new ArrayList<String>();
         List<String> pnames = new ArrayList<String>();
         for (XmlChannel c : data.getChannels()) {
@@ -114,7 +114,7 @@ public class EntityMap {
                 pnames.add(t.getName());
             }
         }
-        loadNewDbChannelMap(cnames, includeProperties);
+        loadNewDbChannelMap(cnames, false);
         loadNewDbPropertyMap(pnames);
     }
 
@@ -237,20 +237,8 @@ public class EntityMap {
      * @param includeProperties flag: true = include the db properties of channels in map
      * @throws CFException on owner mismatch
      */
-    public void loadMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
-        loadDbMapsFor(data, includeProperties);
-        loadPayloadMapsFor(data);
-    }
-
-    /**
-     * Load the database and payload name maps for/from the payload <tt>data</tt>.
-     *
-     * @param data XmlChannel collection to load
-     * @param includeProperties flag: true = include the db properties of channels in map
-     * @throws CFException on owner mismatch
-     */
-    public void loadPropertyMapsFor(XmlChannels data, boolean includeProperties) throws CFException {
-        loadDbMapsFor(data, includeProperties);
+    public void loadMapsFor(XmlChannels data) throws CFException {
+        loadDbMapsFor(data);
         loadPayloadMapsFor(data);
     }
 
