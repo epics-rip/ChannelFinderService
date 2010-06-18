@@ -954,6 +954,24 @@ class QueryChannels(unittest.TestCase):
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_full_r)
 
+    def test_OneNameStarPattern(self):
+        response = conn_none.request_get(self.c + "?~name=C*", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_full_r)
+
+    def test_OneNameQuestMPattern(self):
+        response = conn_none.request_get(self.c + "?~name=C?", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1234_full_r)
+
+    def test_TwoNameValues(self):
+        response = conn_none.request_get(self.c + "?~name=C1&~name=C2", headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_full_r)
+
     def test_OnePropValue(self):
         response = conn_none.request_get(self.c + "?P11=prop1", headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
