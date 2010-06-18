@@ -741,7 +741,7 @@ class CreateManyChannels(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_post(self.url, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.url, headers=jsonheader)
+        response = conn_none.request_get(self.url + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_full_r)
@@ -823,7 +823,7 @@ class ReplaceManyChannelsFullWithEmpty(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_post(self.url, headers=jsonheader, body=C12_empty)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.url, headers=jsonheader)
+        response = conn_none.request_get(self.url + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_empty_r)
@@ -831,12 +831,9 @@ class ReplaceManyChannelsFullWithEmpty(unittest.TestCase):
         self.doTestAndCheck(conn_chan)
     def test_AuthorizedAsAdmin(self):
         self.doTestAndCheck(conn_admin)
-
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanGroupNonMember(self):
-        response = conn_chan2.request_post(self.url, headers=jsonheader, body=C12_empty)
-        self.failUnlessEqual('403', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+        self.doTestAndCheck(conn_chan2)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -864,7 +861,7 @@ class ReplaceManyChannelsEmptyWithFull(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_post(self.url, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.url, headers=jsonheader)
+        response = conn_none.request_get(self.url + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_full_r)
@@ -952,7 +949,7 @@ class QueryChannels(unittest.TestCase):
         response = conn_admin.request_post(self.c, headers=jsonheader, body=C1234_full)
 
     def test_AllChans(self):
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_full_r)
@@ -1060,7 +1057,7 @@ class AddTagExclusiveToChannel(unittest.TestCase):
     def doTestAndCheck(self, conn, url):
         response = conn.request_put(url, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_t12_r)
@@ -1070,7 +1067,7 @@ class AddTagExclusiveToChannel(unittest.TestCase):
         self.failUnlessEqual(j1, C12_t12_r)
         response = conn.request_put(url, headers=jsonheader, body=C34_full)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_t34_r)
@@ -1102,7 +1099,7 @@ class AddTagExclusiveToChannel(unittest.TestCase):
     def doTestAndCheck12X(self, conn):
         response = conn.request_put(self.tx, headers=jsonheader, body=C12_tx)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_tx_r)
@@ -1186,7 +1183,7 @@ class DeleteTag(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_delete(self.t1, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_nt1_r)
@@ -1249,7 +1246,7 @@ class AddTagToChannel(unittest.TestCase):
     def doTestAndCheck(self, conn, payload):
         response = conn.request_post(self.t1, headers=jsonheader, body=payload)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_t124_r)
@@ -1285,7 +1282,7 @@ class AddTagToChannel(unittest.TestCase):
     def doTestAndCheck12X(self, conn):
         response = conn.request_post(self.tx, headers=jsonheader, body=C12_tx)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_tx_r)
@@ -1359,7 +1356,7 @@ class AddTagToOneChannel(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_put(self.t1, headers=jsonheader, body=T1)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_t12_r)
@@ -1381,7 +1378,7 @@ class AddTagToOneChannel(unittest.TestCase):
     def doTestAndCheckXml(self, conn):
         response = conn.request_put(self.t1, headers=xmlheader, body=T1_xml)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_t12_r)
@@ -1394,7 +1391,7 @@ class AddTagToOneChannel(unittest.TestCase):
     def doTestAndCheckNoPayload(self, conn):
         response = conn.request_put(self.t1, headers=jsonheader)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_t12_r)
@@ -1462,7 +1459,7 @@ class DeleteTagFromOneChannel(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_delete(self.t1, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C12_nt1_r)
@@ -1511,7 +1508,7 @@ class DeleteProperty(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_delete(self.p1, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_np1_r)
@@ -1572,7 +1569,7 @@ class DeletePropertyFromOneChannel(unittest.TestCase):
     def doTestAndCheck(self, conn):
         response = conn.request_delete(self.p1, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
-        response = conn_none.request_get(self.c, headers=jsonheader)
+        response = conn_none.request_get(self.c + getextra, headers=jsonheader)
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, C1234_n1p1_r)
@@ -1599,13 +1596,15 @@ class DeletePropertyFromOneChannel(unittest.TestCase):
 if __name__ == '__main__':
 
 # Check if database is empty
+    getextra = ""
     response = conn_none.request_get('resources/channels', headers=jsonheader)
     assert '200' == response[u'headers']['status'], 'Database list request returned an error'
     j1 = JSONDecoder().decode(response[u'body'])
     if (None != j1[u'channels']):
-        print "Database not empty."
+        print "Database at " + base_url + " not empty."
         d = raw_input('Continue anyway? [y/N] ')
         if d != "y" and d != "Y":
             sys.exit(1)
-
+        dbnonempty = True
+        getextra = "?~name=C?"
     unittest.main()
