@@ -66,10 +66,12 @@ public class EntityMap {
     }
 
     private void loadNewDbPropertyMap(Collection<String> names) throws CFException {
-        FindEntitiesQuery eq = FindEntitiesQuery.createFindPropertyNamesQuery(names);
         try {
             db_powner.clear();
-            addToMap(db_powner, eq.executeQuery(DbConnection.getInstance().getConnection()), true);
+            if (!names.isEmpty()) {
+                FindEntitiesQuery eq = FindEntitiesQuery.createFindPropertyNamesQuery(names);
+                addToMap(db_powner, eq.executeQuery(DbConnection.getInstance().getConnection()), true);
+            }
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while loading property name map", e);
