@@ -131,31 +131,31 @@ public class FindChannelsQuery {
      * @return a set of channel ids that match
      */
     private Set<Long> getIdsFromPropertyMatch(Connection con) throws CFException {
-        String query = "SELECT p0.channel_id FROM property p0 WHERE";
+        StringBuilder query = new StringBuilder("SELECT p0.channel_id FROM property p0 WHERE");
         Set<Long> ids = new HashSet<Long>();           // set of matching channel ids
         List<String> params = new ArrayList<String>(); // parameter list for this query
 
         for (Map.Entry<String, Collection<String>> match : prop_matches.asMap().entrySet()) {
-            String valueList = "p0.value LIKE";
+            StringBuilder valueList = new StringBuilder("p0.value LIKE");
             params.add(match.getKey().toLowerCase());
             for (String value : match.getValue()) {
-                valueList = valueList + " ? OR p0.value LIKE";
+                valueList.append(" ? OR p0.value LIKE");
                 params.add(convertFileGlobToSQLPattern(value));
             }
-            query = query + " (LOWER(p0.property) = ? AND ("
-                    + valueList.substring(0, valueList.length() - 17) + ")) OR";
+            query.append(" (LOWER(p0.property) = ? AND ("
+                    + valueList.substring(0, valueList.length() - 17) + ")) OR");
         }
 
         for (String tag : tag_matches) {
             params.add(convertFileGlobToSQLPattern(tag).toLowerCase());
-            query = query + " (LOWER(p0.property) = ? AND p0.value IS NULL) OR";
+            query.append(" (LOWER(p0.property) = ? AND p0.value IS NULL) OR");
         }
 
-        query = query.substring(0, query.length() - 2)
-                + "GROUP BY p0.channel_id HAVING COUNT(p0.channel_id) = ?";
+        query.replace(query.length() - 2, query.length(),
+                "GROUP BY p0.channel_id HAVING COUNT(p0.channel_id) = ?");
 
         try {
-            PreparedStatement ps = con.prepareStatement(query);
+            PreparedStatement ps = con.prepareStatement(query.toString());
             int i = 1;
             for (String p : params) {
                 ps.setString(i++, p);

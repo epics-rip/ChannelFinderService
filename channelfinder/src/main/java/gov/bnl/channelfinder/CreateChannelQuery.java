@@ -45,9 +45,9 @@ public class CreateChannelQuery {
         long id;
 
         // Insert channel
-        String query = "INSERT INTO channel (name, owner) VALUE (?, ?)";
+        StringBuilder query = new StringBuilder("INSERT INTO channel (name, owner) VALUE (?, ?)");
         try {
-            ps = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            ps = con.prepareStatement(query.toString(), Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, chan.getName());
             ps.setString(2, chan.getOwner());
             ps.execute();
@@ -62,9 +62,10 @@ public class CreateChannelQuery {
         // Insert properties
         if (this.chan.getXmlProperties().size() > 0) {
             params.clear();
-            query = "INSERT INTO property (channel_id, property, value, owner) VALUES ";
+            query.setLength(0);
+            query.append("INSERT INTO property (channel_id, property, value, owner) VALUES ");
             for (XmlProperty prop : this.chan.getXmlProperties()) {
-                query = query + "(?,?,?,?),";
+                query.append("(?,?,?,?),");
                 ArrayList<String> par = new ArrayList<String>();
                 par.add(prop.getName());
                 par.add(prop.getValue());
@@ -90,9 +91,10 @@ public class CreateChannelQuery {
         // Insert tags
         if (this.chan.getXmlTags().size() > 0) {
             params.clear();
-            query = "INSERT INTO property (channel_id, property, owner) VALUES ";
+            query.setLength(0);
+            query.append("INSERT INTO property (channel_id, property, owner) VALUES ");
             for (XmlTag tag : this.chan.getXmlTags()) {
-                query = query + "(?,?,?),";
+                query.append("(?,?,?),");
                 ArrayList<String> par = new ArrayList<String>();
                 par.add(tag.getName());
                 par.add(tag.getOwner());
