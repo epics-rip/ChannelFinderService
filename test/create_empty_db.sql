@@ -1,3 +1,5 @@
+USE `channelfinder`;
+
 DROP TABLE IF EXISTS `channel`;
 CREATE TABLE `channel` (
   `id` int(10) unsigned NOT NULL auto_increment,
@@ -5,7 +7,6 @@ CREATE TABLE `channel` (
   `owner` varchar(45) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 DROP TABLE IF EXISTS `property`;
 CREATE TABLE `property` (
