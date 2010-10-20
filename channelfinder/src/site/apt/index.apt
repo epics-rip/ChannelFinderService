@@ -40,6 +40,6 @@ properties and tags, as an XML or JSON document.
   Two design documents are available - these are also included in the WAR file as part
 of the internal web site of the application.
 
-* {{{https://sourceforge.net/apps/trac/channelfinder/attachment/wiki/WikiStart/ChannelFinder-Design.pdf}Design Paper}} (16 Nov 2009; 2 pages)
+ * {{{https://sourceforge.net/apps/trac/channelfinder/raw-attachment/wiki/WikiStart/ChannelFinder-Design.pdf}Design Paper}} (16 Nov 2009; 2 pages)
 
-* {{{https://sourceforge.net/apps/trac/channelfinder/attachment/wiki/WikiStart/ChannelFinder-API.pdf}API Description}} (11 Jun 2010; 6 pages)
+ * {{{https://sourceforge.net/apps/trac/channelfinder/raw-attachment/wiki/WikiStart/ChannelFinder-API.pdf}API Description}} (11 Jun 2010; 6 pages)
