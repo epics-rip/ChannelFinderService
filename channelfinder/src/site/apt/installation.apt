@@ -1,0 +1,143 @@
+   ----
+   Installation
+   ----
+   Ralph Lange
+   ----
+
+Installation
+
+  ChannelFinder is a Java EE5 REST-style web service. The directory data is held in
+a relational database, and authentication/authorization info as well as the user/group
+relations are taken from an LDAP server.
+
+* Prerequisites
+
+  * Glassfish v3 application server
+
+  * SQL database with JDBC driver, e.g. mySQL
+
+  * LDAP server, e.g. OpenLDAP
+
+* Installation Process
+
+** Install Glassfish v3
+
+  Download and install Glassfish v3 from
+  {{{https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
+  following the instructions for your platform.
+
+** Install mySQL and JDBC Drivers
+
+  * If your site is running a mySQL server, you can skip the next step, and have
+    the database manager create the channelfinder tables and user for you.
+
+  * Download and install mySQL from {{{http://www.mysql.com/downloads/mysql/}MySQL.com}}
+    following the instructions for your platform.\
+    <Alternatively:> Install the mySQL server from your distribution using a package manager.
+
+  * Create the ChannelFinder tables using the <<<create_empty_db.sql>>> script in the distribution tar.
+    Unless you are running the mySQL server locally on your machine with access restricted to localhost,
+    it is strongly advisable to create a user for the ChannelFinder service and give it
+    sufficient rights on the channelfinder database. Having the ChannelFinder service access
+    the database as root is a possible security hole.
+
+  * Download the JDBC driver from {{{http://www.mysql.com/downloads/connector/j/}MySQL.com}}.
+    Extract the driver <<<mysql-connector-java-<n>.<n>.<n>-bin.jar>>> from the archive and
+    drop it into <<<GLASSFISH_HOME/lib>>>.
+
+** Create the Database Connection
+
+  * Start your Glassfish application server (through Netbeans or by running
+    <<<asadmin start-domain domain1>>> (<<<asadmin.bat>>> on Windows) inside <<<GLASSFISH_HOME/bin>>>.
+
+  * Login to the Glassfish admin console (default: http://localhost:4848). The default user and password
+    are "admin" / "adminadmin".
+
+  * Open "Common Tasks" / "Resources" / "JDBC" / "Connection Pools".
+
+  * Create a new Connection Pool called "ChannelFinderPool", selecting
+    "javax.sql.ConnectionPoolDataSource" as your "Resource Type" and "MySQL" as "Database vendor".
+
+  * Fill in the details according to your mySQL installation. Minimum are:
+
+    * Server Name (e.g. "localhost")
+
+    * Database Name ("channelfinder")
+
+    * User Name (for access to channelfinder, as set in mySQL)
+
+    * Password (for that user name, as set in mySQL)
+
+  * After finishing, click on the Connection Pool you just created. If you configured the pool
+    correctly, clicking "Ping" will return a "Ping Succeeded" message.
+
+  * Open "Common Tasks" / "Resources" / "JDBC" / "JDBC Resources".
+
+  * Create a new JNDI resource called "jdbc/channelfinder", selecting the Connection Pool you just created.
+
+** Install an LDAP Server
+
+  * If your site is running an LDAP server, you can skip the next step, and have
+    the LDAP manager show you the structure and how to query it.
+
+  * Download and install slapd from {{{http://www.openldap.org/}OpenLDAP.org}}
+    following the instructions for your platform.\
+    <Alternatively:> Install the slapd daemon from your distribution using a package manager.
+
+  * Set up users and groups. The <<<cftest.ldif>>> file in the distribution shows
+    the LDAP entries I create to run the integration tests. That should give you an idea
+    about the structures that ChannelFinder expects.
+
+** Create the LDAP Connection for Authentication/Authorization
+
+  * Login to the Glassfish admin console.
+
+  * Open "Common Tasks" / "Configuration" / "Security" / "Realms".
+
+  * Create a new realm called "channelfinder", setting the "Class Name" to
+    "com.sun.enterprise.security.auth.realm.ldap.LDAPRealm", and the "JAAS Context" to "ldapRealm".
+    "Directory" and "Base DN" should reflect your LDAP configuration. (My integration tests use
+    "ldap://localhost:389" as "Directory" and "dc=cf-test,dc=bnl,dc=gov" as "Base DN" which connects
+    to a slapd on localhost that has loaded the definitions from <<<cftest.ldif>>>.
+
+  * Add a property called "group-search-filter" with the value "memberUid=%s" to make
+    authentication work using the usual posixGroup definitions in the LDAP server.
+
+** Create the LDAP Connection for Testing Group Membership
+
+  * Login to the Glassfish admin console.
+
+  * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
+
+  * Create a new resource called "channelfinderGroups", setting the "Resource Type" to
+    "javax.naming.directory.Directory", and the "Factory Class" to "com.sun.jndi.ldap.LdapCtxFactory".
+
+  * Add two additional properties "URL" and "javax.naming.security.principal" reflecting your
+    LDAP configuration. (My integration test use "URL" = "ldap://localhost/dc=cf-test,dc=bnl,dc=gov"
+    and "javax.naming.security.principal" = "cn=channelfinder,dc=nsls2,dc=bnl,dc=gov".)
+
+** Deploy the ChannelFinder Application
+
+  * Drop the ChannelFinder WAR file into <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.
+    (You may have to create the autodeploy directory if it doesn't exist yet.)\
+    <Alternatively:> Call <<<asadmin deploy <WAR-file>>>> (<<<asadmin.bat>>> on Windows)
+    inside <<<GLASSFISH_HOME/bin>>>.
+
+* Checking the Installation
+
+** Using a Browser
+
+  Once deployed, ChannelFinder should be listening for requests.
+
+  For a Glassfish default installation on localhost, the URL "http://localhost:8080/ChannelFinder/"
+should get you to the top page of the embedded web site, showing documentation, links to the
+SourceForge project site, and Build information.
+
+  For a list of all channels in your database, try pointing your browser to
+"http://localhost:8080/ChannelFinder/resources/channels".
+
+** Using a Generic Client
+
+  For in-depth testing of the service, I recommend using the
+{{{http://code.google.com/p/rest-client/}rest-client}} application, that allows a complete
+detailed specification of a request and its payload, giving a lot more options than using a browser.

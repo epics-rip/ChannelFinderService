@@ -15,7 +15,9 @@
             <item name="EPICS" href="http://www.aps.anl.gov/epics/"/>
         </links>
         <menu name="ChannelFinder">
-            <item name="About" href="index.html"/>
+            <item name="Overview" href="index.html"/>
+            <item name="Download" href="download.html"/>
+            <item name="Installation" href="installation.html"/>
         </menu>
         <menu ref="reports"/>
     </body>

@@ -1,0 +1,172 @@
+dn: dc=cf-test,dc=bnl,dc=gov
+objectclass: dcObject
+objectClass: organization
+objectClass: top
+dc: cf-test
+o: NSLS 2 ChannelFinder Test
+
+dn: ou=Group,dc=cf-test,dc=bnl,dc=gov
+objectclass:organizationalunit
+ou: Group
+description: groups branch
+
+dn: ou=People,dc=cf-test,dc=bnl,dc=gov
+objectclass:organizationalunit
+ou: People
+description: people branch
+
+dn: uid=taggy,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: taggy
+objectClass: account
+objectClass: posixAccount
+description: User with tag role
+cn: Taggy
+userPassword: {CRYPT}zWlOpwM8IlHWc
+uidNumber: 23001
+gidNumber: 23001
+homeDirectory: /dev/null
+
+dn: uid=proppy,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: proppy
+objectClass: account
+objectClass: posixAccount
+description: User with property role
+cn: Proppy
+userPassword: {CRYPT}jz9DC5lO..YX.
+uidNumber: 23002
+gidNumber: 23002
+homeDirectory: /dev/null
+
+dn: uid=channy,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: channy
+objectClass: account
+objectClass: posixAccount
+description: User with channel role
+cn: Channy
+userPassword: {CRYPT}jJImTnwe5XvnY
+uidNumber: 23003
+gidNumber: 23003
+homeDirectory: /dev/null
+
+dn: uid=boss,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: boss
+objectClass: account
+objectClass: posixAccount
+description: User with admin role
+cn: Boss
+userPassword: {CRYPT}mcmDNXZR.0kJQ
+uidNumber: 23004
+gidNumber: 23004
+homeDirectory: /dev/null
+
+dn: uid=proppy2,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: proppy2
+objectClass: account
+objectClass: posixAccount
+description: User with property role
+cn: Proppy2
+userPassword: {CRYPT}8t9ME8JP.TKdk
+uidNumber: 23005
+gidNumber: 23005
+homeDirectory: /dev/null
+
+dn: uid=channy2,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: channy2
+objectClass: account
+objectClass: posixAccount
+description: User with channel role
+cn: Channy2
+userPassword: {CRYPT}a6fXnuV.FAiR2
+uidNumber: 23006
+gidNumber: 23006
+homeDirectory: /dev/null
+
+dn: uid=channy3,ou=People,dc=cf-test,dc=bnl,dc=gov
+uid: channy3
+objectClass: account
+objectClass: posixAccount
+description: User with channel role
+cn: Channy3
+userPassword: {CRYPT}6BdWjSQBehT2A
+uidNumber: 23007
+gidNumber: 23007
+homeDirectory: /dev/null
+
+dn: cn=testt,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: testt
+objectClass: posixGroup
+description: testt group
+gidNumber: 24001
+memberUid: taggy
+memberUid: proppy
+memberUid: proppy2
+memberUid: channy
+memberUid: channy3
+
+dn: cn=testp,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: testp
+objectClass: posixGroup
+description: testp group
+gidNumber: 24002
+memberUid: proppy
+memberUid: channy
+memberUid: channy2
+memberUid: channy3
+
+dn: cn=testc,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: testc
+objectClass: posixGroup
+description: testc group
+gidNumber: 24003
+memberUid: channy
+memberUid: channy2
+memberUid: channy3
+
+dn: cn=xxxx,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: xxxx
+objectClass: posixGroup
+description: xxxx group
+gidNumber: 24004
+memberUid: taggy
+memberUid: proppy
+memberUid: channy
+
+dn: cn=testx,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: testx
+objectClass: posixGroup
+description: testxx group
+gidNumber: 24005
+memberUid: taggy
+memberUid: proppy
+memberUid: channy
+
+dn: cn=cf-tags,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: cf-tags
+objectClass: posixGroup
+description: cf-tags group
+gidNumber: 24004
+memberUid: taggy
+
+dn: cn=cf-properties,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: cf-properties
+objectClass: posixGroup
+description: cf-properties group
+gidNumber: 24005
+memberUid: proppy
+memberUid: proppy2
+
+dn: cn=cf-channels,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: cf-channels
+objectClass: posixGroup
+description: cf-channels group
+gidNumber: 24006
+memberUid: channy
+memberUid: channy2
+memberUid: channy3
+
+dn: cn=cf-admins,ou=Group,dc=cf-test,dc=bnl,dc=gov
+cn: cf-admins
+objectClass: posixGroup
+description: cf-admins group
+gidNumber: 24007
+memberUid: boss

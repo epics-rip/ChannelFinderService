@@ -9,7 +9,7 @@
     <description>ChannelFinder is a directory server, implemented as a REST style web service.
         Its intended use is within control systems, namely the EPICS Control system, for which it
     has been written.</description>
-    <url>http://sourceforge.net/projects/channelfinder/</url>
+    <url>http://channelfinder.sourceforge.net/ChannelFinder/</url>
     <developers>
         <developer>
             <name>Ralph Lange</name>

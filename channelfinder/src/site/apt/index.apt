@@ -1,15 +1,15 @@
    ----
-   Home
+   Overview
    ----
    Ralph Lange
    ----
 
-ChannelFinder Directory Service
+ChannelFinder Overview
 
   ChannelFinder is a directory server, implemented as a REST style web service.
 Its intended use is within control systems, namely the EPICS Control system, for which it has been written.
 
-* Objectives
+* Motivation and Objectives
 
   High level applications tend to prefer an hierarchical view of the control system name space.
 They group channel names by location or physical function. The name space of the EPICS Channel Access protocol,
@@ -35,6 +35,11 @@ properties and tags, as an XML or JSON document.
 
  Other methods allow manipulation of directory entries: create, update, add properties or tags, delete.
 
-Download
+* Design Documents and API Specification
 
-  {{{https://irmis-dev.bnl.gov/hudson/view/ChannelFinder/job/ChannelFinder%20-%20Build/lastSuccessfulBuild/artifact/channelfinder/target/ChannelFinder.war}Latest development build}}
+  Two design documents are available - these are also included in the WAR file as part
+of the internal web site of the application.
+
+* {{{https://sourceforge.net/apps/trac/channelfinder/attachment/wiki/WikiStart/ChannelFinder-Design.pdf}Design Paper}} (16 Nov 2009; 2 pages)
+
+* {{{https://sourceforge.net/apps/trac/channelfinder/attachment/wiki/WikiStart/ChannelFinder-API.pdf}API Description}} (11 Jun 2010; 6 pages)

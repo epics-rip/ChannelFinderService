@@ -1,0 +1,18 @@
+#!/bin/bash
+set build=build/channelfinder
+
+mvn clean
+mvn -PFullBuild install || exit -1
+
+mkdir -p distribution
+cd distribution
+rm -rf build
+rm -rf dist
+mkdir -p ${build}/etc/{wars,sql,ldif}
+mkdir dist
+cp ../target/ChannelFinder.war ${build}/etc/wars
+cp sql/*.sql ${build}/etc/sql
+#cp sql/upgrade/*.sql ${build}/etc/sql/upgrade
+cd build
+tar -czvf ../dist/channelfinder.tar.gz channelfinder
+cd ../..
