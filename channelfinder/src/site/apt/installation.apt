@@ -35,7 +35,8 @@ relations are taken from an LDAP server.
     following the instructions for your platform.\
     <Alternatively:> Install the mySQL server from your distribution using a package manager.
 
-  * Create the ChannelFinder tables using the <<<create_empty_db.sql>>> script in the distribution tar.
+  * Create the ChannelFinder tables using the <<<sql/channelfinder-base.sql>>>
+    script in the distribution tar.
     Unless you are running the mySQL server locally on your machine with access restricted to localhost,
     it is strongly advisable to create a user for the ChannelFinder service and give it
     sufficient rights on the channelfinder database. Having the ChannelFinder service access
@@ -84,7 +85,7 @@ relations are taken from an LDAP server.
     following the instructions for your platform.\
     <Alternatively:> Install the slapd daemon from your distribution using a package manager.
 
-  * Set up users and groups. The <<<cftest.ldif>>> file in the distribution shows
+  * Set up users and groups. The <<<ldif/cftest.ldif>>> file in the distribution shows
     the LDAP entries I create to run the integration tests. That should give you an idea
     about the structures that ChannelFinder expects.
 
@@ -118,7 +119,8 @@ relations are taken from an LDAP server.
 
 ** Deploy the ChannelFinder Application
 
-  * Drop the ChannelFinder WAR file into <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.
+  * Drop the ChannelFinder WAR file <<<war/ChannelFinder.war>>> into
+    <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.
     (You may have to create the autodeploy directory if it doesn't exist yet.)\
     <Alternatively:> Call <<<asadmin deploy <WAR-file>>>> (<<<asadmin.bat>>> on Windows)
     inside <<<GLASSFISH_HOME/bin>>>.

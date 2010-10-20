@@ -1,15 +1,16 @@
 #!/bin/bash
-set build=build/channelfinder
+build=build/channelfinder
 
-cd channelfinder
 rm -rf dist
-mkdir -p ${build}/etc/{wars,sql,ldif}
-mkdir dist
+rm -rf build
 
-cp ../target/ChannelFinder.war ${build}/etc/wars
-cp sql/*.sql ${build}/etc/sql
-#cp sql/upgrade/*.sql ${build}/etc/sql/upgrade
-cp ldif/*.ldif ${build}/etc/ldif
+mkdir dist
+mkdir -p ${build}/{war,sql,ldif}
+
+cp target/ChannelFinder.war ${build}/war
+cp sql/*.sql ${build}/sql
+#cp sql/upgrade/*.sql ${build}/sql/upgrade
+cp ldif/*.ldif ${build}/ldif
 
 cd build
 tar -czvf ../dist/channelfinder.tar.gz channelfinder
