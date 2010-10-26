@@ -58,6 +58,18 @@ _C1_full_lc = { '@name': 'c1', '@owner': 'testc',\
           }
 C1_full_lc = JSONEncoder().encode(_C1_full_lc)
 C1_full_lc_r = {u'@owner': u'testc', u'@name': u'c1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'p1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'p2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u't1'}, {u'@owner': u'testt', u'@name': u't2'}]}}
+_C1_null = { }
+C1_null = JSONEncoder().encode(_C1_null)
+_C1_null1 = { '@name': 'c1' }
+C1_null1 = JSONEncoder().encode(_C1_null1)
+_C1_null2 = { '@owner': 'testc' }
+C1_null2 = JSONEncoder().encode(_C1_null2)
+_C1_nostr = { '@name': '', '@owner': '' }
+C1_nostr = JSONEncoder().encode(_C1_nostr)
+_C1_nostr1 = { '@name': 'c1', '@owner': '' }
+C1_nostr1 = JSONEncoder().encode(_C1_nostr1)
+_C1_nostr2 = { '@name': '', '@owner': 'testc' }
+C1_nostr2 = JSONEncoder().encode(_C1_nostr2)
 
 _C1_tx = { '@name': 'C1', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
 _C2_tx = { '@name': 'C2', '@owner': 'testc', u'tags': {u'tag': {u'@owner': u'testx', u'@name': u'TX'}} }
@@ -151,6 +163,12 @@ C1_full2_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property':
 C1_full12_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
 
 C12_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full ]}})
+C12_null = JSONEncoder().encode({'channels': {'channel': [ _C1_null, _C2_full ]}})
+C12_null1 = JSONEncoder().encode({'channels': {'channel': [ _C1_null1, _C2_full ]}})
+C12_null2 = JSONEncoder().encode({'channels': {'channel': [ _C1_null2, _C2_full ]}})
+C12_nostr = JSONEncoder().encode({'channels': {'channel': [ _C1_nostr, _C2_full ]}})
+C12_nostr1 = JSONEncoder().encode({'channels': {'channel': [ _C1_nostr1, _C2_full ]}})
+C12_nostr2 = JSONEncoder().encode({'channels': {'channel': [ _C1_nostr2, _C2_full ]}})
 C121_full = JSONEncoder().encode({'channels': {'channel': [ _C1_full, _C2_full, _C1_full ]}})
 C2s_full = JSONEncoder().encode({'channels': {'channel': _C2_full }})
 C12_empty = JSONEncoder().encode({'channels': {'channel':[ _C1_empty, _C2_empty ]}})
@@ -408,6 +426,45 @@ class CreateOneChannel(unittest.TestCase):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C12_full)
         self.failUnlessEqual('400', response[u'headers']['status'])
 
+# add channel with invalid payload (no or empty name and/or owner)
+    def test_AuthorizedAsChanNull(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_null)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNull(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_null)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNoOwner(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_null1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNoOwner(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_null1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNoName(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_null2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNoName(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_null2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+
+    def test_AuthorizedAsChanNostr(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostr(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNostrOwner(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostrOwner(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNostrName(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostrName(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
         response = conn_admin.request_delete(self.url1_lc, headers=jsonheader)
@@ -517,6 +574,45 @@ class UpdateOneChannel(unittest.TestCase):
         response = conn_chan2.request_put(self.url1, headers=jsonheader, body=C1_full2)
         self.failUnlessEqual('403', response[u'headers']['status'])
         self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+
+# add channel with invalid payload (no or empty name and/or owner)
+    def test_AuthorizedAsChanNull(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_null)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNull(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_null)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNoOwner(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_null1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNoOwner(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_null1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNoName(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_null2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNoName(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_null2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+
+    def test_AuthorizedAsChanNostr(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostr(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNostrOwner(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
+        self.failUnlessEqual('403', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostrOwner(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNostrName(self):
+        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostrName(self):
+        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
@@ -800,6 +896,45 @@ class CreateManyChannels(unittest.TestCase):
         response = conn_admin.request_post(self.url, headers=jsonheader, body=C12_full_wrongtowner1)
         self.failUnlessEqual('400', response[u'headers']['status'])
         self.failIf(response[u'body'].find("Inconsistent payload owner for tag T11") == -1)
+
+# add channel with invalid payload (no name and/or owner)
+    def test_AuthorizedAsChanNull(self):
+        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_null)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNull(self):
+        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_null)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNoOwner(self):
+        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_null1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNoOwner(self):
+        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_null1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNoName(self):
+        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_null2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNoName(self):
+        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_null2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+
+    def test_AuthorizedAsChanNostr(self):
+        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_nostr)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostr(self):
+        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_nostr)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNostrOwner(self):
+        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_nostr1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostrOwner(self):
+        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_nostr1)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsChanNostrName(self):
+        response = conn_chan.request_post(self.url1, headers=jsonheader, body=C12_nostr2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
+    def test_AuthorizedAsAdminNostrName(self):
+        response = conn_admin.request_post(self.url1, headers=jsonheader, body=C12_nostr2)
+        self.failUnlessEqual('400', response[u'headers']['status'])
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
