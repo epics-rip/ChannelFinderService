@@ -106,11 +106,13 @@ C2_full2 = JSONEncoder().encode({ '@name': 'C2', '@owner': 'testc',\
                                        {'@name': 'P2', '@value': 'prop22', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
           })
-C1_full2_wrongcowner = JSONEncoder().encode({ '@name': 'C1', '@owner': 'xxxx',\
+_C1_full2_wrongcowner = { '@name': 'C1', '@owner': 'xxxx',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'testp'},\
                                        {'@name': 'P2', '@value': 'prop22', '@owner': 'testp'} ] },\
           'tags':       {'tag':      [ {'@name': 'T11', '@owner': 'testt'}, {'@name': 'T2', '@owner': 'testt'} ] }\
-          })
+          }
+C1_full2_wrongcowner = JSONEncoder().encode(_C1_full2_wrongcowner)
+C1_full2_wrongcowner_r = {u'@owner': u'xxxx', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P11', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T11'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
 _C1_full2_wrongpowner1 = { '@name': 'C1', '@owner': 'testc',\
           'properties': {'property': [ {'@name': 'P11', '@value': 'prop11', '@owner': 'xxxx'},\
                                        {'@name': 'P2', '@value': 'prop2', '@owner': 'testp'} ] },\
@@ -156,6 +158,8 @@ C34_full = JSONEncoder().encode({'channels': {'channel': [ _C3_full, _C4_full ]}
 C12_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r]}}
 C12_empty_r = {u'channels': {u'channel': [C1_empty_r, C2_empty_r]}}
 C13_full_r = {u'channels': {u'channel': [C1_full_r, C3_full_r]}}
+C12_full_wrongcowner = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongcowner, _C2_full ]}})
+C12_full_wrongcowner_r = {u'channels': {u'channel': [C1_full2_wrongcowner_r, C2_full_r]}}
 C12_full_wrongpowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner1, _C2_full ]}})
 C12_full_wrongtowner1 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongtowner1, _C2_full ]}})
 C12_full_wrongpowner3 = JSONEncoder().encode({'channels': {'channel': [ _C1_full2_wrongpowner3, _C2_full ]}})
@@ -455,14 +459,17 @@ class UpdateOneChannel(unittest.TestCase):
         self.doTestAndCheckPropNameCapitalization(conn_admin)
 
 # update channel with wrong channel owner in payload
+    def doTestAndCheckWrongChannelOwner(self, conn):
+        response = conn.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url1, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C1_full2_wrongcowner_r)
     def test_AuthorizedAsChanWrongChannelOwner(self):
-        response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Database and payload owner for channel C1 do not match") == -1)
+        self.doTestAndCheckWrongChannelOwner(conn_chan)
     def test_AuthorizedAsAdminWrongChannelOwner(self):
-        response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongcowner)
-        self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Database and payload owner for channel C1 do not match") == -1)
+        self.doTestAndCheckWrongChannelOwner(conn_admin)
 
 # add channel with wrong property owner (new property) in payload
     def test_AuthorizedAsChanWrongNewPropertyOwner(self):
@@ -834,6 +841,22 @@ class ReplaceManyChannelsFullWithEmpty(unittest.TestCase):
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanGroupNonMember(self):
         self.doTestAndCheck(conn_chan2)
+
+    def doTestAndCheckWrongCowner(self, conn):
+        response = conn.request_post(self.url, headers=jsonheader, body=C12_full_wrongcowner)
+        self.failUnlessEqual('204', response[u'headers']['status'])
+        response = conn_none.request_get(self.url + getextra, headers=jsonheader)
+        self.failUnlessEqual('200', response[u'headers']['status'])
+        j1 = JSONDecoder().decode(response[u'body'])
+        self.failUnlessEqual(j1, C12_full_wrongcowner_r)
+    def test_AuthorizedAsChanWrongCowner(self):
+        self.doTestAndCheckWrongCowner(conn_chan)
+    def test_AuthorizedAsAdminWrongCowner(self):
+        self.doTestAndCheckWrongCowner(conn_admin)
+# same as channy2 (not member of testt) fails because channy2 is not member of xxxx
+    def test_AuthorizedAsChanGroupNonMemberWrongCowner(self):
+        response = conn_chan2.request_post(self.url, headers=jsonheader, body=C12_full_wrongcowner)
+        self.failUnlessEqual('403', response[u'headers']['status'])
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)

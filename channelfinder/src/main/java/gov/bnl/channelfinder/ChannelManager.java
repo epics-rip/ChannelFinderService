@@ -319,7 +319,7 @@ public class ChannelManager {
                     + " and payload channel name " + data.getName() + " do not match");
         }
         DbConnection db = DbConnection.getInstance();
-        EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadPropertyOwnersMatch();
         EntityMap.getInstance().enforceDbCapitalization(new XmlChannels(data));
         DeleteChannelQuery dq = new DeleteChannelQuery(name);
         CreateChannelQuery cq = new CreateChannelQuery(data);
@@ -334,7 +334,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createChannels(XmlChannels data) throws CFException {
-        EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadPropertyOwnersMatch();
         EntityMap.getInstance().enforceDbCapitalization(data);
         for (XmlChannel chan : data.getChannels()) {
             deleteChannel(chan.getName(), true);
@@ -366,7 +366,8 @@ public class ChannelManager {
                     "Specified channel name " + name
                     + " and payload channel name " + data.getName() + " do not match");
         }
-        EntityMap.getInstance().checkDbAndPayloadOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadChannelOwnersMatch();
+        EntityMap.getInstance().checkDbAndPayloadPropertyOwnersMatch();
         EntityMap.getInstance().enforceDbCapitalization(new XmlChannels(data));
         XmlChannel dest = findChannelByName(name);
         if (dest == null) {

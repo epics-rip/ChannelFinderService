@@ -249,7 +249,7 @@ public class EntityMap {
      *
      * @throws CFException when owners do not match
      */
-    public void checkDbAndPayloadOwnersMatch() throws CFException {
+    public void checkDbAndPayloadChannelOwnersMatch() throws CFException {
         for (String n : pl_cowner.keySet()) {
             if (db_cowner.containsKey(n) && !pl_cowner.get(n).get(1).equals(db_cowner.get(n).get(1))) {
                 throw new CFException(Response.Status.BAD_REQUEST,
@@ -257,6 +257,14 @@ public class EntityMap {
                         + pl_cowner.get(n).get(0) + " do not match");
             }
         }
+    }
+
+    /**
+     * Check if owners in database and payload maps match.
+     *
+     * @throws CFException when owners do not match
+     */
+    public void checkDbAndPayloadPropertyOwnersMatch() throws CFException {
         for (String n : pl_powner.keySet()) {
             if (db_powner.containsKey(n) && !pl_powner.get(n).get(1).equals(db_powner.get(n).get(1))) {
                 throw new CFException(Response.Status.BAD_REQUEST,
