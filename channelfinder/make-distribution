@@ -14,4 +14,4 @@ cp ldif/*.ldif ${build}/ldif
 
 cd build
 tar -czvf ../dist/channelfinder.tar.gz channelfinder
-cd ../..
+cd ..
