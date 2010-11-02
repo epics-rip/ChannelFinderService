@@ -7,6 +7,8 @@
 package gov.bnl.channelfinder;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -14,17 +16,30 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
-@XmlType(propOrder = {"name","value","owner"})
+@XmlType(propOrder = {"name","value","owner","xmlChannels"})
+@XmlRootElement(name = "property")
 public class XmlProperty {
     private String name = null;
     private String value = null;
     private String owner = null;
+    private XmlChannels channels = null;
 
     /**
      * Creates a new instance of XmlProperty.
      *
      */
     public XmlProperty() {
+    }
+
+    /**
+     * Creates a new instance of XmlProperty.
+     *
+     * @param name
+     * @param owner
+     */
+    public XmlProperty(String name, String owner) {
+        this.owner = owner;
+        this.name = name;
     }
 
     /**
@@ -98,12 +113,36 @@ public class XmlProperty {
     }
 
     /**
+     * Getter for property's XmlChannels.
+     *
+     * @return XmlChannels object
+     */
+    @XmlElement(name = "channels")
+    public XmlChannels getXmlChannels() {
+        return channels;
+    }
+
+    /**
+     * Setter for property's XmlChannels.
+     *
+     * @param channels XmlChannels object
+     */
+    public void setXmlChannels(XmlChannels channels) {
+        this.channels = channels;
+    }
+
+    /**
      * Creates a compact string representation for the log.
      *
      * @param data the XmlProperty to log
      * @return string representation for log
      */
     public static String toLog(XmlProperty data) {
-        return data.getName() + "(" + data.getOwner() + "):" + data.getValue();
+         if (data.channels == null) {
+            return data.getName() + "(" + data.getOwner() + ")";
+        } else {
+            return data.getName() + "(" + data.getOwner() + ")"
+                    + XmlChannels.toLog(data.channels);
+        }
     }
 }

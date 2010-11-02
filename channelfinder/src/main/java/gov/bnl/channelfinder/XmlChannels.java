@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 @XmlRootElement(name = "channels")
 public class XmlChannels {
-    private Collection<XmlChannel> items = new ArrayList<XmlChannel>();
+    private Collection<XmlChannel> channels = new ArrayList<XmlChannel>();
   
     /** Creates a new instance of XmlChannels. */
     public XmlChannels() {
@@ -29,7 +29,7 @@ public class XmlChannels {
      * @param c initial element
      */
     public XmlChannels(XmlChannel c) {
-        items.add(c);
+        channels.add(c);
     }
 
     /**
@@ -39,7 +39,7 @@ public class XmlChannels {
      */
     @XmlElement(name = "channel")
     public Collection<XmlChannel> getChannels() {
-        return items;
+        return channels;
     }
 
     /**
@@ -48,7 +48,7 @@ public class XmlChannels {
      * @param items new channel collection
      */
     public void setChannels(Collection<XmlChannel> items) {
-        this.items = items;
+        this.channels = items;
     }
 
     /**
@@ -56,8 +56,8 @@ public class XmlChannels {
      *
      * @param item the XmlChannel to add
      */
-    public void addChannel(XmlChannel item) {
-        this.items.add(item);
+    public void addXmlChannel(XmlChannel item) {
+        this.channels.add(item);
     }
 
     /**

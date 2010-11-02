@@ -45,7 +45,7 @@ public class CFException extends Exception {
     private String responseMessage() {
         String msg = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"" +
                 " \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                "<html><head><title>ChannelServer - Error report</title></head>" +
+                "<html><head><title>ChannelFinder - Error report</title></head>" +
                 "<body><h1>HTTP Status " + this.status.getStatusCode() + " - " + this.status.getReasonPhrase() + "</h1><hr/>" +
                 "<p><b>type</b> Status report</p>" +
                 "<p><b>message</b></p>" +

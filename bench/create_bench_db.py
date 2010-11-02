@@ -8,7 +8,7 @@ python create_bench_db.py
 max_prop = 40           # must be >=20
 max_tag  = 60           # must be >=11
 
-my_version = "0.2"
+my_version = "0.3"
 cowner = "testc"
 powner = "testp"
 towner = "testt"
@@ -26,10 +26,12 @@ def fail(emesg, retcode):
 def create_db():
     print "USE cf_bench_xl;"
 
-    print "DROP TABLE IF EXISTS property;"
-    print "DROP TABLE IF EXISTS channel;"
+    print "DROP TABLE IF EXISTS `value`;"
+    print "DROP TABLE IF EXISTS `property`;"
+    print "DROP TABLE IF EXISTS `channel`;"
+    print "DROP VIEW IF EXISTS `prop_value`;"
 
-    print "CREATE TABLE  `channel` ("
+    print "CREATE TABLE `channel` ("
     print "  `id` int(10) unsigned NOT NULL auto_increment,"
     print "  `name` varchar(45) NOT NULL,"
     print "  `owner` varchar(45) NOT NULL,"
@@ -37,17 +39,38 @@ def create_db():
     print "  KEY `channel_name` (`name`)"
     print ") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
 
-    print "CREATE TABLE  `property` ("
+    print "CREATE TABLE `property` ("
+    print "  `id` int(10) unsigned NOT NULL auto_increment,"
+    print "  `name` varchar(45) NOT NULL,"
+    print "  `owner` varchar(45) NOT NULL,"
+    print "  `is_tag` boolean NOT NULL default FALSE,"
+    print "  PRIMARY KEY  (`id`),"
+    print "  KEY `property_name` (`name`)"
+    print ") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+
+    print "CREATE TABLE `value` ("
     print "  `id` int(10) unsigned NOT NULL auto_increment,"
     print "  `channel_id` int(10) unsigned NOT NULL,"
-    print "  `property` varchar(45) NOT NULL,"
+    print "  `property_id` int(10) unsigned NOT NULL,"
     print "  `value` varchar(45) default NULL,"
-    print "  `owner` varchar(45) NOT NULL,"
     print "  PRIMARY KEY  (`id`),"
-    print "  KEY `property_channel` (`channel_id`),"
-    print "  KEY `property_name` (`property`),"
-    print "  CONSTRAINT `property_channel` FOREIGN KEY (`channel_id`) REFERENCES `channel` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION"
+    print "  KEY `value_channel` USING BTREE (`channel_id`),"
+    print "  KEY `value_property` USING BTREE (`property_id`),"
+    print "  CONSTRAINT `value_property` FOREIGN KEY (`property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,"
+    print "  CONSTRAINT `value_channel` FOREIGN KEY (`channel_id`) REFERENCES `channel` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION"
     print ") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+
+    print "CREATE VIEW `prop_value` AS"
+    print "  SELECT"
+    print "    `c`.`name` AS `channel`,"
+    print "    `c`.`owner` AS `cowner`,"
+    print "    `p`.`name` AS `property`,"
+    print "    `p`.`owner` AS `powner`,"
+    print "    `p`.`is_tag` AS `is_tag`,"
+    print "    `v`.`value` AS `value`"
+    print "  FROM"
+    print "    `channel` `c` LEFT JOIN `value` `v` on `c`.`id` = `v`.`channel_id`,"
+    print "    `property` `p`;"
 
 def insert_channel(name, owner):
     global chan_id

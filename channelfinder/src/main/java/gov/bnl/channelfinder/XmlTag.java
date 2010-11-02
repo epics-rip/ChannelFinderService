@@ -7,6 +7,7 @@
 package gov.bnl.channelfinder;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -15,11 +16,12 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
-@XmlType(propOrder = {"name","owner"})
+@XmlType(propOrder = {"name","owner","xmlChannels"})
 @XmlRootElement(name = "tag")
 public class XmlTag {
     private String name = null;
     private String owner = null;
+    private XmlChannels channels = null;
 
     /**
      * Creates a new instance of XmlTag.
@@ -32,11 +34,20 @@ public class XmlTag {
      * Creates a new instance of XmlTag.
      *
      * @param name
+     */
+    public XmlTag(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Creates a new instance of XmlTag.
+     *
+     * @param name
      * @param owner
      */
     public XmlTag(String name, String owner) {
-        this.owner = owner;
         this.name = name;
+        this.owner = owner;
     }
 
     /**
@@ -78,12 +89,36 @@ public class XmlTag {
     }
 
     /**
+     * Getter for tag's XmlChannels.
+     *
+     * @return XmlChannels object
+     */
+    @XmlElement(name = "channels")
+    public XmlChannels getXmlChannels() {
+        return channels;
+    }
+
+    /**
+     * Setter for tag's XmlChannels.
+     *
+     * @param channels XmlChannels object
+     */
+    public void setXmlChannels(XmlChannels channels) {
+        this.channels = channels;
+    }
+
+    /**
      * Creates a compact string representation for the log.
      *
      * @param data the XmlTag to log
      * @return string representation for log
      */
     public static String toLog(XmlTag data) {
-        return data.getName() + "(" + data.getOwner() + ")";
+        if (data.channels == null) {
+            return data.getName() + "(" + data.getOwner() + ")";
+        } else {
+            return data.getName() + "(" + data.getOwner() + ")"
+                    + XmlChannels.toLog(data.channels);
+        }
     }
 }

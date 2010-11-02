@@ -20,12 +20,7 @@ public class DeleteChannelQuery {
 
     private String name;
 
-    /**
-     * Creates a new instance of DeleteChannelQuery.
-     *
-     * @param name channel name
-     */
-    public DeleteChannelQuery(String name) {
+    private DeleteChannelQuery(String name) {
         this.name = name;
     }
 
@@ -36,47 +31,44 @@ public class DeleteChannelQuery {
      * @param ignoreNoExist flag: true = do not generate an error if channel does not exist
      * @throws CFException wrapping an SQLException
      */
-    public void executeQuery(Connection con, boolean ignoreNoExist) throws CFException {
+    private void executeQuery(Connection con, boolean ignoreNoExist) throws CFException {
         String query;
         PreparedStatement ps;
-        long id;
         try {
-            query = "SELECT id FROM channel WHERE name = ?";
+            query = "DELETE FROM channel WHERE name = ?";
             ps = con.prepareStatement(query);
             ps.setString(1, name);
-            ResultSet rs = ps.executeQuery();
-            if (!rs.first()) {
-                if (ignoreNoExist) {
-                    return;
-                } else {
-                    throw new CFException(Response.Status.NOT_FOUND,
-                            "Channel " + name + " does not exist");
-                }
+            int rows = ps.executeUpdate();
+            if (rows == 0 && !ignoreNoExist) {
+                throw new CFException(Response.Status.NOT_FOUND,
+                        "Channel '" + name + "' does not exist");
             }
-            id = rs.getLong(1);
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception while preparing deletion of channel " + name, e);
+                    "SQL Exception while deleting channel '" + name + "'", e);
         }
+    }
 
-        try {
-            query = "DELETE FROM property WHERE channel_id = ?";
-            ps = con.prepareStatement(query);
-            ps.setLong(1, id);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception while deleting properties of channel " + name, e);
-        }
+    /**
+     * Deletes a channel and its properties/tags from the database, failing if the
+     * channel does not exist.
+     *
+     * @param chan XmlChannel object
+     * @throws CFException on fail or wrapping an SQLException
+     */
+    public static void deleteChannelFailNoexist(String name) throws CFException {
+        DeleteChannelQuery q = new DeleteChannelQuery(name);
+        q.executeQuery(DbConnection.getInstance().getConnection(), false);
+    }
 
-        try {
-            query = "DELETE FROM channel WHERE id = ?";
-            ps = con.prepareStatement(query);
-            ps.setLong(1, id);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception while deleting channel " + name, e);
-        }
+    /**
+     * Deletes a channel and its properties/tags from the database.
+     *
+     * @param chan XmlChannel object
+     * @throws CFException wrapping an SQLException
+     */
+    public static void deleteChannelIgnoreNoexist(String name) throws CFException {
+        DeleteChannelQuery q = new DeleteChannelQuery(name);
+        q.executeQuery(DbConnection.getInstance().getConnection(), true);
     }
 }

@@ -71,11 +71,6 @@ public class FindChannelsQuery {
         }
     }
 
-    /**
-     * Creates a new instance of FindChannelsQuery for single type query.
-     *
-     * @param matches  the collection of name matches
-     */
     private FindChannelsQuery(SearchType type, Collection<String> matches) {
         if (type == SearchType.CHANNEL) {
             chan_matches.addAll(matches);
@@ -84,11 +79,6 @@ public class FindChannelsQuery {
         }
     }
 
-    /**
-     * Creates a new instance of FindChannelsQuery for a simple single type query.
-     *
-     * @param name the name to match
-     */
     private FindChannelsQuery(SearchType type, String name) {
         if (type == SearchType.CHANNEL) {
             chan_matches.add(name);
@@ -98,40 +88,13 @@ public class FindChannelsQuery {
     }
 
     /**
-     * Creates a generic FindChannelsQuery (mix of channel, tag, and property search)
-     * @param matches MultiMap of query parameters
-     * @return new FindChannelsQuery instance
-     */
-    public static FindChannelsQuery createMultiMatchQuery(MultivaluedMap<String, String> matches) {
-        return new FindChannelsQuery(matches);
-    }
-
-    /**
-     * Creates a channel FindChannelsQuery (multiple channel names)
-     * @param matches String collection of name query parameters
-     * @return new FindChannelsQuery instance
-     */
-    public static FindChannelsQuery createChannelMatchQuery(Collection<String> matches) {
-        return new FindChannelsQuery(SearchType.CHANNEL, matches);
-    }
-
-    /**
-     * Creates a tag FindChannelsQuery (multiple tag names)
-     * @param matches String collection of name query parameters
-     * @return new FindChannelsQuery instance
-     */
-    public static FindChannelsQuery createTagMatchQuery(Collection<String> matches) {
-        return new FindChannelsQuery(SearchType.TAG, matches);
-    }
-
-    /**
      * Creates and executes the property and tag string match subquery using GROUP.
      *
      * @param con connection to use
      * @return a set of channel ids that match
      */
-    private Set<Long> getIdsFromPropertyMatch(Connection con) throws CFException {
-        StringBuilder query = new StringBuilder("SELECT p0.channel_id FROM property p0 WHERE");
+    private Set<Long> getIdsFromPropertyAndTagMatch(Connection con) throws CFException {
+        StringBuilder query = new StringBuilder("SELECT p0.channel_id FROM prop_value p0 WHERE");
         Set<Long> ids = new HashSet<Long>();           // set of matching channel ids
         List<String> params = new ArrayList<String>(); // parameter list for this query
 
@@ -148,7 +111,7 @@ public class FindChannelsQuery {
 
         for (String tag : tag_matches) {
             params.add(convertFileGlobToSQLPattern(tag).toLowerCase());
-            query.append(" (LOWER(p0.property) = ? AND p0.value IS NULL) OR");
+            query.append(" (LOWER(p0.property) = ? AND p0.is_tag) OR");
         }
 
         query.replace(query.length() - 2, query.length(),
@@ -168,20 +131,20 @@ public class FindChannelsQuery {
             }
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception while getting ids in property match query", e);
+                    "SQL Exception while getting channel ids in property match query", e);
         }
         return ids;
     }
 
     /**
-     * Creates and executes the property and tag string match subquery using GROUP.
+     * Creates and executes the tag string match subquery using GROUP.
      *
      * @param con connection to use
      * @return a set of channel ids that match
      */
     private Set<Long> getIdsFromTagMatch(Connection con, String match) throws CFException {
-        String query = "SELECT p0.channel_id FROM property p0"
-                + " WHERE LOWER(p0.property) LIKE ? AND p0.value IS NULL"
+        String query = "SELECT p0.channel_id FROM prop_value p0"
+                + " WHERE LOWER(p0.property) LIKE ? AND p0.is_tag"
                 + " GROUP BY p0.channel_id";
         Set<Long> ids = new HashSet<Long>();
 
@@ -194,7 +157,7 @@ public class FindChannelsQuery {
             }
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception while getting ids in tag match query", e);
+                    "SQL Exception while getting channel ids in tag match query", e);
         }
         return ids;
     }
@@ -208,15 +171,14 @@ public class FindChannelsQuery {
      *         <tt>value</tt>, null if no results
      * @throws CFException wrapping an SQLException
      */
-    public ResultSet executeQuery(Connection con) throws CFException {
-        StringBuilder query = new StringBuilder("SELECT c.name as channel, c.owner as cowner, p.property, p.value, p.owner"
-                + " FROM channel c LEFT JOIN property p ON c.id = p.channel_id WHERE 1=1");
+    private ResultSet executeQuery(Connection con) throws CFException {
+        StringBuilder query = new StringBuilder("SELECT * FROM prop_value WHERE 1=1");
         List<Long> id_params = new ArrayList<Long>();       // parameter lists for the outer query
         List<String> name_params = new ArrayList<String>();
         Set<Long> result = new HashSet<Long>();
 
         if (!prop_matches.isEmpty() || !tag_matches.isEmpty()) {
-            Set<Long> ids = getIdsFromPropertyMatch(con);
+            Set<Long> ids = getIdsFromPropertyAndTagMatch(con);
             if (ids.isEmpty()) {
                 return null;
             }
@@ -241,7 +203,7 @@ public class FindChannelsQuery {
         }
 
         if (!result.isEmpty()) {
-            query.append(" AND c.id IN (");
+            query.append(" AND channel_id IN (");
             for (long i : result) {
                 query.append("?,");
                 id_params.add(i);
@@ -252,7 +214,7 @@ public class FindChannelsQuery {
         if (!chan_matches.isEmpty()) {
             query.append(" AND (");
             for (String value : chan_matches) {
-                query.append("c.name LIKE ? OR ");
+                query.append("channel LIKE ? OR ");
                 name_params.add(convertFileGlobToSQLPattern(value));
             }
             query.replace(query.length() - 4, query.length(), ")");
@@ -316,5 +278,112 @@ public class FindChannelsQuery {
         }
         m.appendTail(out);
         return out.toString();
+    }
+
+    /**
+     * Adds a property or tag to an XmlChannel.
+     *
+     */
+    private static void addProperty(XmlChannel c, ResultSet rs) throws SQLException {
+        if (rs.getString("property") != null) {
+            if (rs.getBoolean("is_tag")) {
+                c.addXmlTag(new XmlTag(rs.getString("property"), rs.getString("powner")));
+            } else {
+                c.addXmlProperty(new XmlProperty(rs.getString("property"),
+                        rs.getString("powner"), rs.getString("value")));
+            }
+        }
+    }
+
+    /**
+     * Finds channels by matching property/tag values and/or channel and/or tag names.
+     *
+     * @param matches MultiMap of query parameters
+     * @return XmlChannels container with all found channels and their properties/tags
+     */
+    public static XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) throws CFException {
+        FindChannelsQuery q = new FindChannelsQuery(matches);
+        XmlChannels xmlChans = new XmlChannels();
+        XmlChannel xmlChan = null;
+        try {
+            ResultSet rs = q.executeQuery(DbConnection.getInstance().getConnection());
+
+            String lastchan = "";
+            if (rs != null) {
+                while (rs.next()) {
+                    String thischan = rs.getString("channel");
+                    if (!thischan.equals(lastchan) || rs.isFirst()) {
+                        xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+                        xmlChans.addXmlChannel(xmlChan);
+                        lastchan = thischan;
+                    }
+                    addProperty(xmlChan, rs);
+                }
+            }
+            return xmlChans;
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while parsing result of find channels request", e);
+        }
+    }
+
+    /**
+     * Returns channels found by matching property/tag values and/or channel names.
+     *
+     * @param query query to be used for matching
+     * @return XmlChannels container with all found channels and their properties/tags
+     */
+    public static XmlChannels findChannelsByPropertyName(String name) throws CFException {
+        FindChannelsQuery q = new FindChannelsQuery(SearchType.TAG, name);
+        XmlChannels xmlChans = new XmlChannels();
+        XmlChannel xmlChan = null;
+        try {
+            ResultSet rs = q.executeQuery(DbConnection.getInstance().getConnection());
+
+            String lastchan = "";
+            if (rs != null) {
+                while (rs.next()) {
+                    String thischan = rs.getString("channel");
+                    if (!thischan.equals(lastchan) || rs.isFirst()) {
+                        xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+                        xmlChans.addXmlChannel(xmlChan);
+                        lastchan = thischan;
+                    }
+                    addProperty(xmlChan, rs);
+                }
+            }
+            return xmlChans;
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while parsing result of find channels by property name request", e);
+        }
+    }
+
+    /**
+     * Return single channel found by channel name.
+     *
+     * @param name name to look for
+     * @return XmlChannel with found channel and its properties
+     * @throws CFException on SQLException
+     */
+    public static XmlChannel findChannelByName(String name) throws CFException {
+        FindChannelsQuery q = new FindChannelsQuery(SearchType.CHANNEL, name);
+        XmlChannel xmlChan = null;
+        try {
+            ResultSet rs = q.executeQuery(DbConnection.getInstance().getConnection());
+            if (rs != null) {
+                while (rs.next()) {
+                    String thischan = rs.getString("channel");
+                    if (rs.isFirst()) {
+                        xmlChan = new XmlChannel(thischan, rs.getString("cowner"));
+                    }
+                    addProperty(xmlChan, rs);
+                }
+            }
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception while parsing result of single channel search request", e);
+        }
+        return xmlChan;
     }
 }
