@@ -143,13 +143,26 @@ public class ChannelManager {
      * to the channels specified in the XmlProperty payload <tt>data</tt>, creating it
      * if necessary.
      *
-     * @param tag property to add
+     * @param prop property to add
      * @param data XmlProperty container with all channels to add property to
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
-    public void createOrReplaceProperty(String tag, XmlProperty data) throws CFException {
-        DeletePropertyQuery.deleteAllValues(tag);
+    public void createOrReplaceProperty(String prop, XmlProperty data) throws CFException {
+        DeletePropertyQuery.deleteAllValues(prop);
         UpdatePropertyQuery.updateProperty(data);
+    }
+
+    /**
+     * Create properties specified in <tt>data</tt>.
+     *
+     * @param data XmlProperties data
+     * @throws CFException on ownership mismatch, or wrapping an SQLException
+     */
+    public void createOrReplaceProperties(XmlProperties data) throws CFException {
+        for (XmlProperty prop : data.getProperties()) {
+            removeProperty(prop.getName());
+            createOrReplaceProperty(prop.getName(), prop);
+        }
     }
 
     /**
@@ -219,6 +232,19 @@ public class ChannelManager {
     public void createOrReplaceTag(String tag, XmlTag data) throws CFException {
         DeletePropertyQuery.deleteAllValues(tag);
         UpdatePropertyQuery.updateTag(data);
+    }
+
+    /**
+     * Create tags specified in <tt>data</tt>.
+     *
+     * @param data XmlTags data
+     * @throws CFException on ownership mismatch, or wrapping an SQLException
+     */
+    public void createOrReplaceTags(XmlTags data) throws CFException {
+        for (XmlTag tag : data.getTags()) {
+            removeChannel(tag.getName());
+            createOrReplaceTag(tag.getName(), tag);
+        }
     }
 
     /**
@@ -382,6 +408,68 @@ public class ChannelManager {
     public void checkUserBelongsToGroup(String user, XmlChannels data) throws CFException {
         for (XmlChannel chan : data.getChannels()) {
             checkUserBelongsToGroup(user, chan);
+        }
+    }
+
+    /**
+     * Check that <tt>user</tt> belongs to the owner group specified in the
+     * property <tt>data</tt>.
+     *
+     * @param user user name
+     * @param data XmlProperty data to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroup(String user, XmlProperty data) throws CFException {
+        UserManager um = UserManager.getInstance();
+        if (!um.userIsInGroup(data.getOwner())) {
+            throw new CFException(Response.Status.FORBIDDEN,
+                    "User '" + um.getUserName()
+                    + "' does not belong to owner group '" + data.getOwner()
+                    + "' of property '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check that <tt>user</tt> belongs to the owner groups of all properties in <tt>data</tt>.
+     *
+     * @param user user name
+     * @param data XmlChannels data to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroup(String user, XmlProperties data) throws CFException {
+        for (XmlProperty prop : data.getProperties()) {
+            checkUserBelongsToGroup(user, prop);
+        }
+    }
+
+    /**
+     * Check that <tt>user</tt> belongs to the owner group specified in the
+     * tag <tt>data</tt>.
+     *
+     * @param user user name
+     * @param data XmlTag data to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroup(String user, XmlTag data) throws CFException {
+        UserManager um = UserManager.getInstance();
+        if (!um.userIsInGroup(data.getOwner())) {
+            throw new CFException(Response.Status.FORBIDDEN,
+                    "User '" + um.getUserName()
+                    + "' does not belong to owner group '" + data.getOwner()
+                    + "' of tag '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check that <tt>user</tt> belongs to the owner groups of all Tags in <tt>data</tt>.
+     *
+     * @param user user name
+     * @param data XmlChannels data to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroup(String user, XmlTags data) throws CFException {
+        for (XmlTag tag : data.getTags()) {
+            checkUserBelongsToGroup(user, tag);
         }
     }
 

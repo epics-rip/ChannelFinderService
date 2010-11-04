@@ -89,7 +89,7 @@ public class ChannelsResource {
         try {
             db.getConnection();
             db.beginTransaction();
-            if (!um.getInstance().userHasAdminRole()) {
+            if (!um.userHasAdminRole()) {
                 cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.createOrReplaceChannels(data);

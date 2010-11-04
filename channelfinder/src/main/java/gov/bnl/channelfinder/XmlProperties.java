@@ -25,7 +25,7 @@ public class XmlProperties {
     public XmlProperties() {
     }
 
-    /** Creates a new instance of XmlChannels with one initial property.
+    /** Creates a new instance of XmlProperties with one initial property.
      * @param c initial element
      */
     public XmlProperties(XmlProperty p) {

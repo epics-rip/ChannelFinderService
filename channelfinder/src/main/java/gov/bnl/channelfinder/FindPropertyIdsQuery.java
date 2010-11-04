@@ -48,18 +48,12 @@ public class FindPropertyIdsQuery {
         PreparedStatement ps;
         List<String> name_params = new ArrayList<String>();
 
-        String q_base;
-        String q_clause;
-
-        q_base = "SELECT id, name FROM property";
-        q_clause = " LOWER(property) = ? OR";
-
-        StringBuffer query = new StringBuffer(q_base);
+        StringBuilder query = new StringBuilder("SELECT id, name FROM property");
         for (String name : names) {
             if (!query.toString().endsWith(" OR")) {
                 query.append(" WHERE");
             }
-            query.append(q_clause);
+            query.append(" LOWER(name) = ? OR");
             name_params.add(name);
         }
         if (query.toString().endsWith(" OR")) {

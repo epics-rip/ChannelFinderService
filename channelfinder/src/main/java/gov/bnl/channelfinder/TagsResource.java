@@ -5,6 +5,7 @@
  */
 package gov.bnl.channelfinder;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 import javax.ws.rs.Produces;
 import javax.ws.rs.Consumes;
@@ -64,6 +65,41 @@ public class TagsResource {
         } catch (CFException e) {
             log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
                     + e.getResponseStatusCode() +  "|cause=" + e);
+            return e.toResponse();
+        } finally {
+            db.releaseConnection();
+        }
+    }
+
+    /**
+     * POST method for creating multiple tags.
+     *
+     * @param data XmlTags data (from payload)
+     * @return HTTP Response
+     * @throws IOException when audit or log fail
+     */
+    @POST
+    @Consumes({"application/xml", "application/json"})
+    public Response add(XmlTags data) throws IOException {
+        DbConnection db = DbConnection.getInstance();
+        ChannelManager cm = ChannelManager.getInstance();
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        try {
+            db.getConnection();
+            db.beginTransaction();
+            if (!um.userHasAdminRole()) {
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
+            }
+            cm.createOrReplaceTags(data);
+            db.commit();
+            Response r = Response.noContent().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
+                    + "|data=" + XmlTags.toLog(data));
+            return r;
+        } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
+                    + "|data=" + XmlTags.toLog(data) + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();

@@ -49,7 +49,7 @@ public class CFException extends Exception {
                 "<body><h1>HTTP Status " + this.status.getStatusCode() + " - " + this.status.getReasonPhrase() + "</h1><hr/>" +
                 "<p><b>type</b> Status report</p>" +
                 "<p><b>message</b></p>" +
-                "<p><b>description</b> " + getMessage() + "</p>";
+                "<p><b>description</b>" + getMessage() + "</p>";
         if (this.getCause() != null) {
             msg = msg + "<p><b>caused by:</b></p><p>" + this.getCause().getMessage() + "</p>";
         }

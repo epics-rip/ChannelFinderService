@@ -45,4 +45,4 @@ CREATE VIEW `prop_value` AS
     `v`.`value` AS `value`
   FROM
     (`channel` `c` LEFT JOIN `value` `v` on `c`.`id` = `v`.`channel_id`)
-    JOIN `property` `p` ON `p`.`id` = `v`.`property_id`;
+    LEFT JOIN `property` `p` ON `p`.`id` = `v`.`property_id`;

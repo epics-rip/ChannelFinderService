@@ -21,16 +21,11 @@
     <security-constraint>
         <display-name>Add or Modify Channels</display-name>
         <web-resource-collection>
-            <web-resource-name>add channels</web-resource-name>
+            <web-resource-name>create / update / delete channel(s)</web-resource-name>
             <description/>
-            <url-pattern>/resources/channels</url-pattern>
-            <http-method>POST</http-method>
-        </web-resource-collection>
-        <web-resource-collection>
-            <web-resource-name>create / update / delete channel</web-resource-name>
-            <description/>
-            <url-pattern>/resources/channel/*</url-pattern>
+            <url-pattern>/resources/channels/*</url-pattern>
             <http-method>PUT</http-method>
+            <http-method>POST</http-method>
             <http-method>DELETE</http-method>
         </web-resource-collection>
         <auth-constraint>
@@ -46,15 +41,11 @@
     <security-constraint>
         <display-name>Add or Modify Properties</display-name>
         <web-resource-collection>
-            <web-resource-name>add or update properties</web-resource-name>
-            <description/>
-            <url-pattern>/resources/channel/*</url-pattern>
-            <http-method>POST</http-method>
-        </web-resource-collection>
-        <web-resource-collection>
-            <web-resource-name>delete properties</web-resource-name>
+            <web-resource-name>create / update / delete properties</web-resource-name>
             <description/>
             <url-pattern>/resources/properties/*</url-pattern>
+            <http-method>PUT</http-method>
+            <http-method>POST</http-method>
             <http-method>DELETE</http-method>
         </web-resource-collection>
         <auth-constraint>
@@ -71,7 +62,7 @@
     <security-constraint>
         <display-name>Add or Modify Tags</display-name>
         <web-resource-collection>
-            <web-resource-name>add / modify / delete tags</web-resource-name>
+            <web-resource-name>create / update / delete tags</web-resource-name>
             <description/>
             <url-pattern>/resources/tags/*</url-pattern>
             <http-method>PUT</http-method>

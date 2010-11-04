@@ -5,7 +5,7 @@
  */
 package gov.bnl.channelfinder;
 
-import java.util.Collections;
+import java.io.IOException;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.core.Context;
@@ -65,6 +65,41 @@ public class PropertiesResource {
         } catch (CFException e) {
             log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
                     + e.getResponseStatusCode() +  "|cause=" + e);
+            return e.toResponse();
+        } finally {
+            db.releaseConnection();
+        }
+    }
+
+    /**
+     * POST method for creating multiple properties.
+     *
+     * @param data XmlProperties data (from payload)
+     * @return HTTP Response
+     * @throws IOException when audit or log fail
+     */
+    @POST
+    @Consumes({"application/xml", "application/json"})
+    public Response add(XmlProperties data) throws IOException {
+        DbConnection db = DbConnection.getInstance();
+        ChannelManager cm = ChannelManager.getInstance();
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        try {
+            db.getConnection();
+            db.beginTransaction();
+            if (!um.userHasAdminRole()) {
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
+            }
+            cm.createOrReplaceProperties(data);
+            db.commit();
+            Response r = Response.noContent().build();
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
+                    + "|data=" + XmlProperties.toLog(data));
+            return r;
+        } catch (CFException e) {
+            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
+                    + "|data=" + XmlProperties.toLog(data) + "|cause=" + e);
             return e.toResponse();
         } finally {
             db.releaseConnection();
