@@ -47,6 +47,15 @@ public class DeletePropertyQuery {
         // Get property id
         Long pid = FindPropertyIdsQuery.getPropertyId(name);
 
+        if (pid == null) {
+            if (ignoreNoExist) {
+                return;
+            } else {
+                throw new CFException(Response.Status.NOT_FOUND,
+                        "Property/tag '" + name + "' does not exist");
+            }
+        }
+
         if (channel != null) {
             // Get channel id
             try {
@@ -92,10 +101,6 @@ public class DeletePropertyQuery {
                     ps = con.prepareStatement(query);
                     ps.setLong(1, pid);
                     int rows = ps.executeUpdate();
-                    if (rows == 0 && !ignoreNoExist) {
-                        throw new CFException(Response.Status.NOT_FOUND,
-                                "Property/tag '" + name + "' does not exist");
-                    }
                 } catch (SQLException e) {
                     throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                             "SQL Exception while deleting property/tag '" + name + "'", e);
@@ -125,6 +130,17 @@ public class DeletePropertyQuery {
      * @param name property/tag name
      */
     public static void removeProperty(String name) throws CFException {
+        DeletePropertyQuery q = new DeletePropertyQuery(name, true);
+        q.executeQuery(DbConnection.getInstance().getConnection(), true);
+    }
+
+    /**
+     * Creates a DeletePropertyQuery to completely remove a property/tag (from all
+     * channels and the property/tag itself).
+     *
+     * @param name property/tag name
+     */
+    public static void removeExistingProperty(String name) throws CFException {
         DeletePropertyQuery q = new DeletePropertyQuery(name, true);
         q.executeQuery(DbConnection.getInstance().getConnection(), false);
     }

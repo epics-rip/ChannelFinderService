@@ -28,6 +28,14 @@ conn_admin = Connection(base_url, username=user_admin, password=passwd)
 jsonheader = {'content-type':'application/json','accept':'application/json'}
 xmlheader = {'content-type':'application/xml','accept':'application/xml'}
 
+_P1_empty = { '@name': 'P1', '@owner': 'testp' }
+_P2_empty = { '@name': 'P2', '@owner': 'testp' }
+_T1_empty = { '@name': 'T1', '@owner': 'testt' }
+_T2_empty = { '@name': 'T2', '@owner': 'testt' }
+P12_empty_xml = "<properties><property name=\"P1\" owner=\"testp\"/><property name=\"P2\" owner=\"testp\"/></properties>"
+P12_empty = JSONEncoder().encode({'properties': { 'property': [ _P1_empty, _P2_empty ]}})
+T12_empty = JSONEncoder().encode({'tags': {'tag': [ _T1_empty, _T2_empty ]}})
+
 _C1_empty = { '@name': 'C1', '@owner': 'testc' }
 C1_empty = JSONEncoder().encode(_C1_empty)
 C1_empty_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}
@@ -51,13 +59,13 @@ C1_full = JSONEncoder().encode(_C1_full)
 C1_full_xml = "<channel name=\"C1\" owner=\"testc\"><properties><property name=\"P1\" value=\"prop1\" owner=\"testp\"/><property name=\"P2\" value=\"prop2\" owner=\"testp\"/></properties><tags><tag name=\"T1\" owner=\"testt\"/><tag name=\"T2\" owner=\"testt\"/></tags></channel>"
 C1_full_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
 C1s_full_r = {u'channels': {u'channel': C1_full_r}}
-_C1_full_lc = { '@name': 'c1', '@owner': 'testc',\
-          'properties': {'property': [ {'@name': 'p1', '@value': 'prop1', '@owner': 'testp'},\
-                                       {'@name': 'p2', '@value': 'prop2', '@owner': 'testp'} ] },\
-          'tags':       {'tag':      [ {'@name': 't1', '@owner': 'testt'}, {'@name': 't2', '@owner': 'testt'} ] }\
-          }
-C1_full_lc = JSONEncoder().encode(_C1_full_lc)
-C1_full_lc_r = {u'@owner': u'testc', u'@name': u'c1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'p1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'p2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u't1'}, {u'@owner': u'testt', u'@name': u't2'}]}}
+#_C1_full_lc = { '@name': 'c1', '@owner': 'testc',\
+#          'properties': {'property': [ {'@name': 'p1', '@value': 'prop1', '@owner': 'testp'},\
+#                                       {'@name': 'p2', '@value': 'prop2', '@owner': 'testp'} ] },\
+#          'tags':       {'tag':      [ {'@name': 't1', '@owner': 'testt'}, {'@name': 't2', '@owner': 'testt'} ] }\
+#          }
+#C1_full_lc = JSONEncoder().encode(_C1_full_lc)
+#C1_full_lc_r = {u'@owner': u'testc', u'@name': u'c1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'p1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'p2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u't1'}, {u'@owner': u'testt', u'@name': u't2'}]}}
 _C1_null = { }
 C1_null = JSONEncoder().encode(_C1_null)
 _C1_null1 = { '@name': 'c1' }
@@ -288,7 +296,7 @@ class DeleteOneChannel(unittest.TestCase):
         self.failUnlessEqual('200', response[u'headers']['status'])
         response = conn_chan2.request_delete(self.url1, headers=jsonheader)
         self.failUnlessEqual('403', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+        self.failIf(response[u'body'].find("User 'channy2' does not belong to group 'testt' needed to modify database") == -1)
 
 # delete nonexisting channel
     def doTestAndCheckNonexistingChannel(self, conn):
@@ -306,13 +314,21 @@ class DeleteOneChannel(unittest.TestCase):
 
 
 #############################################################################################
-# Test .../channel/{name} PUT           with new channel
+# Test .../channel/{name} PUT           with new channel, existing properties
 #############################################################################################
 class CreateOneChannel(unittest.TestCase):
     def setUp(self):
-        self.url1 = 'resources/channel/C1'
-        self.url1_lc = 'resources/channel/c1'
-        self.url2 = 'resources/channel/C2'
+        self.url1 = 'resources/channels/C1'
+        self.url2 = 'resources/channels/C2'
+        self.urlp = 'resources/properties'
+        self.urlP1 = 'resources/properties/P1'
+        self.urlP2 = 'resources/properties/P2'
+        self.urlt = 'resources/tags'
+        self.urlT1 = 'resources/tags/T1'
+        self.urlT2 = 'resources/tags/T2'
+        response = conn_admin.request_post(self.urlp, headers=xmlheader, body=P12_empty_xml)
+        response = conn_admin.request_post(self.urlp, headers=jsonheader, body=P12_empty)
+        response = conn_admin.request_post(self.urlt, headers=jsonheader, body=T12_empty)
 
 # add one "empty" channel (no properties or tags) using different roles
     def test_EmptyUnauthorized(self):
@@ -341,11 +357,11 @@ class CreateOneChannel(unittest.TestCase):
     def test_EmptyAuthorizedAsChanWrongChannelName(self):
         response = conn_chan.request_put(self.url2, headers=jsonheader, body=C1_empty)
         self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Specified channel name C2 and payload channel name C1 do not match") == -1)
+        self.failIf(response[u'body'].find("Specified channel name 'C2' and payload channel name 'C1' do not match") == -1)
     def test_EmptyAuthorizedAsAdminWrongChannelName(self):
         response = conn_admin.request_put(self.url2, headers=jsonheader, body=C1_empty)
         self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Specified channel name C2 and payload channel name C1 do not match") == -1)
+        self.failIf(response[u'body'].find("Specified channel name 'C2' and payload channel name 'C1' do not match") == -1)
 
 # add one channel (only properties, no tags)
     def doTestAndCheckOnlyProp(self, conn):
@@ -386,19 +402,6 @@ class CreateOneChannel(unittest.TestCase):
     def test_FullAuthorizedAsAdmin(self):
         self.doTestAndCheckFull(conn_admin)
 
-# add one "full" channel (with properties and tags) lowercase names
-    def doTestAndCheckFullLowercase(self, conn):
-        response = conn.request_put(self.url1_lc, headers=jsonheader, body=C1_full_lc)
-        self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.url1, headers=jsonheader)
-        self.failUnlessEqual('200', response[u'headers']['status'])
-        j1 = JSONDecoder().decode(response[u'body'])
-        self.failUnlessEqual(j1, C1_full_lc_r)
-    def test_FullAuthorizedAsChanLowercase(self):
-        self.doTestAndCheckFullLowercase(conn_chan)
-    def test_FullAuthorizedAsAdminLowercase(self):
-        self.doTestAndCheckFullLowercase(conn_admin)
-
 # add one "full" channel (with properties and tags) as XML
     def doTestAndCheckFullXml(self, conn):
         response = conn.request_put(self.url1, headers=xmlheader, body=C1_full_xml)
@@ -411,12 +414,6 @@ class CreateOneChannel(unittest.TestCase):
         self.doTestAndCheckFullXml(conn_chan)
     def test_FullAuthorizedAsAdminXml(self):
         self.doTestAndCheckFullXml(conn_admin)
-
-# add one full channel as channy2 (not member of testt)
-    def test_FullAuthorizedAsChanGroupNonMember(self):
-        response = conn_chan2.request_put(self.url1, headers=jsonheader, body=C1_full)
-        self.failUnlessEqual('403', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("User channy2 does not belong to group testt specified in payload") == -1)
 
 # add channel with wrong payload format (channels instead of channel)
     def test_AuthorizedAsChanWrongFormat(self):
@@ -448,13 +445,13 @@ class CreateOneChannel(unittest.TestCase):
 
     def test_AuthorizedAsChanNostr(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr)
-        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminNostr(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr)
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsChanNostrOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
-        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminNostrOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
         self.failUnlessEqual('400', response[u'headers']['status'])
@@ -467,7 +464,10 @@ class CreateOneChannel(unittest.TestCase):
 
     def tearDown(self):
         response = conn_admin.request_delete(self.url1, headers=jsonheader)
-        response = conn_admin.request_delete(self.url1_lc, headers=jsonheader)
+        response = conn_admin.request_delete(self.urlP1, headers=jsonheader)
+        response = conn_admin.request_delete(self.urlP2, headers=jsonheader)
+        response = conn_admin.request_delete(self.urlT1, headers=jsonheader)
+        response = conn_admin.request_delete(self.urlT2, headers=jsonheader)
 
 
 #############################################################################################
@@ -540,11 +540,11 @@ class UpdateOneChannel(unittest.TestCase):
     def test_AuthorizedAsChanWrongExistingPropertyOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag 'P2' do not match") == -1)
     def test_AuthorizedAsAdminWrongExistingPropertyOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongpowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Database and payload owner for property/tag P2 do not match") == -1)
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag 'P2' do not match") == -1)
 
 # add channel with wrong tag owner (new tag) in payload
     def test_AuthorizedAsChanWrongNewTagOwner(self):
@@ -557,23 +557,23 @@ class UpdateOneChannel(unittest.TestCase):
     def test_FullAuthorizedAsChanWrongNewTagOwnerGroupNonMember(self):
         response = conn_chan3.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner1)
         self.failUnlessEqual('403', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("User channy3 does not belong to group xxxx specified in payload") == -1)
+        self.failIf(response[u'body'].find("User 'channy3' does not belong to group 'xxxx' specified in payload") == -1)
 
 # add channel with wrong tag owner (existing tag) in payload
     def test_AuthorizedAsChanWrongExistingTagOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag 'T2' do not match") == -1)
     def test_AuthorizedAsAdminWrongExistingTagOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_full2_wrongtowner2)
         self.failUnlessEqual('400', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("Database and payload owner for property/tag T2 do not match") == -1)
+        self.failIf(response[u'body'].find("Database and payload owner for property/tag 'T2' do not match") == -1)
 
 # add channel as channy2 (not member of testt)
     def test_FullAuthorizedAsChanGroupNonMember(self):
         response = conn_chan2.request_put(self.url1, headers=jsonheader, body=C1_full2)
         self.failUnlessEqual('403', response[u'headers']['status'])
-        self.failIf(response[u'body'].find("User channy2 does not belong to group testt needed to modify database") == -1)
+        self.failIf(response[u'body'].find("User 'channy2' does not belong to group 'testt' needed to modify database") == -1)
 
 # add channel with invalid payload (no or empty name and/or owner)
     def test_AuthorizedAsChanNull(self):
@@ -597,13 +597,13 @@ class UpdateOneChannel(unittest.TestCase):
 
     def test_AuthorizedAsChanNostr(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr)
-        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminNostr(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr)
         self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsChanNostrOwner(self):
         response = conn_chan.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
-        self.failUnlessEqual('403', response[u'headers']['status'])
+        self.failUnlessEqual('400', response[u'headers']['status'])
     def test_AuthorizedAsAdminNostrOwner(self):
         response = conn_admin.request_put(self.url1, headers=jsonheader, body=C1_nostr1)
         self.failUnlessEqual('400', response[u'headers']['status'])

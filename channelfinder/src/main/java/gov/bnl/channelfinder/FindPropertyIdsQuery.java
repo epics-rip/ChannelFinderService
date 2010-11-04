@@ -108,8 +108,7 @@ public class FindPropertyIdsQuery {
         FindPropertyIdsQuery q = new FindPropertyIdsQuery(name);
         try {
             ResultSet rs = q.executeQuery(DbConnection.getInstance().getConnection());
-            if (rs != null) {
-                rs.first();
+            if (rs != null && rs.first()) {
                 return rs.getLong("id");
             } else {
                 return null;

@@ -8,6 +8,8 @@ package gov.bnl.channelfinder;
 
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.json.JSONJAXBContext;
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.ContextResolver;
 import javax.xml.bind.JAXBContext;
@@ -21,17 +23,17 @@ import javax.xml.bind.JAXBContext;
 public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {
 
     private JAXBContext context;
-    private Class[] types = {XmlChannels.class};
+    private List<Class<?>> types = Arrays.asList(XmlChannels.class, XmlProperties.class, XmlTags.class);
 
     public MyJAXBContextResolver() throws Exception {
         this.context = new JSONJAXBContext(
                 JSONConfiguration.mapped()
                 .rootUnwrapping(false)
                 .build(),
-                types);
+                types.toArray(new Class[types.size()]));
     }
 
     public JAXBContext getContext(Class<?> objectType) {
-        return (types[0].equals(objectType)) ? context : null;
+        return (types.contains(objectType)) ? context : null;
     }
 }

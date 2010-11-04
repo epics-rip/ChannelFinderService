@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
  * 
  * @author Ralph Lange <Ralph.Lange@bessy.de>
  */
-public class UpdatePropertyQuery {
+public class UpdateValuesQuery {
 
     private XmlChannels channels;
     private boolean isTagQuery = false;
@@ -35,34 +35,34 @@ public class UpdatePropertyQuery {
     }
 
     /**
-     * Creates a new instance of UpdatePropertyQuery.
+     * Creates a new instance of UpdateValuesQuery.
      *
      * @param data property data (containing channels to add property to)
      */
-    private UpdatePropertyQuery(XmlProperty data) {
+    private UpdateValuesQuery(XmlProperty data) {
         name = data.getName();
         channels = data.getXmlChannels();
     }
 
     /**
-     * Creates a new instance of UpdatePropertyQuery.
+     * Creates a new instance of UpdateValuesQuery.
      *
      * @param data property data (containing channels to add property to)
      */
-    private UpdatePropertyQuery(XmlTag data) {
+    private UpdateValuesQuery(XmlTag data) {
         name = data.getName();
         channels = data.getXmlChannels();
         isTagQuery = true;
     }
 
     /**
-     * Creates a new instance of UpdatePropertyQuery for a single tag on a single channel
+     * Creates a new instance of UpdateValuesQuery for a single tag on a single channel
      *
      * @param name name of tag to add
      * @param owner owner for tag to add
      * @param channel channel to add tag to
      */
-    private UpdatePropertyQuery(String name, String channel) {
+    private UpdateValuesQuery(String name, String channel) {
         this.name = name;
         channels = new XmlChannels(new XmlChannel(channel));
         isTagQuery = true;
@@ -81,6 +81,8 @@ public class UpdatePropertyQuery {
         PreparedStatement ps;
         int i;
 
+        if (channels == null) return;
+        
         // Get property id
         Long pid = FindPropertyIdsQuery.getPropertyId(name);
 
@@ -186,7 +188,7 @@ public class UpdatePropertyQuery {
      * @throws CFException wrapping an SQLException
      */
     public static void updateProperty(XmlProperty prop) throws CFException {
-        UpdatePropertyQuery q = new UpdatePropertyQuery(prop);
+        UpdateValuesQuery q = new UpdateValuesQuery(prop);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
 
@@ -197,7 +199,7 @@ public class UpdatePropertyQuery {
      * @throws CFException wrapping an SQLException
      */
     public static void updateTag(XmlTag tag) throws CFException {
-        UpdatePropertyQuery q = new UpdatePropertyQuery(tag);
+        UpdateValuesQuery q = new UpdateValuesQuery(tag);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
 
@@ -209,7 +211,7 @@ public class UpdatePropertyQuery {
      * @throws CFException wrapping an SQLException
      */
     public static void updateTag(String tag, String chan) throws CFException {
-        UpdatePropertyQuery q = new UpdatePropertyQuery(tag, chan);
+        UpdateValuesQuery q = new UpdateValuesQuery(tag, chan);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
 }

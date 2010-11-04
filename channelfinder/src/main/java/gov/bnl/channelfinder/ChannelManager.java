@@ -135,7 +135,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void updateProperty(String prop, XmlProperty data) throws CFException {
-        UpdatePropertyQuery.updateProperty(data);
+        UpdateValuesQuery.updateProperty(data);
     }
 
     /**
@@ -148,12 +148,13 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createOrReplaceProperty(String prop, XmlProperty data) throws CFException {
+        CreatePropertyQuery.createProperty(prop, data.getOwner());
         DeletePropertyQuery.deleteAllValues(prop);
-        UpdatePropertyQuery.updateProperty(data);
+        UpdateValuesQuery.updateProperty(data);
     }
 
     /**
-     * Create properties specified in <tt>data</tt>.
+     * Create or replace properties specified in <tt>data</tt>.
      *
      * @param data XmlProperties data
      * @throws CFException on ownership mismatch, or wrapping an SQLException
@@ -175,7 +176,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addSingleProperty(String prop, String chan, XmlProperty data) throws CFException {
-        UpdatePropertyQuery.updateProperty(data);
+        UpdateValuesQuery.updateProperty(data);
     }
 
     /**
@@ -186,6 +187,17 @@ public class ChannelManager {
      */
     public void removeProperty(String property) throws CFException {
         DeletePropertyQuery.removeProperty(property);
+    }
+
+    /**
+     * Deletes a property identified by <tt>name</tt> from all channels, failing if
+     * the property does not exist.
+     *
+     * @param property tag to delete
+     * @throws CFException wrapping an SQLException or on failure
+     */
+    public void removeExistingProperty(String property) throws CFException {
+        DeletePropertyQuery.removeExistingProperty(property);
     }
 
     /**
@@ -217,7 +229,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void updateTag(String tag, XmlTag data) throws CFException {
-        UpdatePropertyQuery.updateTag(data);
+        UpdateValuesQuery.updateTag(data);
     }
 
     /**
@@ -230,8 +242,9 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createOrReplaceTag(String tag, XmlTag data) throws CFException {
+        CreatePropertyQuery.createTag(tag, data.getOwner());
         DeletePropertyQuery.deleteAllValues(tag);
-        UpdatePropertyQuery.updateTag(data);
+        UpdateValuesQuery.updateTag(data);
     }
 
     /**
@@ -242,7 +255,7 @@ public class ChannelManager {
      */
     public void createOrReplaceTags(XmlTags data) throws CFException {
         for (XmlTag tag : data.getTags()) {
-            removeChannel(tag.getName());
+            removeTag(tag.getName());
             createOrReplaceTag(tag.getName(), tag);
         }
     }
@@ -255,7 +268,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addSingleTag(String tag, String channel) throws CFException {
-        UpdatePropertyQuery.updateTag(tag, channel);
+        UpdateValuesQuery.updateTag(tag, channel);
     }
 
     /**

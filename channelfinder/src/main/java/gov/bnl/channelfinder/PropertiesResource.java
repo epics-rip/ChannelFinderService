@@ -240,7 +240,7 @@ public class PropertiesResource {
             if (!um.userHasAdminRole()) {
                 cm.checkUserBelongsToDatabaseGroup(um.getUserName(), prop);
             }
-            cm.removeProperty(prop);
+            cm.removeExistingProperty(prop);
             db.commit();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
