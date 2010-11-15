@@ -86,6 +86,7 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidNameAndOwner(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -107,8 +108,8 @@ public class TagsResource {
     }
 
     /**
-     * GET method for retrieving the list of channels that are tagged with the
-     * path parameter <tt>name</tt>.
+     * GET method for retrieving the tag with the
+     * path parameter <tt>tagName</tt> and its channels.
      *
      * @param tag URI path parameter: tag name to search for
      * @return list of channels with their properties and tags that match
@@ -120,15 +121,19 @@ public class TagsResource {
         DbConnection db = DbConnection.getInstance();
         ChannelManager cm = ChannelManager.getInstance();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlChannels result = null;
+        XmlTag result = null;
         try {
             db.getConnection();
             db.beginTransaction();
-            result = cm.findChannelsByPropertyName(tag);
+            result = cm.findTagByName(tag);
             db.commit();
-            Response r = Response.ok(result).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
-                    + "|returns " + result.getChannels().size() + " channels");
+            Response r;
+            if (result == null) {
+                r = Response.status(Response.Status.NOT_FOUND).build();
+            } else {
+                r = Response.ok(result).build();
+            }
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
             return r;
         } catch (CFException e) {
             log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
@@ -158,11 +163,12 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidNameAndOwner(data);
             cm.checkNameMatchesPayload(tag, data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), tag);
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.createOrReplaceTag(tag, data);
             db.commit();
@@ -198,11 +204,10 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkNameMatchesPayload(tag, data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), tag);
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.updateTag(tag, data);
             db.commit();
@@ -237,9 +242,9 @@ public class TagsResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), tag);
+                cm.checkUserBelongsToGroup(um.getUserName(), cm.findTagByName(tag));
             }
-            cm.removeTag(tag);
+            cm.removeExistingProperty(tag);
             db.commit();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
@@ -275,7 +280,7 @@ public class TagsResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), tag);
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.addSingleTag(tag, chan);
             db.commit();
@@ -311,7 +316,7 @@ public class TagsResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), tag);
+                cm.checkUserBelongsToGroup(um.getUserName(), cm.findTagByName(tag));
             }
             cm.removeSingleTag(tag, chan);
             db.commit();

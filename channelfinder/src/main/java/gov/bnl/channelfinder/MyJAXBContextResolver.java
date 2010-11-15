@@ -23,7 +23,8 @@ import javax.xml.bind.JAXBContext;
 public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {
 
     private JAXBContext context;
-    private List<Class<?>> types = Arrays.asList(XmlChannels.class, XmlProperties.class, XmlTags.class);
+    private List<Class<?>> types = Arrays.asList(XmlChannels.class,
+            XmlProperties.class, XmlTags.class);
 
     public MyJAXBContextResolver() throws Exception {
         this.context = new JSONJAXBContext(

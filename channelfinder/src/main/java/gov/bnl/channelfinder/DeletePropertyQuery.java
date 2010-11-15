@@ -166,7 +166,7 @@ public class DeletePropertyQuery {
      * @return new FindChannelsQuery instance
      */
     public static void deleteOneValue(String name, String channel) throws CFException {
-        DeletePropertyQuery q = new DeletePropertyQuery(name, false);
-        q.executeQuery(DbConnection.getInstance().getConnection(), true);
+        DeletePropertyQuery q = new DeletePropertyQuery(name, channel);
+        q.executeQuery(DbConnection.getInstance().getConnection(), false);
     }
 }

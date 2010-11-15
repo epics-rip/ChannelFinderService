@@ -24,7 +24,11 @@ public class UpdateValuesQuery {
 
     private XmlChannels channels;
     private boolean isTagQuery = false;
+    private String oldname;
     private String name;
+    private String owner;
+    private String dbname;
+    private String dbowner;
 
     private String getType() {
         if (isTagQuery) {
@@ -39,9 +43,11 @@ public class UpdateValuesQuery {
      *
      * @param data property data (containing channels to add property to)
      */
-    private UpdateValuesQuery(XmlProperty data) {
-        name = data.getName();
-        channels = data.getXmlChannels();
+    private UpdateValuesQuery(String name, XmlProperty data) {
+        this.oldname = name;
+        this.name = data.getName();
+        this.owner = data.getOwner();
+        this.channels = data.getXmlChannels();
     }
 
     /**
@@ -49,10 +55,12 @@ public class UpdateValuesQuery {
      *
      * @param data property data (containing channels to add property to)
      */
-    private UpdateValuesQuery(XmlTag data) {
-        name = data.getName();
-        channels = data.getXmlChannels();
-        isTagQuery = true;
+    private UpdateValuesQuery(String name, XmlTag data) {
+        this.oldname = name;
+        this.name = data.getName();
+        this.owner = data.getOwner();
+        this.channels = data.getXmlChannels();
+        this.isTagQuery = true;
     }
 
     /**
@@ -81,8 +89,6 @@ public class UpdateValuesQuery {
         PreparedStatement ps;
         int i;
 
-        if (channels == null) return;
-        
         // Get property id
         Long pid = FindPropertyIdsQuery.getPropertyId(name);
 
@@ -90,6 +96,34 @@ public class UpdateValuesQuery {
             throw new CFException(Response.Status.NOT_FOUND,
                     "A " + getType() + " named '" + name + "' does not exist");
         }
+
+        // Update name and owner if necessary
+        if (isTagQuery) {
+            XmlTag t = ListPropertiesQuery.findTag(name);
+            dbname = t.getName();
+            dbowner = t.getOwner();
+        } else {
+            XmlProperty p = ListPropertiesQuery.findProperty(name);
+            dbname = p.getName();
+            dbowner = p.getOwner();
+        }
+        if ((oldname != null && !oldname.equals(name)) || (owner != null && !dbowner.equals(owner))) {
+            String q = "UPDATE property SET name = ?, owner = ? WHERE id = ?";
+            try {
+                ps = con.prepareStatement(q.toString());
+                ps.setString(1, name);
+                ps.setString(2, owner);
+                ps.setLong(3, pid);
+
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                        "SQL Exception while updating "
+                        + getType() + " '" + name + "'", e);
+            }
+        }
+
+        if (channels == null) return;
 
         // Get Channel ids
         StringBuilder query = new StringBuilder("SELECT id, name FROM channel WHERE ");
@@ -138,7 +172,7 @@ public class UpdateValuesQuery {
         for (Long id : ids.values()) {
             query.append("?, ");
         }
-        query.replace(0, query.length() - 2, ")");
+        query.replace(query.length() - 2, query.length(), ")");
 
         try {
             ps = con.prepareStatement(query.toString());
@@ -187,8 +221,8 @@ public class UpdateValuesQuery {
      * @param prop XmlProperty
      * @throws CFException wrapping an SQLException
      */
-    public static void updateProperty(XmlProperty prop) throws CFException {
-        UpdateValuesQuery q = new UpdateValuesQuery(prop);
+    public static void updateProperty(String name, XmlProperty prop) throws CFException {
+        UpdateValuesQuery q = new UpdateValuesQuery(name, prop);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
 
@@ -198,8 +232,8 @@ public class UpdateValuesQuery {
      * @param tag XmlTag
      * @throws CFException wrapping an SQLException
      */
-    public static void updateTag(XmlTag tag) throws CFException {
-        UpdateValuesQuery q = new UpdateValuesQuery(tag);
+    public static void updateTag(String name, XmlTag tag) throws CFException {
+        UpdateValuesQuery q = new UpdateValuesQuery(name, tag);
         q.executeQuery(DbConnection.getInstance().getConnection());
     }
 

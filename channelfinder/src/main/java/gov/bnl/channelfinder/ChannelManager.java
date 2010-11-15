@@ -127,6 +127,24 @@ public class ChannelManager {
     }
 
     /**
+     * Return single property found by name.
+     *
+     * @param name name to look for
+     * @return XmlProperty with found property and its channels/values
+     * @throws CFException on SQLException
+     */
+    public XmlProperty findPropertyByName(String name) throws CFException {
+        XmlProperty p = ListPropertiesQuery.findProperty(name);
+        if (p != null) {
+            XmlChannels c = FindChannelsQuery.findChannelsByPropertyName(name);
+            if (c != null) {
+                p.setXmlChannels(c);
+            }
+        }
+        return p;
+    }
+
+    /**
      * Add the property identified by <tt>prop</tt> to the channels
      * specified in the XmlChannels <tt>data</tt>.
      *
@@ -135,7 +153,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void updateProperty(String prop, XmlProperty data) throws CFException {
-        UpdateValuesQuery.updateProperty(data);
+        UpdateValuesQuery.updateProperty(prop, data);
     }
 
     /**
@@ -148,9 +166,9 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createOrReplaceProperty(String prop, XmlProperty data) throws CFException {
-        CreatePropertyQuery.createProperty(prop, data.getOwner());
-        DeletePropertyQuery.deleteAllValues(prop);
-        UpdateValuesQuery.updateProperty(data);
+        DeletePropertyQuery.removeProperty(prop);
+        CreatePropertyQuery.createProperty(data.getName(), data.getOwner());
+        UpdateValuesQuery.updateProperty(data.getName(), data);
     }
 
     /**
@@ -176,7 +194,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addSingleProperty(String prop, String chan, XmlProperty data) throws CFException {
-        UpdateValuesQuery.updateProperty(data);
+        UpdateValuesQuery.updateProperty(prop, data);
     }
 
     /**
@@ -221,15 +239,33 @@ public class ChannelManager {
     }
 
     /**
+     * Return single tag found by name.
+     *
+     * @param name name to look for
+     * @return XmlTag with found tag and its channels/values
+     * @throws CFException on SQLException
+     */
+    public XmlTag findTagByName(String name) throws CFException {
+        XmlTag t = ListPropertiesQuery.findTag(name);
+        if (t != null) {
+            XmlChannels c = FindChannelsQuery.findChannelsByPropertyName(name);
+            if (c != null) {
+                t.setXmlChannels(c);
+            }
+        }
+        return t;
+    }
+
+    /**
      * Add the tag identified by <tt>tag</tt> and <tt>owner</tt> to the channels
      * specified in the XmlChannels <tt>data</tt>.
      *
      * @param tag tag to add
-     * @param data XmlChannels container with all channels to add tag to
+     * @param data XmlTag with list of all channels to add tag to
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void updateTag(String tag, XmlTag data) throws CFException {
-        UpdateValuesQuery.updateTag(data);
+        UpdateValuesQuery.updateTag(tag, data);
     }
 
     /**
@@ -242,9 +278,9 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void createOrReplaceTag(String tag, XmlTag data) throws CFException {
-        CreatePropertyQuery.createTag(tag, data.getOwner());
-        DeletePropertyQuery.deleteAllValues(tag);
-        UpdateValuesQuery.updateTag(data);
+        DeletePropertyQuery.removeProperty(tag);
+        CreatePropertyQuery.createTag(data.getName(), data.getOwner());
+        UpdateValuesQuery.updateTag(data.getName(), data);
     }
 
     /**
@@ -339,10 +375,11 @@ public class ChannelManager {
     public void updateChannel(String name, XmlChannel data) throws CFException {
         XmlChannel dest = findChannelByName(name);
         if (dest == null) {
-            throw new CFException(Response.Status.FORBIDDEN,
+            throw new CFException(Response.Status.NOT_FOUND,
                     "Specified channel '" + name
                     + "' does not exist");
         }
+        dest.setName(data.getName());
         dest.setOwner(data.getOwner());
         mergeXmlChannels(dest, data);
         createOrReplaceChannel(name, dest);
@@ -364,6 +401,36 @@ public class ChannelManager {
     }
 
     /**
+     * Check the channel in <tt>data</tt> for valid name/owner data.
+     *
+     * @param data XmlChannel data to check
+     * @throws CFException on error
+     */
+    public void checkValidNameAndOwner(XmlChannel data) throws CFException {
+        if (data.getName() == null || data.getName().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid channel name (null or empty string)");
+        }
+        if (data.getOwner() == null || data.getOwner().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid channel owner (null or empty string) for '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check all channels in <tt>data</tt> for valid name/owner data.
+     *
+     * @param data XmlChannels data to check
+     * @throws CFException on error
+     */
+    public void checkValidNameAndOwner(XmlChannels data) throws CFException {
+        if (data == null || data.getChannels() == null) return;
+        for (XmlChannel c : data.getChannels()) {
+            checkValidNameAndOwner(c);
+        }
+    }
+
+    /**
      * Check that <tt>name</tt> matches the tag name in <tt>data</tt>.
      *
      * @param name tag name to check
@@ -371,6 +438,7 @@ public class ChannelManager {
      * @throws CFException on name mismatch
      */
     public void checkNameMatchesPayload(String name, XmlTag data) throws CFException {
+        if (data == null) return;
         if (!name.equals(data.getName())) {
             throw new CFException(Response.Status.BAD_REQUEST,
                     "Specified tag name '" + name
@@ -379,7 +447,37 @@ public class ChannelManager {
     }
 
     /**
-     * Check that <tt>name</tt> matches the tag name in <tt>data</tt>.
+     * Check the tag in <tt>data</tt> for valid name/owner data.
+     *
+     * @param data XmlTag data to check
+     * @throws CFException on name mismatch
+     */
+    public void checkValidNameAndOwner(XmlTag data) throws CFException {
+        if (data.getName() == null || data.getName().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid tag name (null or empty string)");
+        }
+        if (data.getOwner() == null || data.getOwner().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid tag owner (null or empty string) for '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check all tags in <tt>data</tt> for valid name/owner data.
+     *
+     * @param data XmlTags data to check
+     * @throws CFException on error
+     */
+    public void checkValidNameAndOwner(XmlTags data) throws CFException {
+        if (data == null || data.getTags() == null) return;
+        for (XmlTag t : data.getTags()) {
+            checkValidNameAndOwner(t);
+        }
+    }
+
+    /**
+     * Check that <tt>name</tt> matches the property name in <tt>data</tt>.
      *
      * @param name tag name to check
      * @param data XmlTag data to check against
@@ -394,6 +492,36 @@ public class ChannelManager {
     }
 
     /**
+     * Check the property in <tt>data</tt> for valid name/owner data.
+     *
+     * @param data XmlTag data to check
+     * @throws CFException on error
+     */
+    public void checkValidNameAndOwner(XmlProperty data) throws CFException {
+        if (data.getName() == null || data.getName().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid property name (empty string)");
+        }
+        if (data.getOwner() == null || data.getOwner().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid property owner (null or empty string) for '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check all properties in <tt>data</tt> for valid name/owner data.
+     *
+     * @param data XmlProperties data to check
+     * @throws CFException on error
+     */
+    public void checkValidNameAndOwner(XmlProperties data) throws CFException {
+        if (data == null || data.getProperties() == null) return;
+        for (XmlProperty p : data.getProperties()) {
+            checkValidNameAndOwner(p);
+        }
+    }
+
+    /**
      * Check that <tt>user</tt> belongs to the owner group specified in the
      * channel <tt>data</tt>.
      *
@@ -402,6 +530,7 @@ public class ChannelManager {
      * @throws CFException on name mismatch
      */
     public void checkUserBelongsToGroup(String user, XmlChannel data) throws CFException {
+        if (data == null) return;
         UserManager um = UserManager.getInstance();
         if (!um.userIsInGroup(data.getOwner())) {
             throw new CFException(Response.Status.FORBIDDEN,
@@ -419,6 +548,7 @@ public class ChannelManager {
      * @throws CFException on name mismatch
      */
     public void checkUserBelongsToGroup(String user, XmlChannels data) throws CFException {
+        if (data == null || data.getChannels() == null) return;
         for (XmlChannel chan : data.getChannels()) {
             checkUserBelongsToGroup(user, chan);
         }
@@ -433,6 +563,7 @@ public class ChannelManager {
      * @throws CFException on name mismatch
      */
     public void checkUserBelongsToGroup(String user, XmlProperty data) throws CFException {
+        if (data == null) return;
         UserManager um = UserManager.getInstance();
         if (!um.userIsInGroup(data.getOwner())) {
             throw new CFException(Response.Status.FORBIDDEN,
@@ -450,6 +581,7 @@ public class ChannelManager {
      * @throws CFException on name mismatch
      */
     public void checkUserBelongsToGroup(String user, XmlProperties data) throws CFException {
+        if (data == null || data.getProperties() == null) return;
         for (XmlProperty prop : data.getProperties()) {
             checkUserBelongsToGroup(user, prop);
         }
@@ -464,6 +596,7 @@ public class ChannelManager {
      * @throws CFException on name mismatch
      */
     public void checkUserBelongsToGroup(String user, XmlTag data) throws CFException {
+        if (data == null) return;
         UserManager um = UserManager.getInstance();
         if (!um.userIsInGroup(data.getOwner())) {
             throw new CFException(Response.Status.FORBIDDEN,
@@ -484,17 +617,5 @@ public class ChannelManager {
         for (XmlTag tag : data.getTags()) {
             checkUserBelongsToGroup(user, tag);
         }
-    }
-
-    /**
-     * Check that <tt>user</tt> belongs to the owner group of the property or tag
-     * name <tt>name</tt>.
-     *
-     * @param user user name
-     * @param name property or tag name to check ownership for
-     * @throws CFException on name mismatch
-     */
-    public void checkUserBelongsToDatabaseGroup(String user, String name) throws CFException {
-        checkUserBelongsToGroup(user, findChannelByName(name));
     }
 }

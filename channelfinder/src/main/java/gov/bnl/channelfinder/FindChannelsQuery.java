@@ -31,10 +31,9 @@ import javax.ws.rs.core.Response;
 public class FindChannelsQuery {
 
     private enum SearchType {
-
         CHANNEL, TAG
     };
-    private Multimap<String, String> prop_matches = ArrayListMultimap.create();
+    private Multimap<String, String> value_matches = ArrayListMultimap.create();
     private List<String> chan_matches = new ArrayList();
     private List<String> tag_matches = new ArrayList();
     private List<String> tag_patterns = new ArrayList();
@@ -66,7 +65,7 @@ public class FindChannelsQuery {
             } else if (key.equals("~tag")) {
                 addTagMatches(match.getValue());
             } else {
-                prop_matches.putAll(key, match.getValue());
+                value_matches.putAll(key, match.getValue());
             }
         }
     }
@@ -98,7 +97,7 @@ public class FindChannelsQuery {
         Set<Long> ids = new HashSet<Long>();           // set of matching channel ids
         List<String> params = new ArrayList<String>(); // parameter list for this query
 
-        for (Map.Entry<String, Collection<String>> match : prop_matches.asMap().entrySet()) {
+        for (Map.Entry<String, Collection<String>> match : value_matches.asMap().entrySet()) {
             StringBuilder valueList = new StringBuilder("p0.value LIKE");
             params.add(match.getKey().toLowerCase());
             for (String value : match.getValue()) {
@@ -111,7 +110,7 @@ public class FindChannelsQuery {
 
         for (String tag : tag_matches) {
             params.add(convertFileGlobToSQLPattern(tag).toLowerCase());
-            query.append(" (LOWER(p0.property) = ? AND p0.is_tag) OR");
+            query.append(" LOWER(p0.property) LIKE ? OR");
         }
 
         query.replace(query.length() - 2, query.length(),
@@ -123,7 +122,7 @@ public class FindChannelsQuery {
             for (String p : params) {
                 ps.setString(i++, p);
             }
-            ps.setLong(i++, prop_matches.asMap().size()  + tag_matches.size());
+            ps.setLong(i++, value_matches.asMap().size()  + tag_matches.size());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 // Add key to list of matching channel ids
@@ -144,7 +143,7 @@ public class FindChannelsQuery {
      */
     private Set<Long> getIdsFromTagMatch(Connection con, String match) throws CFException {
         String query = "SELECT p0.channel_id FROM prop_value p0"
-                + " WHERE LOWER(p0.property) LIKE ? AND p0.is_tag"
+                + " WHERE LOWER(p0.property) LIKE ?"
                 + " GROUP BY p0.channel_id";
         Set<Long> ids = new HashSet<Long>();
 
@@ -177,7 +176,7 @@ public class FindChannelsQuery {
         List<String> name_params = new ArrayList<String>();
         Set<Long> result = new HashSet<Long>();
 
-        if (!prop_matches.isEmpty() || !tag_matches.isEmpty()) {
+        if (!value_matches.isEmpty() || !tag_matches.isEmpty()) {
             Set<Long> ids = getIdsFromPropertyAndTagMatch(con);
             if (ids.isEmpty()) {
                 return null;
@@ -335,13 +334,14 @@ public class FindChannelsQuery {
      */
     public static XmlChannels findChannelsByPropertyName(String name) throws CFException {
         FindChannelsQuery q = new FindChannelsQuery(SearchType.TAG, name);
-        XmlChannels xmlChans = new XmlChannels();
+        XmlChannels xmlChans = null;
         XmlChannel xmlChan = null;
         try {
             ResultSet rs = q.executeQuery(DbConnection.getInstance().getConnection());
 
             String lastchan = "";
             if (rs != null) {
+                xmlChans = new XmlChannels();
                 while (rs.next()) {
                     String thischan = rs.getString("channel");
                     if (!thischan.equals(lastchan) || rs.isFirst()) {

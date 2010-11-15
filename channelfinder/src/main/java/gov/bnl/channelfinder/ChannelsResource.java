@@ -87,6 +87,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidNameAndOwner(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -161,6 +162,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidNameAndOwner(data);
             cm.checkNameMatchesPayload(chan, data);
             db.getConnection();
             db.beginTransaction();
@@ -199,7 +201,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkNameMatchesPayload(chan, data);
+            cm.checkValidNameAndOwner(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -238,7 +240,7 @@ public class ChannelsResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), chan);
+                cm.checkUserBelongsToGroup(um.getUserName(), cm.findChannelByName(chan));
             }
             cm.removeExistingChannel(chan);
             db.commit();

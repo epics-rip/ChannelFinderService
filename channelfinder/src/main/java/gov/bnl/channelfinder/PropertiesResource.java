@@ -86,6 +86,7 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidNameAndOwner(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -107,8 +108,8 @@ public class PropertiesResource {
     }
 
     /**
-     * GET method for retrieving the list of channels that have a property with the
-     * path parameter <tt>propName</tt>.
+     * GET method for retrieving the property with the
+     * path parameter <tt>propName</tt> and its channels.
      *
      * @param prop URI path parameter: property name to search for
      * @return list of channels with their properties and tags that match
@@ -120,15 +121,19 @@ public class PropertiesResource {
         DbConnection db = DbConnection.getInstance();
         ChannelManager cm = ChannelManager.getInstance();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlChannels result = null;
+        XmlProperty result = null;
         try {
             db.getConnection();
             db.beginTransaction();
-            result = cm.findChannelsByPropertyName(prop);
+            result = cm.findPropertyByName(prop);
             db.commit();
-            Response r = Response.ok(result).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
-                    + "|returns " + result.getChannels().size() + " channels");
+            Response r;
+            if (result == null) {
+                r = Response.status(Response.Status.NOT_FOUND).build();
+            } else {
+                r = Response.ok(result).build();
+            }
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
             return r;
         } catch (CFException e) {
             log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
@@ -159,11 +164,12 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidNameAndOwner(data);
             cm.checkNameMatchesPayload(prop, data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), prop);
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.createOrReplaceProperty(prop, data);
             db.commit();
@@ -199,11 +205,10 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkNameMatchesPayload(prop, data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), prop);
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.updateProperty(prop, data);
             db.commit();
@@ -238,7 +243,7 @@ public class PropertiesResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), prop);
+                cm.checkUserBelongsToGroup(um.getUserName(), cm.findPropertyByName(prop));
             }
             cm.removeExistingProperty(prop);
             db.commit();
@@ -276,7 +281,7 @@ public class PropertiesResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), prop);
+                cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.addSingleProperty(prop, chan, data);
             db.commit();
@@ -312,7 +317,7 @@ public class PropertiesResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToDatabaseGroup(um.getUserName(), prop);
+                cm.checkUserBelongsToGroup(um.getUserName(), cm.findPropertyByName(prop));
             }
             cm.removeSingleProperty(prop, chan);
             db.commit();
