@@ -1,5 +1,6 @@
 import unittest
-from simplejson import JSONDecoder, JSONEncoder
+try: from json import JSONDecoder, JSONEncoder
+except ImportError: from simplejson import JSONDecoder, JSONEncoder
 from restful_lib import Connection
 import sys, os
 
