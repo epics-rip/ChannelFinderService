@@ -4,7 +4,7 @@
     <groupId>gov.bnl</groupId>
     <artifactId>ChannelFinder</artifactId>
     <packaging>war</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>ChannelFinder Directory Service</name>
     <description>ChannelFinder is a directory server, implemented as a REST style web service.
         Its intended use is within control systems, namely the EPICS Control system, for which it
