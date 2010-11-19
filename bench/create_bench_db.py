@@ -14,6 +14,8 @@ powner = "testp"
 towner = "testt"
 chan_id = 0
 prop_id = 0
+next_prop = 0
+props = {}
 
 chan_in_cell = 0
 tokens = []
@@ -69,8 +71,10 @@ def create_db():
     print "    `p`.`is_tag` AS `is_tag`,"
     print "    `v`.`value` AS `value`"
     print "  FROM"
-    print "    `channel` `c` LEFT JOIN `value` `v` on `c`.`id` = `v`.`channel_id`,"
-    print "    `property` `p`;"
+    print "    (`channel` `c` LEFT JOIN `value` `v` on `c`.`id` = `v`.`channel_id`)"
+    print "    LEFT JOIN `property` `p` ON `p`.`id` = `v`.`property_id`;"
+
+    print "SET autocommit=0;"
 
 def insert_channel(name, owner):
     global chan_id
@@ -78,23 +82,27 @@ def insert_channel(name, owner):
     print "INSERT INTO channel (id,name,owner) VALUE ("+`chan_id`+",'"+name+"','"+owner+"');"
     return chan_id
 
-def insert_property_begin(channel, name, owner, value):
-    global prop_id
-    prop_id = prop_id + 1
-    print "INSERT INTO property (id,channel_id,property,owner,value) VALUES ("+`prop_id`+","+`channel`+",'"+name+"','"+owner+"','"+value+"')",
-
 def insert_property(channel, name, owner, value):
-    global prop_id
-    prop_id = prop_id + 1
-    print ",("+`prop_id`+","+`channel`+",'"+name+"','"+owner+"','"+value+"')",
+    global next_prop, prop_id, props
+    if (not name in props):
+        next_prop = next_prop + 1
+        props[name] = next_prop
+        prop_id = next_prop
+        print "INSERT INTO property (id,name,owner,is_tag) VALUE ("+`prop_id`+",'"+name+"','"+owner+"',FALSE);"
+    else:
+        prop_id = props[name]
+    print "INSERT INTO value (channel_id,property_id,value) VALUE ("+`channel`+","+`prop_id`+",'"+value+"');"
 
 def insert_tag(channel, name, owner):
-    global prop_id
-    prop_id = prop_id + 1
-    print ",("+`prop_id`+","+`channel`+",'"+name+"','"+owner+"',DEFAULT)",
-
-def insert_property_end():
-    print ";"
+    global next_prop, prop_id, props
+    if (not name in props):
+        next_prop = next_prop + 1
+        props[name] = next_prop
+        prop_id = next_prop
+        print "INSERT INTO property (id,name,owner,is_tag) VALUE ("+`prop_id`+",'"+name+"','"+owner+"',TRUE);"
+    else:
+        prop_id = props[name]
+    print "INSERT INTO value (channel_id,property_id) VALUE ("+`channel`+","+`prop_id`+");"
 
 # for dummy channel information
 def insert_bunch(count, prefix, midfix, postfix, location, cell, element, device, unit, sigtype):
@@ -111,7 +119,7 @@ def insert_bunch(count, prefix, midfix, postfix, location, cell, element, device
         chan_in_cell += 1
 
 # Insert "real" properties
-        insert_property_begin(cid,"location",powner,location)
+        insert_property(cid,"location",powner,location)
         insert_property(cid,"cell",powner,`cell`.zfill(3))
         insert_property(cid,"element",powner,element)
         insert_property(cid,"device",powner,device)
@@ -292,8 +300,6 @@ def insert_bunch(count, prefix, midfix, postfix, location, cell, element, device
         else:
             insert_tag(cid,"tagone",towner)
 
-        insert_property_end()
-
 def insert_big_magnets(count, prefix, dev, loc, cell, element):
     insert_bunch(count, prefix, "PS:", "{"+dev+"}I-RB",    loc, cell, element, "power supply", "current",     "readback")
     insert_bunch(count, prefix, "PS:", "{"+dev+"}I-SP",    loc, cell, element, "power supply", "current",     "setpoint")
@@ -435,11 +441,13 @@ def main():
     for n in range (1,101):
         cell = `n`.zfill(3)
         insert_sr_cell(n)
+        print "COMMIT;"
 
     # 500 channels per bo cell
     for n in range (1,101):
         cell = `n`.zfill(3)
         insert_bo_cell(n)
+        print "COMMIT;"
 
 if __name__ == "__main__":
         main()
