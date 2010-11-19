@@ -12,7 +12,6 @@ user_prop = "proppy"
 user_prop2 = "proppy2"
 user_chan = "channy"
 user_chan2 = "channy2"
-user_chan3 = "channy3"
 user_admin = "boss"
 passwd = "1234"
 
@@ -22,7 +21,6 @@ conn_prop  = Connection(base_url, username=user_prop,  password=passwd)
 conn_prop2 = Connection(base_url, username=user_prop2, password=passwd)
 conn_chan  = Connection(base_url, username=user_chan,  password=passwd)
 conn_chan2 = Connection(base_url, username=user_chan2, password=passwd)
-conn_chan3 = Connection(base_url, username=user_chan3, password=passwd)
 conn_admin = Connection(base_url, username=user_admin, password=passwd)
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
@@ -38,7 +36,6 @@ C1no_empty = '{"@name": "C1"}'
 C1en_empty = '{"@name": "", "@owner": "testc"}'
 C1eo_empty = '{"@name": "C1", "@owner": ""}'
 C2_empty = '{"@name": "C2", "@owner": "testc"}'
-#C2_empty_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': None}
 C3_empty = '{"@name": "C3", "@owner": "testc"}'
 
 C1_full = '{"@name": "C1", "@owner": "testc", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T2"}]}}'
@@ -495,6 +492,15 @@ class PostOneChannel(unittest.TestCase):
     def test_AuthorizedAsAdminNewOwner(self):
         doPostAndGetJSON(self, conn_admin, self.C1, C1t_empty, 204, self.C1, C1t_full_r, 200)
 
+# New channel owner (non member of new owner)
+    def test_AuthorizedAsChanNewOwnerNonMemberNew(self):
+        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1t_empty, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+
+# New channel owner (non member of old owner)
+    def test_AuthorizedAsChanNewOwnerNonMemberOld(self):
+        doPostAndGetJSON(self, conn_chan, self.C1, C1t_empty, 204, self.C1, C1t_full_r, 200)
+        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1_empty, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
         doPostAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name (null or empty string)")
@@ -751,6 +757,15 @@ class PostOneTag(unittest.TestCase):
         doPostAndGetJSON(self, conn_chan, self.T1, T1p_empty, 204, self.c, Cs12_1T1p_2T12p_r, 200)
     def test_AuthorizedAsAdminNewOwner(self):
         doPostAndGetJSON(self, conn_admin, self.T1, T1p_empty, 204, self.c, Cs12_1T1p_2T12p_r, 200)
+
+# New tag owner (non member of new owner)
+    def test_AuthorizedAsChanNewOwnerNonMemberNew(self):
+        doPostAndFailMessageJSON(self, conn_tag, self.T1, T1p_empty, 403, "User 'taggy' does not belong to owner group 'testp' of tag 'T1'")
+
+# New tag owner (non member of old owner)
+    def test_AuthorizedAsChanNewOwnerNonMemberOld(self):
+        doPostAndGetJSON(self, conn_chan, self.T1, T1p_empty, 204, self.c, Cs12_1T1p_2T12p_r, 200)
+        doPostAndFailMessageJSON(self, conn_tag, self.T1, T1_empty, 403, "User 'taggy' does not belong to owner group 'testp' of tag 'T1'")
 
 # Set a new tag name
     def test_AuthorizedAsTagNewName(self):
@@ -1155,6 +1170,15 @@ class PostOneProperty(unittest.TestCase):
         doPostAndGetJSON(self, conn_prop, self.P1, p1_empty, 204, self.c, Cs12_1p1_2p1P2_r, 200)
     def test_AuthorizedAsAdminNewName(self):
         doPostAndGetJSON(self, conn_admin, self.P1, p1_empty, 204, self.c, Cs12_1p1_2p1P2_r, 200)
+
+# New tag owner (non member of new owner)
+    def test_AuthorizedAsChanNewOwnerNonMemberNew(self):
+        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1t_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+
+# New tag owner (non member of old owner)
+    def test_AuthorizedAsChanNewOwnerNonMemberOld(self):
+        doPostAndGetJSON(self, conn_prop, self.P1, P1t_empty, 204, self.c, Cs12_1P1t_2P12t_r, 200)
+        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
 
 # Non-existing property
     def test_AuthorizedAsPropNonexProp(self):

@@ -522,6 +522,45 @@ public class ChannelManager {
     }
 
     /**
+     * Check that <tt>user</tt> belongs to the owner group specified in the database for
+     * channel <tt>chan</tt>.
+     *
+     * @param user user name
+     * @param chan name of channel to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroupOfChannel(String user, String chan) throws CFException {
+        if (chan == null || chan.equals("")) return;
+        checkUserBelongsToGroup(user, FindChannelsQuery.findChannelByName(chan));
+    }
+
+    /**
+     * Check that <tt>user</tt> belongs to the owner group specified in the database for
+     * property <tt>prop</tt>.
+     *
+     * @param user user name
+     * @param prop name of property to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroupOfProperty(String user, String prop) throws CFException {
+        if (prop == null || prop.equals("")) return;
+        checkUserBelongsToGroup(user, ListPropertiesQuery.findProperty(prop));
+    }
+
+    /**
+     * Check that <tt>user</tt> belongs to the owner group specified in the database for
+     * <tt>tag</tt>.
+     *
+     * @param user user name
+     * @param tag name of tag to check ownership for
+     * @throws CFException on name mismatch
+     */
+    public void checkUserBelongsToGroupOfTag(String user, String tag) throws CFException {
+        if (tag == null || tag.equals("")) return;
+        checkUserBelongsToGroup(user, ListPropertiesQuery.findTag(tag));
+    }
+
+    /**
      * Check that <tt>user</tt> belongs to the owner group specified in the
      * channel <tt>data</tt>.
      *

@@ -208,6 +208,7 @@ public class PropertiesResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
+                cm.checkUserBelongsToGroupOfProperty(um.getUserName(), prop);
                 cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.updateProperty(prop, data);

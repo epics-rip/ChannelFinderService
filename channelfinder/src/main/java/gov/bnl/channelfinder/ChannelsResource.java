@@ -205,6 +205,7 @@ public class ChannelsResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
+                cm.checkUserBelongsToGroupOfChannel(um.getUserName(), chan);
                 cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.updateChannel(chan, data);

@@ -207,6 +207,7 @@ public class TagsResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
+                cm.checkUserBelongsToGroupOfTag(um.getUserName(), tag);
                 cm.checkUserBelongsToGroup(um.getUserName(), data);
             }
             cm.updateTag(tag, data);
