@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2010 Brookhaven National Laboratory
- * Copyright (c) 2010 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
- * Subject to license terms and conditions.
+ * Copyright (c) 2010-2011 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * All rights reserved. Use is subject to license terms and conditions.
  */
+
 package gov.bnl.channelfinder;
 
 import java.sql.Connection;
@@ -15,7 +16,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to create a property/tag.
  *
- * @author Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 public class CreatePropertyQuery {
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010 Brookhaven National Laboratory
- * Copyright (c) 2010 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
- * Subject to license terms and conditions.
+ * Copyright (c) 2010-2011 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * All rights reserved. Use is subject to license terms and conditions.
  */
 
 package gov.bnl.channelfinder;
@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 /**
  * Channel object that can be represented as XML/JSON in payload data.
  *
- * @author Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 
 @XmlRootElement(name = "channel")
