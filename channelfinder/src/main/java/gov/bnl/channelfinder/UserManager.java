@@ -8,41 +8,36 @@ package gov.bnl.channelfinder;
 
 import java.security.Principal;
 import java.util.Collection;
-import java.util.HashSet;
-import javax.annotation.Resource;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Owner (group) membership management: LDAP connection and binding.
+ * Owner (group) membership management.
  *
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Gabriele Carcassi <carcassi@bnl.gov>
  */
-public class UserManager {
-    private static UserManager instance = new UserManager();
+public abstract class UserManager {
+    
+    private static final Logger log = Logger.getLogger(UserManager.class.getName());
+    
     private ThreadLocal<Principal> user = new ThreadLocal<Principal>();
     private ThreadLocal<Boolean> hasAdminRole = new ThreadLocal<Boolean>();
     private ThreadLocal<Collection<String>> groups = new ThreadLocal<Collection<String>>();
-    private ThreadLocal<DirContext> ctx = new ThreadLocal<DirContext>();
-    private static final String ldapResourceName = "channelfinderGroups";
+    
+    private static final String userManager = "gov.bnl.channelfinder.IDUserManager";
+    private static UserManager instance;
+    
+    static {
+        try {
+            instance = (UserManager) Class.forName(userManager).newInstance();
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, "Could not instance userManager " + userManager, ex);
+        }
+    }
 
-    /**
-     * LDAP field name for the member UID
-     */
-    @Resource(name="ldapGroupMemberField") protected String memberUidField = "memberUid";
-
-    /**
-     * LDAP field name for the group name in group entries
-     */
-    @Resource(name="ldapGroupTargetField") protected String groupTargetField = "cn";
-
-    private UserManager() {
+    protected UserManager() {
     }
 
     /**
@@ -51,36 +46,22 @@ public class UserManager {
      * @return instance of UserManager
      */
     public static UserManager getInstance() {
+        if (instance == null)
+            throw new IllegalStateException("UserManager could not be instanced");
         return instance;
     }
-
-    private void clearGroups() {
-        if (this.groups.get() == null) {
-            this.groups.set(new HashSet<String>());
-        } else {
-            this.groups.get().clear();
-        }
-    }
-
-    private DirContext getJndiContext() {
-        DirContext dirctx = this.ctx.get();
-        if (dirctx == null) {
-            try {
-                Context initCtx = new InitialContext();
-                dirctx = (DirContext) initCtx.lookup(ldapResourceName);
-                this.ctx.set(dirctx);
-            } catch (NamingException e ) {
-                throw new IllegalStateException("Cannot find JNDI LDAP resource '"
-                        + ldapResourceName + "'", e);
-            }
-        }
-        return dirctx;
-    }
+    
+    /**
+     * Retrieves the group membership for the given principal.
+     * 
+     * @param user a user
+     * @return the group names
+     */
+    protected abstract Set<String> getGroups(Principal user);
 
     /**
-     * Sets the (thread local) user principal to be used in further calls, initializes
-     * the LDAP directory context, if necessary, then queries LDAP to find the groups
-     * mapping for the given user.
+     * Sets the (thread local) user principal to be used in further calls
+     * and retrieves the group information.
      *
      * @param user principal
      * @param isAdmin flag: true = user has Admin role
@@ -88,25 +69,7 @@ public class UserManager {
     public void setUser(Principal user, boolean isAdmin) {
         this.user.set(user);
         this.hasAdminRole.set(isAdmin);
-        clearGroups();
-        DirContext dirctx = getJndiContext();
-        try {
-            SearchControls ctrls = new SearchControls();
-            ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-
-            String searchfilter = "(" + memberUidField + "=" + this.user.get().getName() + ")";
-            NamingEnumeration<SearchResult> result = dirctx.search("", searchfilter, ctrls);
-
-            while (result.hasMore()) {
-                Attribute att = result.next().getAttributes().get(groupTargetField);
-                if (att != null) {
-                    groups.get().add((String)att.get());
-                }
-            }
-        } catch (Exception e) {
-                throw new IllegalStateException("Error while retrieving group information for user '"
-                        + this.user.get().getName() + "'", e);
-        }
+        this.groups.set(getGroups(user));
     }
 
     /**
