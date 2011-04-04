@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.naming.InitialContext;
 
 /**
  * Owner (group) membership management.
@@ -26,10 +27,25 @@ public abstract class UserManager {
     private ThreadLocal<Boolean> hasAdminRole = new ThreadLocal<Boolean>();
     private ThreadLocal<Collection<String>> groups = new ThreadLocal<Collection<String>>();
     
-    private static final String userManager = "gov.bnl.channelfinder.IDUserManager";
+    private static final String userManager;
     private static UserManager instance;
     
     static {
+        String newManager;
+        try {
+            newManager = (String) new InitialContext().lookup("channelfinder/userManager");
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, "Could not retrieve value for channelfinder/userManager", ex);
+            newManager = null;
+        }
+        
+        // Set the default
+        if (newManager != null) {
+            userManager = newManager;
+        } else {
+            userManager = "gov.bnl.channelfinder.LDAPUserManager";
+        }
+        
         try {
             instance = (UserManager) Class.forName(userManager).newInstance();
         } catch (Exception ex) {

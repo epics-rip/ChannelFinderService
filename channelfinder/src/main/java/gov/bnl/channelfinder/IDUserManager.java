@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 public class IDUserManager extends UserManager {
-
+    
     public static String readInputStreamAsString(InputStream in) throws IOException {
         BufferedInputStream bis = new BufferedInputStream(in);
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -41,6 +42,9 @@ public class IDUserManager extends UserManager {
             ProcessBuilder pb = new ProcessBuilder("id", user.getName());
             Process proc = pb.start();
             String output = readInputStreamAsString(proc.getInputStream());
+            if (output.indexOf("groups") == -1) {
+                return Collections.emptySet();
+            }
             output = output.substring(output.indexOf("groups"));
             
             Pattern pattern = Pattern.compile("\\((.*?)\\)");
