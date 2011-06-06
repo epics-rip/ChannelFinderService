@@ -43,7 +43,7 @@ public abstract class UserManager {
         if (newManager != null) {
             userManager = newManager;
         } else {
-            userManager = "gov.bnl.channelfinder.LDAPUserManager";
+            userManager = "gov.bnl.channelfinder.IDUserManager";
         }
         
         try {
