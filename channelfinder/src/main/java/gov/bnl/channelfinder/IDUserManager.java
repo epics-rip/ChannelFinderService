@@ -52,18 +52,22 @@ public class IDUserManager extends UserManager {
             Set<String> groups = new HashSet<String>();
             ProcessBuilder pb = new ProcessBuilder("id", user.getName());
             Process proc = pb.start();
-            String output = readInputStreamAsString(proc.getInputStream());
-            if (output.indexOf("groups") == -1) {
-                return Collections.emptySet();
+            try {
+                String output = readInputStreamAsString(proc.getInputStream());
+                if (output.indexOf("groups") == -1) {
+                    return Collections.emptySet();
+                }
+                output = output.substring(output.indexOf("groups"));
+
+                Pattern pattern = Pattern.compile("\\((.*?)\\)");
+                Matcher match = pattern.matcher(output);
+                while (match.find()) {
+                    groups.add(match.group(1));
+                }
+                return groups;
+            } finally {
+                proc.destroy();
             }
-            output = output.substring(output.indexOf("groups"));
-            
-            Pattern pattern = Pattern.compile("\\((.*?)\\)");
-            Matcher match = pattern.matcher(output);
-            while (match.find()) {
-                groups.add(match.group(1));
-            }
-            return groups;
         } catch (Exception e) {
             throw new IllegalStateException("Error while retrieving group information for user '"
                     + user.getName() + "'", e);
