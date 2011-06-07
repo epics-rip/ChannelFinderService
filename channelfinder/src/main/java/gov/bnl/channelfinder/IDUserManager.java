@@ -29,13 +29,18 @@ public class IDUserManager extends UserManager {
         try {
             BufferedInputStream bis = new BufferedInputStream(in);
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
-            int result = bis.read();
-            while (result != -1) {
-                byte b = (byte) result;
-                buf.write(b);
-                result = bis.read();
+            try {
+                int result = bis.read();
+                while (result != -1) {
+                    byte b = (byte) result;
+                    buf.write(b);
+                    result = bis.read();
+                }
+                return buf.toString();
+            } finally {
+                bis.close();
+                buf.close();
             }
-            return buf.toString();
         } finally {
             in.close();
         }
