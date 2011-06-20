@@ -13,8 +13,11 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.naming.InitialContext;
 
 /**
  * Uses Unix command 'id' to determine the group membership.
@@ -22,6 +25,22 @@ import java.util.regex.Pattern;
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 public class IDUserManager extends UserManager {
+    
+    private static final Logger log = Logger.getLogger(IDUserManager.class.getName());
+    
+    private static final String defaultCommand = "id";
+    private static final String command;
+    
+    static {
+        String newCommand = defaultCommand;
+        try {
+            newCommand = (String) new InitialContext().lookup("channelfinder/idManagerCommand");
+            log.log(Level.CONFIG, "Found channelfinder/idManagerCommand: {0}", newCommand);
+        } catch (Exception ex) {
+            log.log(Level.CONFIG, "Using default channelfinder/idManagerCommand: {0}", newCommand);
+        }
+        command = newCommand;
+    }
     
     public static String readInputStreamAsString(InputStream in) throws IOException {
         if (in == null)
@@ -50,7 +69,7 @@ public class IDUserManager extends UserManager {
     protected Set<String> getGroups(Principal user) {
         try {
             Set<String> groups = new HashSet<String>();
-            ProcessBuilder pb = new ProcessBuilder("id", user.getName());
+            ProcessBuilder pb = new ProcessBuilder(command, user.getName());
             Process proc = pb.start();
             try {
                 String output = readInputStreamAsString(proc.getInputStream());
