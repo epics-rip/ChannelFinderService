@@ -27,29 +27,28 @@ public abstract class UserManager {
     private ThreadLocal<Boolean> hasAdminRole = new ThreadLocal<Boolean>();
     private ThreadLocal<Collection<String>> groups = new ThreadLocal<Collection<String>>();
     
+    private static final String defaultUserManager = "gov.bnl.channelfinder.IDUserManager";
     private static final String userManager;
     private static UserManager instance;
     
     static {
-        String newManager;
+        String newManager = defaultUserManager;
         try {
             newManager = (String) new InitialContext().lookup("channelfinder/userManager");
+            log.log(Level.CONFIG, "Found channelfinder/userManager: {0}", newManager);
         } catch (Exception ex) {
-            log.log(Level.SEVERE, "Could not retrieve value for channelfinder/userManager", ex);
-            newManager = null;
+            log.log(Level.CONFIG, "Using default channelfinder/userManager: {0}", newManager);
         }
-        
-        // Set the default
-        if (newManager != null) {
-            userManager = newManager;
-        } else {
-            userManager = "gov.bnl.channelfinder.IDUserManager";
-        }
+        userManager = newManager;
         
         try {
             instance = (UserManager) Class.forName(userManager).newInstance();
+        } catch (ClassNotFoundException ex) {
+            log.log(Level.SEVERE, "Could not find class {0}", userManager);
+        } catch (IllegalAccessException ex) {
+            log.log(Level.SEVERE, "No public constructor for class {0}", userManager);
         } catch (Exception ex) {
-            log.log(Level.SEVERE, "Could not instance userManager " + userManager, ex);
+            log.log(Level.SEVERE, "Public constructor failed for class " + userManager, ex);
         }
     }
 
