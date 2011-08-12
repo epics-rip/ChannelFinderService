@@ -49,7 +49,8 @@ class Connection:
         self.path = path
         
         # Create Http class with support for Digest HTTP Authentication, if necessary
-        self.h = httplib2.Http(".cache")
+        # Disabled cache in order to enable it add ".cache"
+        self.h = httplib2.Http()
         self.h.follow_all_redirects = True
         if username and password:
             self.h.add_credentials(username, password)

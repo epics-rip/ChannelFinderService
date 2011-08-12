@@ -2,53 +2,65 @@ import unittest
 try: from json import JSONDecoder, JSONEncoder
 except ImportError: from simplejson import JSONDecoder, JSONEncoder
 from restful_lib import Connection
+from copy import copy
 import sys, os
+
+from _testConf import _testConf
 
 base_url = os.getenv("BASEURL")
 if base_url is None:
-    base_url = "http://localhost:8080/ChannelFinder"
+    base_url = _testConf.get('DEFAULT', 'BaseURL')
 
-user_tag = "taggy"
-user_prop = "proppy"
-user_prop2 = "proppy2"
-user_chan = "channy"
-user_chan2 = "channy2"
-user_admin = "boss"
-passwd = "1234"
+user_tag = _testConf.get('DEFAULT', 'tagUsername')
+user_prop = _testConf.get('DEFAULT', 'propUsername')
+user_prop2 =_testConf.get('DEFAULT', 'propUsername2')
+user_chan = _testConf.get('DEFAULT', 'channelUsername')
+user_chan2 =_testConf.get('DEFAULT', 'channelUsername2')
+user_admin = _testConf.get('DEFAULT', 'username')
 
 conn_none  = Connection(base_url)
-conn_tag   = Connection(base_url, username=user_tag,   password=passwd)
-conn_prop  = Connection(base_url, username=user_prop,  password=passwd)
-conn_prop2 = Connection(base_url, username=user_prop2, password=passwd)
-conn_chan  = Connection(base_url, username=user_chan,  password=passwd)
-conn_chan2 = Connection(base_url, username=user_chan2, password=passwd)
-conn_admin = Connection(base_url, username=user_admin, password=passwd)
+conn_tag   = Connection(base_url, username=user_tag,   \
+                        password=_testConf.get('DEFAULT', 'tagPassword'))
+conn_prop  = Connection(base_url, username=user_prop,  \
+                        password=_testConf.get('DEFAULT', 'propPassword'))
+conn_prop2 = Connection(base_url, username=user_prop2, \
+                        password=_testConf.get('DEFAULT', 'propPassword2'))
+conn_chan  = Connection(base_url, username=user_chan,  \
+                        password=_testConf.get('DEFAULT', 'channelPassword'))
+conn_chan2 = Connection(base_url, username=user_chan2, \
+                        password=_testConf.get('DEFAULT', 'channelPassword2'))
+conn_admin = Connection(base_url, username=user_admin, \
+                        password=_testConf.get('DEFAULT', 'password'))
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
 xmlheader = {'content-type':'application/xml','accept':'application/xml'}
 
+testc=_testConf.get('DEFAULT', 'channelOwner')
+testp=_testConf.get('DEFAULT', 'propOwner')
+testt=_testConf.get('DEFAULT', 'tagOwner')
+
 #     Channels
-C1_empty = '{"@name": "C1", "@owner": "testc"}'
-C1_empty_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}
-c1_empty = '{"@name": "c1", "@owner": "testc"}'
-C1t_empty = '{"@name": "C1", "@owner": "testt"}'
-C1nn_empty = '{"@owner": "testc"}'
+C1_empty = '{"@name": "C1", "@owner": "' + testc + '"}'
+C1_empty_r = {u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': None}
+c1_empty = '{"@name": "c1", "@owner": "' + testc + '"}'
+C1t_empty = '{"@name": "C1", "@owner": "' + testt + '"}'
+C1nn_empty = '{"@owner": "' + testc + '"}'
 C1no_empty = '{"@name": "C1"}'
-C1en_empty = '{"@name": "", "@owner": "testc"}'
+C1en_empty = '{"@name": "", "@owner": "' + testc + '"}'
 C1eo_empty = '{"@name": "C1", "@owner": ""}'
-C2_empty = '{"@name": "C2", "@owner": "testc"}'
-C3_empty = '{"@name": "C3", "@owner": "testc"}'
+C2_empty = '{"@name": "C2", "@owner": "' + testc + '"}'
+C3_empty = '{"@name": "C3", "@owner": "' + testc + '"}'
 
-C1_full = '{"@name": "C1", "@owner": "testc", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T2"}]}}'
-C2_full = '{"@name": "C2", "@owner": "testc", "properties": {"property": [{"@name": "P3", "@value": "prop3"}, {"@name": "P4", "@value": "prop4"}]}, "tags": {"tag": [{"@name": "T33"}, {"@name": "T44"}]}}'
-C3_full = '{"@name": "C3", "@owner": "testc", "properties": {"property": [{"@name": "P3", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}, "tags": {"tag": [{"@name": "T33"}, {"@name": "T2"}]}}'
-C4_full = '{"@name": "C4", "@owner": "testc", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P4", "@value": "prop4"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T44"}]}}'
+C1_full = '{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T2"}]}}'
+C2_full = '{"@name": "C2", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P3", "@value": "prop3"}, {"@name": "P4", "@value": "prop4"}]}, "tags": {"tag": [{"@name": "T33"}, {"@name": "T44"}]}}'
+C3_full = '{"@name": "C3", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P3", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}, "tags": {"tag": [{"@name": "T33"}, {"@name": "T2"}]}}'
+C4_full = '{"@name": "C4", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P4", "@value": "prop4"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T44"}]}}'
 
-C1_full2 = '{"@name": "C1", "@owner": "testc", "properties": {"property": [{"@name": "P1", "@value": "prop11"}, {"@name": "P2", "@value": "prop22"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T44"}]}}'
-C1_full2_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop11'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T44'}]}}
+C1_full2 = '{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop11"}, {"@name": "P2", "@value": "prop22"}]}, "tags": {"tag": [{"@name": "T1"}, {"@name": "T44"}]}}'
+C1_full2_r = {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop11'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop22'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}, {u'@owner': testt, u'@name': u'T44'}]}}
 
-c1_full_r = {u'@owner': u'testc', u'@name': u'c1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
-C1t_full_r = {u'@owner': u'testt', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
+c1_full_r = {u'@owner': testc, u'@name': u'c1', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}
+C1t_full_r = {u'@owner': testt, u'@name': u'C1', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}
 
 Cs1234_full = '{"channels": {"channel": [' + C1_full + ', ' + C2_full + ', '+ C3_full + ', '+ C4_full + ']}}'
 Cs1_full = '{"channels": {"channel": [' + C1_full + ']}}'
@@ -57,10 +69,10 @@ Cs12_1nn_empty = '{"channels": {"channel": [' + C1nn_empty + ', ' + C2_empty + '
 Cs12_1no_empty = '{"channels": {"channel": [' + C1no_empty + ', ' + C2_empty + ']}}'
 Cs12_1en_empty = '{"channels": {"channel": [' + C1en_empty + ', ' + C2_empty + ']}}'
 Cs12_1eo_empty = '{"channels": {"channel": [' + C1eo_empty + ', ' + C2_empty + ']}}'
-C1_full_r = {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
-C2_full_r = {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P3', u'@value': u'prop3'}, {u'@owner': u'testp', u'@name': u'P4', u'@value': u'prop4'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T33'}, {u'@owner': u'testt', u'@name': u'T44'}]}}
-C3_full_r = {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}, {u'@owner': u'testp', u'@name': u'P3', u'@value': u'prop1'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T2'}, {u'@owner': u'testt', u'@name': u'T33'}]}}
-C4_full_r = {u'@owner': u'testc', u'@name': u'C4', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P4', u'@value': u'prop4'}]}, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T44'}]}}
+C1_full_r = {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}
+C2_full_r = {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P3', u'@value': u'prop3'}, {u'@owner': testp, u'@name': u'P4', u'@value': u'prop4'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T33'}, {u'@owner': testt, u'@name': u'T44'}]}}
+C3_full_r = {u'@owner': testc, u'@name': u'C3', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}, {u'@owner': testp, u'@name': u'P3', u'@value': u'prop1'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T2'}, {u'@owner': testt, u'@name': u'T33'}]}}
+C4_full_r = {u'@owner': testc, u'@name': u'C4', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P4', u'@value': u'prop4'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T44'}]}}
 Cs1234_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r, C3_full_r, C4_full_r]}}
 Cs12_1t_2_empty = '{"channels": {"channel": [' + C1t_empty + ', ' + C2_empty + ']}}'
 Cs12_full = '{"channels": {"channel": [' + C1_full + ', ' + C2_full + ']}}'
@@ -73,88 +85,88 @@ Cs4_full_r = {u'channels': {u'channel': C4_full_r}}
 None_r = {u'channels': None}
 
 # replies needed for tags and properties URLs
-Cs12_1e2t2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}]}}
-Cs12_1e2p2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'tags': None, u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}}}]}}
-Cs12_1T1p_2T12p_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': u'testp', u'@name': u'T1'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': u'testp', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}]}}
-Cs12_1t1_2t1T2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u't1'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u't1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}]}}
-Cs123_1T1_2T12_3T2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T1'}}}, {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}]}}
-Cs12_1P1t_2P12t_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testt', u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testt', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}]}}
-Cs12_1p1_2p1P2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'p1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'p1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}]}}
-Cs123_1P1_2P12_3P2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop3'}}, u'tags': None}]}}
-Cs123_1P12v_2P12_3e_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'propv'}]}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C3', u'properties': None, u'tags': None}]}}
-Cs12_1T1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T1'}}}, {u'@owner': u'testc', u'@name': u'C2', u'tags': None, u'properties': None}]}}
-Cs12_1e2T1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T1'}}}]}}
-Cs12_1P1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'tags': None, u'properties': None}]}}
-Cs12_1e2P1_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}]}}
-Cs2_P12_r = {u'channels': {u'channel': {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}}}
+Cs12_1e2t2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T2'}}}]}}
+Cs12_1e2p2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'tags': None, u'properties': {u'property': {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}}}]}}
+Cs12_1T1p_2T12p_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': testp, u'@name': u'T1'}}}, {u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': testp, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}]}}
+Cs12_1t1_2t1T2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u't1'}}}, {u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': testt, u'@name': u't1'}, {u'@owner': testt, u'@name': u'T2'}]}}]}}
+Cs123_1T1_2T12_3T2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T1'}}}, {u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}, {u'@owner': testc, u'@name': u'C3', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T2'}}}]}}
+Cs12_1P1t_2P12t_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testt, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testt, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}]}}
+Cs12_1p1_2p1P2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'p1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'p1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}]}}
+Cs123_1P1_2P12_3P2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}, {u'@owner': testc, u'@name': u'C3', u'properties': {u'property': {u'@owner': testp, u'@name': u'P2', u'@value': u'prop3'}}, u'tags': None}]}}
+Cs123_1P12v_2P12_3e_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'propv'}]}, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}, {u'@owner': testc, u'@name': u'C3', u'properties': None, u'tags': None}]}}
+Cs12_1T1_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T1'}}}, {u'@owner': testc, u'@name': u'C2', u'tags': None, u'properties': None}]}}
+Cs12_1e2T1_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T1'}}}]}}
+Cs12_1P1_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'tags': None, u'properties': None}]}}
+Cs12_1e2P1_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}]}}
+Cs2_P12_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}}}
 
 #     Properties
-P1_empty = '{"@name": "P1", "@owner": "testp"}'
-P1_empty_r = {u'@owner': u'testp', u'@name': u'P1'}
-p1_empty = '{"@name": "p1", "@owner": "testp"}'
-P1t_empty = '{"@name": "P1", "@owner": "testt"}'
-P1t_empty_r = {u'@owner': u'testt', u'@name': u'P1'}
-P2_empty = '{"@name": "P2", "@owner": "testp"}'
-P2t_empty = '{"@name": "P2", "@owner": "testt"}'
-P3_empty = '{"@name": "P3", "@owner": "testp"}'
-P4_empty = '{"@name": "P4", "@owner": "testp"}'
+P1_empty = '{"@name": "P1", "@owner": "' + testp + '"}'
+P1_empty_r = {u'@owner': testp, u'@name': u'P1'}
+p1_empty = '{"@name": "p1", "@owner": "' + testp + '"}'
+P1t_empty = '{"@name": "P1", "@owner": "' + testt + '"}'
+P1t_empty_r = {u'@owner': testt, u'@name': u'P1'}
+P2_empty = '{"@name": "P2", "@owner": "' + testp + '"}'
+P2t_empty = '{"@name": "P2", "@owner": "' + testt + '"}'
+P3_empty = '{"@name": "P3", "@owner": "' + testp + '"}'
+P4_empty = '{"@name": "P4", "@owner": "' + testp + '"}'
 
 Ps1t_empty = '{"properties": { "property": ' + P1t_empty + '}}'
 Ps12t_empty = '{"properties": { "property": [' + P1t_empty + ', ' + P2t_empty + ']}}'
 Ps12_empty_xml = "<properties><property name=\"P1\" owner=\"testp\"/><property name=\"P2\" owner=\"testp\"/></properties>"
 Ps12_empty = '{"properties": { "property": [' + P1_empty + ', ' + P2_empty + ']}}'
-Ps12_empty_r = {u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1'}, {u'@owner': u'testp', u'@name': u'P2'}]}}
-Ps12t_empty_r = {u'properties': {u'property': [{u'@owner': u'testt', u'@name': u'P1'}, {u'@owner': u'testt', u'@name': u'P2'}]}}
+Ps12_empty_r = {u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1'}, {u'@owner': testp, u'@name': u'P2'}]}}
+Ps12t_empty_r = {u'properties': {u'property': [{u'@owner': testt, u'@name': u'P1'}, {u'@owner': testt, u'@name': u'P2'}]}}
 Ps1234_empty = '{"properties": { "property": [' + P1_empty + ', ' + P2_empty + ', ' + P3_empty+ ', ' + P4_empty + ']}}'
 
-P1_C1 = '{"@name": "P1", "@owner": "testp", "channels": {"channel" : {"@name": "C1", "@owner": "testc", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
-P1_C1_r = {u'channels': {u'channel': {u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': u'testp', u'@name': u'P1'}
-p1_C1 = '{"@name": "p1", "@owner": "testp", "channels": {"channel" : {"@name": "C1", "@owner": "testc", "properties": {"property": {"@name": "p1", "@value": "prop1"}}}}}'
-P1_C2 = '{"@name": "P1", "@owner": "testp", "channels": {"channel" : {"@name": "C2", "@owner": "testc", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}}}}'
-P1_C2_r = {u'channels': {u'channel': {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': u'testp', u'@name': u'P1'}
-P1_C12 = '{"@name": "P1", "@owner": "testp", "channels": {"channel" : [{"@name": "C1", "@owner": "testc", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}, {"@name": "C2", "@owner": "testc", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}]}}'
-P1_C3 = '{"@name": "P1", "@owner": "testp", "channels": {"channel" : {"@name": "C3", "@owner": "testc", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
-P2_C2 = '{"@name": "P2", "@owner": "testp", "channels": {"channel" : {"@name": "C2", "@owner": "testc", "properties": {"property": {"@name": "P2", "@value": "prop2"}}}}}'
+P1_C1 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
+P1_C1_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': testp, u'@name': u'P1'}
+p1_C1 = '{"@name": "p1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "p1", "@value": "prop1"}}}}}'
+P1_C2 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}}}}'
+P1_C2_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': testp, u'@name': u'P1'}
+P1_C12 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : [{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}, {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}]}}'
+P1_C3 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C3", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
+P2_C2 = '{"@name": "P2", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": {"@name": "P2", "@value": "prop2"}}}}}'
 P2_C1 = '{"@name": "P2", "channels": {"channel" : {"@name": "C1", "properties": {"property": {"@name": "P2", "@value": "prop2"}}}}}'
-P2_C23 = '{"@name": "P2", "@owner": "testp", "channels": {"channel" : [{"@name": "C2", "properties": {"property": {"@name": "P2", "@value": "prop2"}}}, {"@name": "C3", "properties": {"property": {"@name": "P2", "@value": "prop3"}}}]}}'
-P2_C23_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C3', u'properties': {u'property': {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop3'}}, u'tags': None}]}, u'@owner': u'testp', u'@name': u'P2'}
+P2_C23 = '{"@name": "P2", "@owner": "' + testp + '", "channels": {"channel" : [{"@name": "C2", "properties": {"property": {"@name": "P2", "@value": "prop2"}}}, {"@name": "C3", "properties": {"property": {"@name": "P2", "@value": "prop3"}}}]}}'
+P2_C23_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}, {u'@owner': testc, u'@name': u'C3', u'properties': {u'property': {u'@owner': testp, u'@name': u'P2', u'@value': u'prop3'}}, u'tags': None}]}, u'@owner': testp, u'@name': u'P2'}
 P2_C4 = '{"@name": "P2", "channels": {"channel" : {"@name": "C4", "properties": {"property": {"@name": "P2", "@value": "prop2"}}}}}'
 P3_C1 = '{"@name": "P3", "channels": {"channel" : {"@name": "C1", "properties": {"property": {"@name": "P3", "@value": "prop3"}}}}}'
 P2_C1v = '{"@name": "P2", "channels": {"channel" : {"@name": "C1", "properties": {"property": {"@name": "P2", "@value": "propv"}}}}}'
-P2_C1v2_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C1', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'propv'}]}, u'tags': None}, {u'@owner': u'testc', u'@name': u'C2', u'properties': {u'property': [{u'@owner': u'testp', u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': u'testp', u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}]}, u'@owner': u'testp', u'@name': u'P2'}
+P2_C1v2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'propv'}]}, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}]}, u'@owner': testp, u'@name': u'P2'}
 
 #     Tags
-T1_empty = '{"@name": "T1", "@owner": "testt"}'
-T1_empty_r = {u'@owner': u'testt', u'@name': u'T1'}
-t1_empty = '{"@name": "t1", "@owner": "testt"}'
-T1p_empty = '{"@name": "T1", "@owner": "testp"}'
-T1p_empty_r = {u'@owner': u'testp', u'@name': u'T1'}
-T2_empty = '{"@name": "T2", "@owner": "testt"}'
-T2p_empty = '{"@name": "T2", "@owner": "testp"}'
-T3_empty = '{"@name": "T33", "@owner": "testt"}'
-T4_empty = '{"@name": "T44", "@owner": "testt"}'
+T1_empty = '{"@name": "T1", "@owner": "' + testt + '"}'
+T1_empty_r = {u'@owner': testt, u'@name': u'T1'}
+t1_empty = '{"@name": "t1", "@owner": "' + testt + '"}'
+T1p_empty = '{"@name": "T1", "@owner": "' + testp + '"}'
+T1p_empty_r = {u'@owner': testp, u'@name': u'T1'}
+T2_empty = '{"@name": "T2", "@owner": "' + testt + '"}'
+T2p_empty = '{"@name": "T2", "@owner": "' + testp + '"}'
+T3_empty = '{"@name": "T33", "@owner": "' + testt + '"}'
+T4_empty = '{"@name": "T44", "@owner": "' + testt + '"}'
 
 Ts1p_empty = '{"tags": { "tag": ' + T1p_empty + '}}'
 Ts12p_empty = '{"tags": { "tag": [' + T1p_empty + ', ' + T2p_empty + ']}}'
 Ts12_empty_xml = "<tags><tag name=\"T1\" owner=\"testt\"/><tag name=\"T2\" owner=\"testt\"/></tags>"
 Ts12_empty = '{"tags": { "tag": [' + T1_empty + ', ' + T2_empty + ']}}'
-Ts12_empty_r = {u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}
-Ts12p_empty_r = {u'tags': {u'tag': [{u'@owner': u'testp', u'@name': u'T1'}, {u'@owner': u'testp', u'@name': u'T2'}]}}
+Ts12_empty_r = {u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}
+Ts12p_empty_r = {u'tags': {u'tag': [{u'@owner': testp, u'@name': u'T1'}, {u'@owner': testp, u'@name': u'T2'}]}}
 Ts1234_empty = '{"tags": { "tag": [' + T1_empty + ', ' + T2_empty + ', ' + T3_empty + ', ' + T4_empty + ']}}'
 
-T1_C1 = '{"@name": "T1", "@owner": "testt", "channels": {"channel" : {"@name": "C1", "tags": {"tag": {"@name": "T1"}}}}}'
-T1_C1_r = {u'channels': {u'channel': {u'@owner': u'testc', u'@name': u'C1', u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T1'}}, u'properties': None}}, u'@owner': u'testt', u'@name': u'T1'}
-t1_C1 = '{"@name": "t1", "@owner": "testt", "channels": {"channel" : {"@name": "C1", "@owner": "testc", "tags": {"tag": {"@name": "t1"}}}}}'
-T1_C2 = '{"@name": "T1", "@owner": "testt", "channels": {"channel" : {"@name": "C2", "@owner": "testc", "tags": {"tag": {"@name": "T1"}}}}}'
-T1_C2_r = {u'channels': {u'channel': {u'@owner': u'testc', u'@name': u'C2', u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T1'}}, u'properties': None}}, u'@owner': u'testt', u'@name': u'T1'}
-T1_C12 = '{"@name": "T1", "@owner": "testt", "channels": {"channel" : [{"@name": "C1", "@owner": "testc", "tags": {"tag": {"@name": "T1"}}}, {"@name": "C2", "@owner": "testc", "tags": {"tag": {"@name": "T1"}}}]}}'
-T1_C3 = '{"@name": "T1", "@owner": "testt", "channels": {"channel" : {"@name": "C3", "tags": {"tag": {"@name": "T1"}}}}}'
-T2_C2 = '{"@name": "T2", "@owner": "testt", "channels": {"channel" : {"@name": "C2", "@owner": "testc", "tags": {"tag": {"@name": "T2"}}}}}'
-T2_C23 = '{"@name": "T2", "@owner": "testt", "channels": {"channel" : [{"@name": "C2", "tags": {"tag": {"@name": "T2"}}}, {"@name": "C3", "tags": {"tag": {"@name": "T2"}}}]}}'
-T2_C23_r = {u'channels': {u'channel': [{u'@owner': u'testc', u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': u'testt', u'@name': u'T1'}, {u'@owner': u'testt', u'@name': u'T2'}]}}, {u'@owner': u'testc', u'@name': u'C3', u'properties': None, u'tags': {u'tag': {u'@owner': u'testt', u'@name': u'T2'}}}]}, u'@owner': u'testt', u'@name': u'T2'}
-t2_C23 = '{"@name": "t2", "@owner": "testt", "channels": {"channel" : [{"@name": "C2", "tags": {"tag": {"@name": "t2"}}}, {"@name": "C3", "tags": {"tag": {"@name": "t2"}}}]}}'
-T3_C1 = '{"@name": "T33", "@owner": "testt", "channels": {"channel" : {"@name": "C1", "tags": {"tag": {"@name": "T33"}}}}}'
-T2_C4 = '{"@name": "T2", "@owner": "testt", "channels": {"channel" : {"@name": "C4", "tags": {"tag": {"@name": "T2"}}}}}'
+T1_C1 = '{"@name": "T1", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C1", "tags": {"tag": {"@name": "T1"}}}}}'
+T1_C1_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C1', u'tags': {u'tag': {u'@owner': testt, u'@name': u'T1'}}, u'properties': None}}, u'@owner': testt, u'@name': u'T1'}
+t1_C1 = '{"@name": "t1", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "tags": {"tag": {"@name": "t1"}}}}}'
+T1_C2 = '{"@name": "T1", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "tags": {"tag": {"@name": "T1"}}}}}'
+T1_C2_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C2', u'tags': {u'tag': {u'@owner': testt, u'@name': u'T1'}}, u'properties': None}}, u'@owner': testt, u'@name': u'T1'}
+T1_C12 = '{"@name": "T1", "@owner": "' + testt + '", "channels": {"channel" : [{"@name": "C1", "@owner": "' + testc + '", "tags": {"tag": {"@name": "T1"}}}, {"@name": "C2", "@owner": "' + testc + '", "tags": {"tag": {"@name": "T1"}}}]}}'
+T1_C3 = '{"@name": "T1", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C3", "tags": {"tag": {"@name": "T1"}}}}}'
+T2_C2 = '{"@name": "T2", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "tags": {"tag": {"@name": "T2"}}}}}'
+T2_C23 = '{"@name": "T2", "@owner": "' + testt + '", "channels": {"channel" : [{"@name": "C2", "tags": {"tag": {"@name": "T2"}}}, {"@name": "C3", "tags": {"tag": {"@name": "T2"}}}]}}'
+T2_C23_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}, {u'@owner': testc, u'@name': u'C3', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T2'}}}]}, u'@owner': testt, u'@name': u'T2'}
+t2_C23 = '{"@name": "t2", "@owner": "' + testt + '", "channels": {"channel" : [{"@name": "C2", "tags": {"tag": {"@name": "t2"}}}, {"@name": "C3", "tags": {"tag": {"@name": "t2"}}}]}}'
+T3_C1 = '{"@name": "T33", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C1", "tags": {"tag": {"@name": "T33"}}}}}'
+T2_C4 = '{"@name": "T2", "@owner": "' + testt + '", "channels": {"channel" : {"@name": "C4", "tags": {"tag": {"@name": "T2"}}}}}'
 
 
 #############################################################################################
@@ -162,7 +174,7 @@ T2_C4 = '{"@name": "T2", "@owner": "testt", "channels": {"channel" : {"@name": "
 #############################################################################################
 
 def doGetJSON(self, conn, g_url, g_result, g_resp):
-    response = conn_none.request_get(g_url, headers=jsonheader)
+    response = conn_none.request_get(g_url, headers=copy(jsonheader))
     self.assertEqual(`g_resp`, response[u'headers']['status'],
     'unexpected return code for get operation - expected ' + `g_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     if (response[u'headers']['status'] != '404'):
@@ -171,54 +183,54 @@ def doGetJSON(self, conn, g_url, g_result, g_resp):
         'unexpected result of get operation - expected:\n' + `g_result` + '\nreceived:\n' + `j`)
 
 def doPostAndGetJSON(self, conn, p_url, p_body, p_resp, g_url, g_result, g_resp):
-    response = conn.request_post(p_url, headers=jsonheader, body=p_body)
+    response = conn.request_post(p_url, headers=copy(jsonheader), body=p_body)
     self.assertEqual(`p_resp`, response[u'headers']['status'],
     'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     doGetJSON(self, conn, g_url, g_result, g_resp)
 
 def doPostAndFailJSON(self, conn, p_url, p_body, p_resp):
-    response = conn.request_post(p_url, headers=jsonheader, body=p_body)
+    response = conn.request_post(p_url, headers=copy(jsonheader), body=p_body)
     self.assertEqual(`p_resp`, response[u'headers']['status'],
     'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
 
 def doPostAndFailMessageJSON(self, conn, p_url, p_body, p_resp, err_mess):
-    response = conn.request_post(p_url, headers=jsonheader, body=p_body)
+    response = conn.request_post(p_url, headers=copy(jsonheader), body=p_body)
     self.assertEqual(`p_resp`, response[u'headers']['status'],
     'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     self.assertFalse(response[u'body'].find(err_mess) == -1,
     'error message from server:\n' + response[u'body'] + '\ndoes not contain the expected string: "' + err_mess + '"')
 
 def doPutAndGetJSON(self, conn, p_url, p_body, p_resp, g_url, g_result, g_resp):
-    response = conn.request_put(p_url, headers=jsonheader, body=p_body)
+    response = conn.request_put(p_url, headers=copy(jsonheader), body=p_body)
     self.assertEqual(`p_resp`, response[u'headers']['status'],
     'unexpected return code for put operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     doGetJSON(self, conn, g_url, g_result, g_resp)
 
 def doPutAndFailJSON(self, conn, p_url, p_body, p_resp):
-    response = conn.request_put(p_url, headers=jsonheader, body=p_body)
+    response = conn.request_put(p_url, headers=copy(jsonheader), body=p_body)
     self.assertEqual(`p_resp`, response[u'headers']['status'],
     'unexpected return code for put operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
 
 def doPutAndFailMessageJSON(self, conn, p_url, p_body, p_resp, err_mess):
-    response = conn.request_put(p_url, headers=jsonheader, body=p_body)
+    response = conn.request_put(p_url, headers=copy(jsonheader), body=p_body)
     self.assertEqual(`p_resp`, response[u'headers']['status'],
     'unexpected return code for put operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     self.assertFalse(response[u'body'].find(err_mess) == -1,
     'error message from server:\n' + response[u'body'] + '\ndoes not contain the expected string: "' + err_mess + '"')
 
 def doDeleteAndGetJSON(self, conn, d_url, d_resp, g_url, g_result, g_resp):
-    response = conn.request_delete(d_url, headers=jsonheader)
+    response = conn.request_delete(d_url, headers=copy(jsonheader))
     self.assertEqual(`d_resp`, response[u'headers']['status'],
     'unexpected return code for delete operation - expected ' + `d_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     doGetJSON(self, conn, g_url, g_result, g_resp)
 
 def doDeleteAndFailJSON(self, conn, d_url, d_resp):
-    response = conn.request_delete(d_url, headers=jsonheader)
+    response = conn.request_delete(d_url, headers=copy(jsonheader))
     self.assertEqual(`d_resp`, response[u'headers']['status'],
     'unexpected return code for delete operation - expected ' + `d_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
 
 def doDeleteAndFailMessageJSON(self, conn, d_url, d_resp, err_mess):
-    response = conn.request_delete(d_url, headers=jsonheader)
+    response = conn.request_delete(d_url, headers=copy(jsonheader))
     self.assertEqual(`d_resp`, response[u'headers']['status'],
     'unexpected return code for delete operation - expected ' + `d_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     self.assertFalse(response[u'body'].find(err_mess) == -1,
@@ -233,12 +245,12 @@ class QueryChannels(unittest.TestCase):
         self.p  = 'resources/properties'
         self.t  = 'resources/tags'
         self.c  = 'resources/channels'
-        response = conn_admin.request_post(self.t, headers=jsonheader, body=Ts1234_empty)
-        response = conn_admin.request_post(self.p, headers=jsonheader, body=Ps1234_empty)
-        response = conn_admin.request_post(self.c, headers=jsonheader, body=Cs1234_full)
+        response = conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts1234_empty)
+        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps1234_empty)
+        response = conn_admin.request_post(self.c, headers=copy(jsonheader), body=Cs1234_full)
 
     def test_AllChans(self):
-        doGetJSON(self, conn_none, self.c + getextra, Cs1234_full_r, 200)
+        doGetJSON(self, conn_none, self.c + "", Cs1234_full_r, 200)
 
     def test_OneNameStarPattern(self):
         doGetJSON(self, conn_none, self.c + "?~name=C*", Cs1234_full_r, 200)
@@ -289,18 +301,18 @@ class QueryChannels(unittest.TestCase):
         doGetJSON(self, conn_none, self.c + "?p3=prop1&P3=prop3&~name=c3", Cs3_full_r, 200)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.c + '/C1', headers=jsonheader)
-        response = conn_admin.request_delete(self.c + '/C2', headers=jsonheader)
-        response = conn_admin.request_delete(self.c + '/C3', headers=jsonheader)
-        response = conn_admin.request_delete(self.c + '/C4', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P1', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P2', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P3', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P4', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T1', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T2', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T33', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T44', headers=jsonheader)
+        response = conn_admin.request_delete(self.c + '/C1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.c + '/C2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.c + '/C3', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.c + '/C4', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P3', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P4', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T33', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T44', headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -315,7 +327,7 @@ class PutManyChannels(unittest.TestCase):
         doPutAndFailJSON(self, conn_admin, self.c, Cs1_full, 405)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -326,8 +338,8 @@ class PostManyChannels(unittest.TestCase):
         self.t  = 'resources/tags'
         self.p  = 'resources/properties'
         self.c  = 'resources/channels'
-        response = conn_admin.request_post(self.t, headers=jsonheader, body=Ts1234_empty)
-        response = conn_admin.request_post(self.p, headers=jsonheader, body=Ps1234_empty)
+        response = conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts1234_empty)
+        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps1234_empty)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.c, Cs12_full, 401)
@@ -343,7 +355,7 @@ class PostManyChannels(unittest.TestCase):
 
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanny2(self):
-        doPostAndFailMessageJSON(self, conn_chan2, self.c, Cs12_1t_2_empty, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+        doPostAndFailMessageJSON(self, conn_chan2, self.c, Cs12_1t_2_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
@@ -364,16 +376,16 @@ class PostManyChannels(unittest.TestCase):
         doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.c + '/C1', headers=jsonheader)
-        response = conn_admin.request_delete(self.c + '/C2', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P1', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P2', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P3', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P4', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T1', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T2', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T33', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T44', headers=jsonheader)
+        response = conn_admin.request_delete(self.c + '/C1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.c + '/C2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P3', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P4', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T33', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T44', headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -384,8 +396,8 @@ class PutOneChannel(unittest.TestCase):
         self.C1 = 'resources/channels/C1'
         self.p = 'resources/properties'
         self.t = 'resources/tags'
-        response = conn_admin.request_post(self.t, headers=jsonheader, body=Ts12_empty)
-        response = conn_admin.request_post(self.p, headers=jsonheader, body=Ps12_empty)
+        response = conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts12_empty)
+        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps12_empty)
 
     def test_Unauthorized(self):
         doPutAndFailJSON(self, conn_none, self.C1, C1_full, 401)
@@ -428,7 +440,7 @@ class PutOneChannel(unittest.TestCase):
 
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanny2(self):
-        doPutAndFailMessageJSON(self, conn_chan2, self.C1, C1t_empty, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+        doPutAndFailMessageJSON(self, conn_chan2, self.C1, C1t_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
@@ -449,11 +461,11 @@ class PutOneChannel(unittest.TestCase):
         doPutAndFailMessageJSON(self, conn_admin, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P1', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P2', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T1', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T2', headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -465,9 +477,9 @@ class PostOneChannel(unittest.TestCase):
         self.C2 = 'resources/channels/C2'
         self.p = 'resources/properties'
         self.t = 'resources/tags'
-        response = conn_admin.request_post(self.t, headers=jsonheader, body=Ts1234_empty)
-        response = conn_admin.request_post(self.p, headers=jsonheader, body=Ps12_empty)
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_full)
+        response = conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts1234_empty)
+        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps12_empty)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_full)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.C1, C1_full2, 401)
@@ -495,12 +507,12 @@ class PostOneChannel(unittest.TestCase):
 
 # New channel owner (non member of new owner)
     def test_AuthorizedAsChanNewOwnerNonMemberNew(self):
-        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1t_empty, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1t_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
 # New channel owner (non member of old owner)
     def test_AuthorizedAsChanNewOwnerNonMemberOld(self):
         doPostAndGetJSON(self, conn_chan, self.C1, C1t_empty, 204, self.C1, C1t_full_r, 200)
-        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1_empty, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
@@ -525,13 +537,13 @@ class PostOneChannel(unittest.TestCase):
         doPostAndFailMessageJSON(self, conn_chan, self.C2, C2_full, 404, "Specified channel 'C2' does not exist")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P1', headers=jsonheader)
-        response = conn_admin.request_delete(self.p + '/P2', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T1', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T2', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T33', headers=jsonheader)
-        response = conn_admin.request_delete(self.t + '/T44', headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T33', headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t + '/T44', headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -545,10 +557,10 @@ class DeleteChannel(unittest.TestCase):
         self.c = 'resources/channels'
         self.P1 = 'resources/properties/P1'
         self.P2 = 'resources/properties/P2'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1t_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_C12)
-        response = conn_admin.request_put(self.P2, headers=jsonheader, body=P2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1t_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
+        response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
         doDeleteAndFailJSON(self, conn_none, self.C1, 401)
@@ -577,7 +589,7 @@ class DeleteChannel(unittest.TestCase):
 
 # delete as channy2 (does not belong to testt)
     def test_AuthorizedAsChanny2(self):
-        doDeleteAndFailMessageJSON(self, conn_chan2, self.C1, 403, "User 'channy2' does not belong to owner group 'testt' of channel 'C1'")
+        doDeleteAndFailMessageJSON(self, conn_chan2, self.C1, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
 # delete nonexisting channel
     def test_AuthorizedAsChanNonexistingChannel(self):
@@ -586,11 +598,11 @@ class DeleteChannel(unittest.TestCase):
         doDeleteAndFailJSON(self, conn_chan, self.C3, 404)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C3, headers=jsonheader)
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
-        response = conn_admin.request_delete(self.P2, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C3, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -605,7 +617,7 @@ class PutManyTags(unittest.TestCase):
         doPutAndFailJSON(self, conn_admin, self.t, Ts1p_empty, 405)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -637,13 +649,13 @@ class PostManyTags(unittest.TestCase):
         doPostAndGetJSON(self, conn_admin, self.t, Ts12_empty, 204, self.t, Ts12_empty_r, 200)
         doPostAndGetJSON(self, conn_admin, self.t, Ts12p_empty, 204, self.t, Ts12p_empty_r, 200)
 
-# As 'channy2' user that does not belong to group of tag
+# As '" + user_chan2 + "' user that does not belong to group of tag
     def test_AuthorizedAsChanny2(self):
-        doPostAndFailMessageJSON(self, conn_chan2, self.t, Ts12_empty, 403, "User 'channy2' does not belong to owner group 'testt' of tag 'T1'")
+        doPostAndFailMessageJSON(self, conn_chan2, self.t, Ts12_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
-        response = conn_admin.request_delete(self.T2, headers=jsonheader)
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.T2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -673,12 +685,12 @@ class PutOneTag(unittest.TestCase):
         doPutAndGetJSON(self, conn_admin, self.T1, T1_empty, 204, self.T1, T1_empty_r, 200)
         doPutAndGetJSON(self, conn_admin, self.T1, T1p_empty, 204, self.T1, T1p_empty_r, 200)
 
-# As 'channy2' user that does not belong to group of tag
+# As '" + user_chan2 + "' user that does not belong to group of tag
     def test_AuthorizedAsChanny2(self):
-        doPutAndFailMessageJSON(self, conn_chan2, self.T1, T1_empty, 403, "User 'channy2' does not belong to owner group 'testt' of tag 'T1'")
+        doPutAndFailMessageJSON(self, conn_chan2, self.T1, T1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -692,9 +704,9 @@ class PutOneTagWithChannels(unittest.TestCase):
         self.t1 = 'resources/tags/t1'
         self.C1 = 'resources/channels/C1'
         self.C2 = 'resources/channels/C2'
-        response = conn_admin.request_put(self.T1, headers=jsonheader, body=T1_empty)
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
+        response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_empty)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
 
     def test_Unauthorized(self):
         doPutAndFailJSON(self, conn_none, self.T1, T1_C1, 401)
@@ -724,9 +736,9 @@ class PutOneTagWithChannels(unittest.TestCase):
         doPutAndFailMessageJSON(self, conn_tag, self.T1, t1_C1, 400, "Specified tag name 'T1' and payload tag name 't1' do not match")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -742,10 +754,10 @@ class PostOneTag(unittest.TestCase):
         self.t1 = 'resources/tags/t1'
         self.T2 = 'resources/tags/T2'
         self.T3 = 'resources/tags/T3'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.T1, headers=jsonheader, body=T1_C12)
-        response = conn_admin.request_put(self.T2, headers=jsonheader, body=T2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_C12)
+        response = conn_admin.request_put(self.T2, headers=copy(jsonheader), body=T2_C2)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.T1, T1p_empty, 401)
@@ -761,12 +773,12 @@ class PostOneTag(unittest.TestCase):
 
 # New tag owner (non member of new owner)
     def test_AuthorizedAsChanNewOwnerNonMemberNew(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T1, T1p_empty, 403, "User 'taggy' does not belong to owner group 'testp' of tag 'T1'")
+        doPostAndFailMessageJSON(self, conn_tag, self.T1, T1p_empty, 403, "User '" + user_tag + "' does not belong to owner group '"+testp+"' of tag 'T1'")
 
 # New tag owner (non member of old owner)
     def test_AuthorizedAsChanNewOwnerNonMemberOld(self):
         doPostAndGetJSON(self, conn_chan, self.T1, T1p_empty, 204, self.c, Cs12_1T1p_2T12p_r, 200)
-        doPostAndFailMessageJSON(self, conn_tag, self.T1, T1_empty, 403, "User 'taggy' does not belong to owner group 'testp' of tag 'T1'")
+        doPostAndFailMessageJSON(self, conn_tag, self.T1, T1_empty, 403, "User '" + user_tag + "' does not belong to owner group '"+testp+"' of tag 'T1'")
 
 # Set a new tag name
     def test_AuthorizedAsTagNewName(self):
@@ -776,18 +788,18 @@ class PostOneTag(unittest.TestCase):
 
 # Non-existing tag
     def test_AuthorizedAsTagNonexTag(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "A tag named 'T33' does not exist")
+        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "A tag named 'T3' does not exist")
 
-# As 'channy2' user that does not belong to group of tag
+# As '" + user_chan2 + "' user that does not belong to group of tag
     def test_AuthorizedAsChanny2(self):
-        doPostAndFailMessageJSON(self, conn_chan2, self.T1, T1_empty, 403, "User 'channy2' does not belong to owner group 'testt' of tag 'T1'")
+        doPostAndFailMessageJSON(self, conn_chan2, self.T1, T1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
-        response = conn_admin.request_delete(self.t1, headers=jsonheader)
-        response = conn_admin.request_delete(self.T2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.t1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.T2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -803,11 +815,11 @@ class UpdateTagWithChannels(unittest.TestCase):
         self.T1 = 'resources/tags/T1'
         self.T2 = 'resources/tags/T2'
         self.T3 = 'resources/tags/T3'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.C3, headers=jsonheader, body=C3_empty)
-        response = conn_admin.request_put(self.T1, headers=jsonheader, body=T1_C12)
-        response = conn_admin.request_put(self.T2, headers=jsonheader, body=T2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.C3, headers=copy(jsonheader), body=C3_empty)
+        response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_C12)
+        response = conn_admin.request_put(self.T2, headers=copy(jsonheader), body=T2_C2)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.T2, T2_C23, 401)
@@ -828,18 +840,18 @@ class UpdateTagWithChannels(unittest.TestCase):
 
 # Non-existing tag
     def test_AuthorizedAsTagNonexTag(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "A tag named 'T33' does not exist")
+        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "A tag named 'T3' does not exist")
 
 # Non-existing channel
     def test_AuthorizedAsTagNonexChannel(self):
         doPostAndFailMessageJSON(self, conn_tag, self.T2, T2_C4, 404, "Channels specified in tag update do not exist")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
-        response = conn_admin.request_delete(self.T2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C3, headers=jsonheader)
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.T2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C3, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -855,10 +867,10 @@ class DeleteTag(unittest.TestCase):
         self.T1 = 'resources/tags/T1'
         self.T2 = 'resources/tags/T2'
         self.TX = 'resources/tags/TX'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.T1, headers=jsonheader, body=T1_C12)
-        response = conn_admin.request_put(self.T2, headers=jsonheader, body=T2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_C12)
+        response = conn_admin.request_put(self.T2, headers=copy(jsonheader), body=T2_C2)
 
     def test_Unauthorized(self):
         doDeleteAndFailJSON(self, conn_none, self.T1, 401)
@@ -878,7 +890,7 @@ class DeleteTag(unittest.TestCase):
 
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanny2GroupNonMember(self):
-        doDeleteAndFailMessageJSON(self, conn_chan2, self.T1, 403, "User 'channy2' does not belong to owner group 'testt' of tag 'T1'")
+        doDeleteAndFailMessageJSON(self, conn_chan2, self.T1, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
 # delete nonexisting tag
     def test_AuthorizedAsTagNonexistingTag(self):
@@ -887,9 +899,9 @@ class DeleteTag(unittest.TestCase):
         doDeleteAndFailJSON(self, conn_admin, self.TX, 404)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -903,9 +915,9 @@ class AddSingleTag(unittest.TestCase):
         self.T1 = 'resources/tags/T1'
         self.T1C1 = 'resources/tags/T1/C1'
         self.T1C3 = 'resources/tags/T1/C3'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.T1, headers=jsonheader, body=T1_empty)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_empty)
 
     def test_Unauthorized(self):
         doPutAndFailJSON(self, conn_none, self.T1C1, T1_C1, 401)
@@ -925,7 +937,7 @@ class AddSingleTag(unittest.TestCase):
 
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanny2GroupNonMember(self):
-        doPutAndFailMessageJSON(self, conn_chan2, self.T1C1, T1_C1, 403, "User 'channy2' does not belong to owner group 'testt' of tag 'T1'")
+        doPutAndFailMessageJSON(self, conn_chan2, self.T1C1, T1_C1, 403, "User '"+  user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
 # Adding tag to non-existing channel
     def test_AuthorizedAsTagNonexChannel(self):
@@ -936,9 +948,9 @@ class AddSingleTag(unittest.TestCase):
         doPutAndFailMessageJSON(self, conn_tag, self.T1C1, t1_C1, 400, "Specified tag name 'T1' and payload tag name 't1' do not match")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -953,9 +965,9 @@ class DeleteSingleTag(unittest.TestCase):
         self.T1C1 = 'resources/tags/T1/C1'
         self.TXC1 = 'resources/tags/TX/C1'
         self.T1CX = 'resources/tags/T1/CX'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.T1, headers=jsonheader, body=T1_C12)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_C12)
 
     def test_Unauthorized(self):
         doDeleteAndFailJSON(self, conn_none, self.T1C1, 401)
@@ -975,7 +987,7 @@ class DeleteSingleTag(unittest.TestCase):
 
 # same as channy2 (not member of testt)
     def test_AuthorizedAsChanny2GroupNonMember(self):
-        doDeleteAndFailMessageJSON(self, conn_chan2, self.T1C1, 403, "User 'channy2' does not belong to owner group 'testt' of tag 'T1'")
+        doDeleteAndFailMessageJSON(self, conn_chan2, self.T1C1, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
 # delete nonexisting tag
     def test_AuthorizedAsTagNonexTag(self):
@@ -986,9 +998,9 @@ class DeleteSingleTag(unittest.TestCase):
         doDeleteAndFailJSON(self, conn_tag, self.T1CX, 404)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.T1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1003,7 +1015,7 @@ class PutManyProperties(unittest.TestCase):
         doPutAndFailJSON(self, conn_admin, self.p, Ps1t_empty, 405)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1030,11 +1042,11 @@ class PostManyProperties(unittest.TestCase):
         doPostAndGetJSON(self, conn_admin, self.urlp, Ps12_empty, 204, self.urlp, Ps12_empty_r, 200)
 
     def doTestAndCheckOverwrite(self, conn):
-        response = conn.request_post(self.urlp, headers=jsonheader, body=Ps12_empty)
+        response = conn.request_post(self.urlp, headers=copy(jsonheader), body=Ps12_empty)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn.request_post(self.urlp, headers=jsonheader, body=Ps12t_empty)
+        response = conn.request_post(self.urlp, headers=copy(jsonheader), body=Ps12t_empty)
         self.failUnlessEqual('204', response[u'headers']['status'])
-        response = conn_none.request_get(self.urlp, headers=jsonheader)
+        response = conn_none.request_get(self.urlp, headers=copy(jsonheader))
         self.failUnlessEqual('200', response[u'headers']['status'])
         j1 = JSONDecoder().decode(response[u'body'])
         self.failUnlessEqual(j1, Ps12t_empty_r)
@@ -1045,13 +1057,13 @@ class PostManyProperties(unittest.TestCase):
         doPostAndGetJSON(self, conn_admin, self.urlp, Ps12_empty, 204, self.urlp, Ps12_empty_r, 200)
         doPostAndGetJSON(self, conn_admin, self.urlp, Ps12t_empty, 204, self.urlp, Ps12t_empty_r, 200)
 
-# As 'proppy2' user that does not belong to group of property
+# As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2Overwrite(self):
-        doPostAndFailMessageJSON(self, conn_prop2, self.urlp, Ps12_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doPostAndFailMessageJSON(self, conn_prop2, self.urlp, Ps12_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
-        response = conn_admin.request_delete(self.P2, headers=jsonheader)
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1081,12 +1093,12 @@ class PutOneProperty(unittest.TestCase):
         doPutAndGetJSON(self, conn_admin, self.P1, P1_empty, 204, self.P1, P1_empty_r, 200)
         doPutAndGetJSON(self, conn_admin, self.P1, P1t_empty, 204, self.P1, P1t_empty_r, 200)
 
-# As 'proppy2' user that does not belong to group of property
+# As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2(self):
-        doPutAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doPutAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1097,9 +1109,9 @@ class PutOnePropertyWithChannels(unittest.TestCase):
         self.P1 = 'resources/properties/P1'
         self.C1 = 'resources/channels/C1'
         self.C2 = 'resources/channels/C2'
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_empty)
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_empty)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
 
     def test_Unauthorized(self):
         doPutAndFailJSON(self, conn_none, self.P1, P1_C1, 401)
@@ -1130,9 +1142,9 @@ class PutOnePropertyWithChannels(unittest.TestCase):
         doPutAndFailMessageJSON(self, conn_prop, self.P1, p1_C1, 400, "Specified property name 'P1' and payload property name 'p1' do not match")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1148,10 +1160,10 @@ class PostOneProperty(unittest.TestCase):
         self.p1 = 'resources/properties/p1'
         self.P2 = 'resources/properties/P2'
         self.P3 = 'resources/properties/P3'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_C12)
-        response = conn_admin.request_put(self.P2, headers=jsonheader, body=P2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
+        response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.P1, P1t_empty, 401)
@@ -1174,27 +1186,27 @@ class PostOneProperty(unittest.TestCase):
 
 # New tag owner (non member of new owner)
     def test_AuthorizedAsChanNewOwnerNonMemberNew(self):
-        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1t_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1t_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
 # New tag owner (non member of old owner)
     def test_AuthorizedAsChanNewOwnerNonMemberOld(self):
         doPostAndGetJSON(self, conn_prop, self.P1, P1t_empty, 204, self.c, Cs12_1P1t_2P12t_r, 200)
-        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
 # Non-existing property
     def test_AuthorizedAsPropNonexProp(self):
         doPostAndFailMessageJSON(self, conn_prop, self.P3, P3_empty, 404, "A property named 'P3' does not exist")
 
-# As 'proppy2' user that does not belong to group of property
+# As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2(self):
-        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
-        response = conn_admin.request_delete(self.p1, headers=jsonheader)
-        response = conn_admin.request_delete(self.P2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.p1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1210,11 +1222,11 @@ class UpdatePropertyWithChannels(unittest.TestCase):
         self.P1 = 'resources/properties/P1'
         self.P2 = 'resources/properties/P2'
         self.P3 = 'resources/properties/P3'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.C3, headers=jsonheader, body=C3_empty)
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_C12)
-        response = conn_admin.request_put(self.P2, headers=jsonheader, body=P2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.C3, headers=copy(jsonheader), body=C3_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
+        response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.P2, P2_C23, 401)
@@ -1250,11 +1262,11 @@ class UpdatePropertyWithChannels(unittest.TestCase):
         doPostAndFailMessageJSON(self, conn_prop, self.P2, P2_C4, 404, "Channels specified in property update do not exist")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
-        response = conn_admin.request_delete(self.P2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.C3, headers=jsonheader)
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C3, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1269,10 +1281,10 @@ class DeleteProperty(unittest.TestCase):
         self.P1 = 'resources/properties/P1'
         self.P2 = 'resources/properties/P2'
         self.PX = 'resources/properties/PX'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_C12)
-        response = conn_admin.request_put(self.P2, headers=jsonheader, body=P2_C2)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
+        response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
         doDeleteAndFailJSON(self, conn_none, self.P1, 401)
@@ -1289,9 +1301,9 @@ class DeleteProperty(unittest.TestCase):
         doDeleteAndGetJSON(self, conn_admin, self.P1, 200, self.P1, "", 404)
         doGetJSON(self, conn_admin, self.c, Cs12_1e2p2_r, 200)
 
-# As 'proppy2' user that does not belong to group of property
+# As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2NonMember(self):
-        doDeleteAndFailMessageJSON(self, conn_prop2, self.P1, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doDeleteAndFailMessageJSON(self, conn_prop2, self.P1, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
     def test_AuthorizedAsPropNonexistingProperty(self):
         doDeleteAndFailJSON(self, conn_prop, self.PX, 404)
@@ -1299,9 +1311,9 @@ class DeleteProperty(unittest.TestCase):
         doDeleteAndFailJSON(self, conn_admin, self.PX, 404)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1315,9 +1327,9 @@ class AddSingleProperty(unittest.TestCase):
         self.P1 = 'resources/properties/P1'
         self.P1C1 = 'resources/properties/P1/C1'
         self.P1C3 = 'resources/properties/P1/C3'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_empty)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_empty)
 
     def test_Unauthorized(self):
         doPutAndFailJSON(self, conn_none, self.P1C1, P1_C1, 401)
@@ -1334,9 +1346,9 @@ class AddSingleProperty(unittest.TestCase):
         doPutAndGetJSON(self, conn_admin, self.P1C1, P1_C1, 204, self.P1, P1_C1_r, 200)
         doGetJSON(self, conn_admin, self.c, Cs12_1P1_r, 200)
 
-# As 'proppy2' user that does not belong to group of property
+# As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2NonMember(self):
-        doPutAndFailMessageJSON(self, conn_prop2, self.P1C1, P1_C1, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doPutAndFailMessageJSON(self, conn_prop2, self.P1C1, P1_C1, 403, "User '" + user_prop2 + "' does not belong to owner group '" + testp + "' of property 'P1'")
 
 # Adding property to non-existing channel
     def test_AuthorizedAsPropNonexChannel(self):
@@ -1347,9 +1359,9 @@ class AddSingleProperty(unittest.TestCase):
         doPutAndFailMessageJSON(self, conn_prop, self.P1C1, p1_C1, 400, "Specified property name 'P1' and payload property name 'p1' do not match")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -1364,9 +1376,9 @@ class DeleteSingleProperty(unittest.TestCase):
         self.P1C1 = 'resources/properties/P1/C1'
         self.PXC1 = 'resources/properties/PX/C1'
         self.P1CX = 'resources/properties/P1/CX'
-        response = conn_admin.request_put(self.C1, headers=jsonheader, body=C1_empty)
-        response = conn_admin.request_put(self.C2, headers=jsonheader, body=C2_empty)
-        response = conn_admin.request_put(self.P1, headers=jsonheader, body=P1_C12)
+        response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
+        response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
+        response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
 
     def test_Unauthorized(self):
         doDeleteAndFailJSON(self, conn_none, self.P1C1, 401)
@@ -1383,9 +1395,9 @@ class DeleteSingleProperty(unittest.TestCase):
         doDeleteAndGetJSON(self, conn_admin, self.P1C1, 200, self.P1, P1_C2_r, 200)
         doGetJSON(self, conn_admin, self.c, Cs12_1e2P1_r, 200)
 
-# As 'proppy2' user that does not belong to group of property
+# As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2NonMember(self):
-        doDeleteAndFailMessageJSON(self, conn_prop2, self.P1C1, 403, "User 'proppy2' does not belong to owner group 'testp' of property 'P1'")
+        doDeleteAndFailMessageJSON(self, conn_prop2, self.P1C1, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
 # delete nonexisting tag
     def test_AuthorizedAsPropNonexTag(self):
@@ -1396,16 +1408,16 @@ class DeleteSingleProperty(unittest.TestCase):
         doDeleteAndFailJSON(self, conn_prop, self.P1CX, 404)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=jsonheader)
-        response = conn_admin.request_delete(self.C2, headers=jsonheader)
-        response = conn_admin.request_delete(self.P1, headers=jsonheader)
+        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
 
 
 if __name__ == '__main__':
 
 # Check if database is empty
     getextra = ""
-    response = conn_none.request_get('resources/channels', headers=jsonheader)
+    response = conn_none.request_get('resources/channels', headers=copy(jsonheader))
     assert '200' == response[u'headers']['status'], 'Database list request returned an error'
     j1 = JSONDecoder().decode(response[u'body'])
     if (None != j1[u'channels']):
