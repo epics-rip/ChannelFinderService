@@ -72,6 +72,7 @@ public class UpdateValuesQuery {
      * @param channel channel to add tag to
      */
     private UpdateValuesQuery(String name, String channel) {
+        this.oldname = name;
         this.name = name;
         channels = new XmlChannels(new XmlChannel(channel));
         isTagQuery = true;
@@ -91,20 +92,20 @@ public class UpdateValuesQuery {
         int i;
 
         // Get property id
-        Long pid = FindPropertyIdsQuery.getPropertyId(name);
+        Long pid = FindPropertyIdsQuery.getPropertyId(oldname);
 
         if (pid == null) {
             throw new CFException(Response.Status.NOT_FOUND,
-                    "A " + getType() + " named '" + name + "' does not exist");
+                    "A " + getType() + " named '" + oldname + "' does not exist");
         }
 
         // Update name and owner if necessary
         if (isTagQuery) {
-            XmlTag t = ListPropertiesQuery.findTag(name);
+            XmlTag t = ListPropertiesQuery.findTag(oldname);
             dbname = t.getName();
             dbowner = t.getOwner();
         } else {
-            XmlProperty p = ListPropertiesQuery.findProperty(name);
+            XmlProperty p = ListPropertiesQuery.findProperty(oldname);
             dbname = p.getName();
             dbowner = p.getOwner();
         }
