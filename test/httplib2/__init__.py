@@ -22,14 +22,14 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Sam Ruby",
     "Louis Nyffenegger"]
 __license__ = "MIT"
-__version__ = "$Rev: 259 $"
+__version__ = "$Rev$"
 
 import re 
 import sys 
-import md5
 import email
 import email.Utils
 import email.Message
+import email.FeedParser
 import StringIO
 import gzip
 import zlib
@@ -41,7 +41,14 @@ import copy
 import calendar
 import time
 import random
-import sha
+# remove depracated warning in python2.6
+try:
+    from hashlib import sha1 as _sha, md5 as _md5
+except ImportError:
+    import sha
+    import md5
+    _sha = sha.new
+    _md5 = md5.new
 import hmac
 from gettext import gettext as _
 import socket
@@ -51,11 +58,26 @@ try:
 except ImportError:
     socks = None
 
+# Build the appropriate socket wrapper for ssl
+try:
+    import ssl # python 2.6
+    _ssl_wrap_socket = ssl.wrap_socket
+except ImportError:
+    def _ssl_wrap_socket(sock, key_file, cert_file):
+        ssl_sock = socket.ssl(sock, key_file, cert_file)
+        return httplib.FakeSocket(sock, ssl_sock)
+
+
 if sys.version_info >= (2,3):
     from iri2uri import iri2uri
 else:
     def iri2uri(uri):
         return uri
+
+def has_timeout(timeout): # python 2.6
+    if hasattr(socket, '_GLOBAL_DEFAULT_TIMEOUT'):
+        return (timeout is not None and timeout is not socket._GLOBAL_DEFAULT_TIMEOUT)
+    return (timeout is not None)
 
 __all__ = ['Http', 'Response', 'ProxyInfo', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
@@ -65,6 +87,7 @@ __all__ = ['Http', 'Response', 'ProxyInfo', 'HttpLib2Error',
 
 # The httplib debug level, set to a non-zero value to get debug output
 debuglevel = 0
+
 
 # Python 2.3 support
 if sys.version_info < (2,4):
@@ -180,7 +203,7 @@ def safename(filename):
         pass
     if isinstance(filename,unicode):
         filename=filename.encode('utf-8')
-    filemd5 = md5.new(filename).hexdigest()
+    filemd5 = _md5(filename).hexdigest()
     filename = re_url_scheme.sub("", filename)
     filename = re_slash.sub(",", filename)
 
@@ -197,8 +220,8 @@ def _parse_cache_control(headers):
     retval = {}
     if headers.has_key('cache-control'):
         parts =  headers['cache-control'].split(',')
-        parts_with_args = [tuple([x.strip() for x in part.split("=")]) for part in parts if -1 != part.find("=")]
-        parts_wo_args = [(name.strip(), 1) for name in parts if -1 == name.find("=")]
+        parts_with_args = [tuple([x.strip().lower() for x in part.split("=", 1)]) for part in parts if -1 != part.find("=")]
+        parts_wo_args = [(name.strip().lower(), 1) for name in parts if -1 == name.find("=")]
         retval = dict(parts_with_args + parts_wo_args)
     return retval 
 
@@ -327,6 +350,8 @@ def _decompressContent(response, new_content):
             if encoding == 'deflate':
                 content = zlib.decompress(content)
             response['content-length'] = str(len(content))
+            # Record the historical presence of the encoding in a way the won't interfere.
+            response['-content-encoding'] = response['content-encoding']
             del response['content-encoding']
     except IOError:
         content = ""
@@ -345,6 +370,18 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
                 if key not in ['status','content-encoding','transfer-encoding']:
                     info[key] = value
 
+            # Add annotations to the cache to indicate what headers
+            # are variant for this request.
+            vary = response_headers.get('vary', None)
+            if vary:
+                vary_headers = vary.lower().replace(' ', '').split(',')
+                for header in vary_headers:
+                    key = '-varied-%s' % header
+                    try:
+                        info[key] = request_headers[header]
+                    except KeyError:
+                        pass
+
             status = response_headers.status
             if status == 304:
                 status = 200
@@ -359,11 +396,11 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
             cache.set(cachekey, text)
 
 def _cnonce():
-    dig = md5.new("%s:%s" % (time.ctime(), ["0123456789"[random.randrange(0, 9)] for i in range(20)])).hexdigest()
+    dig = _md5("%s:%s" % (time.ctime(), ["0123456789"[random.randrange(0, 9)] for i in range(20)])).hexdigest()
     return dig[:16]
 
 def _wsse_username_token(cnonce, iso_now, password):
-    return base64.encodestring(sha.new("%s%s%s" % (cnonce, iso_now, password)).digest()).strip()
+    return base64.b64encode(_sha("%s%s%s" % (cnonce, iso_now, password)).digest()).strip()
 
 
 # For credentials we need two things, first 
@@ -415,7 +452,7 @@ class BasicAuthentication(Authentication):
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
         Authorization header."""
-        headers['authorization'] = 'Basic ' + base64.encodestring("%s:%s" % self.credentials).strip()  
+        headers['authorization'] = 'Basic ' + base64.b64encode("%s:%s" % self.credentials).strip()
 
 
 class DigestAuthentication(Authentication):
@@ -425,11 +462,11 @@ class DigestAuthentication(Authentication):
         Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
         challenge = _parse_www_authenticate(response, 'www-authenticate')
         self.challenge = challenge['digest']
-        qop = self.challenge.get('qop')
+        qop = self.challenge.get('qop', 'auth')
         self.challenge['qop'] = ('auth' in [x.strip() for x in qop.split()]) and 'auth' or None
         if self.challenge['qop'] is None:
             raise UnimplementedDigestAuthOptionError( _("Unsupported value for qop: %s." % qop))
-        self.challenge['algorithm'] = self.challenge.get('algorithm', 'MD5')
+        self.challenge['algorithm'] = self.challenge.get('algorithm', 'MD5').upper()
         if self.challenge['algorithm'] != 'MD5':
             raise UnimplementedDigestAuthOptionError( _("Unsupported value for algorithm: %s." % self.challenge['algorithm']))
         self.A1 = "".join([self.credentials[0], ":", self.challenge['realm'], ":", self.credentials[1]])   
@@ -437,7 +474,7 @@ class DigestAuthentication(Authentication):
 
     def request(self, method, request_uri, headers, content, cnonce = None):
         """Modify the request headers"""
-        H = lambda x: md5.new(x).hexdigest()
+        H = lambda x: _md5(x).hexdigest()
         KD = lambda s, d: H("%s:%s" % (s, d))
         A2 = "".join([method, ":", request_uri])
         self.challenge['cnonce'] = cnonce or _cnonce() 
@@ -497,13 +534,13 @@ class HmacDigestAuthentication(Authentication):
         if self.challenge['pw-algorithm'] not in ['SHA-1', 'MD5']:
             raise UnimplementedHmacDigestAuthOptionError( _("Unsupported value for pw-algorithm: %s." % self.challenge['pw-algorithm']))
         if self.challenge['algorithm'] == 'HMAC-MD5':
-            self.hashmod = md5
+            self.hashmod = _md5
         else:
-            self.hashmod = sha
+            self.hashmod = _sha
         if self.challenge['pw-algorithm'] == 'MD5':
-            self.pwhashmod = md5
+            self.pwhashmod = _md5
         else:
-            self.pwhashmod = sha
+            self.pwhashmod = _sha
         self.key = "".join([self.credentials[0], ":",
                     self.pwhashmod.new("".join([self.credentials[1], self.challenge['salt']])).hexdigest().lower(),
                     ":", self.challenge['realm']
@@ -600,9 +637,6 @@ AUTH_SCHEME_CLASSES = {
 
 AUTH_SCHEME_ORDER = ["hmacdigest", "googlelogin", "digest", "wsse", "basic"]
 
-def _md5(s):
-    return 
-
 class FileCache(object):
     """Uses a local directory as a store for cached files.
     Not really safe to use if multiple threads or processes are going to 
@@ -618,7 +652,7 @@ class FileCache(object):
         retval = None
         cacheFullPath = os.path.join(self.cache, self.safe(key))
         try:
-            f = file(cacheFullPath, "r")
+            f = file(cacheFullPath, "rb")
             retval = f.read()
             f.close()
         except IOError:
@@ -627,7 +661,7 @@ class FileCache(object):
 
     def set(self, key, value):
         cacheFullPath = os.path.join(self.cache, self.safe(key))
-        f = file(cacheFullPath, "w")
+        f = file(cacheFullPath, "wb")
         f.write(value)
         f.close()
 
@@ -697,11 +731,12 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                 else:
                     self.sock = socket.socket(af, socktype, proto)
                 # Different from httplib: support timeouts.
-                if self.timeout is not None:
+                if has_timeout(self.timeout):
                     self.sock.settimeout(self.timeout)
                     # End of difference from httplib.
                 if self.debuglevel > 0:
                     print "connect: (%s, %s)" % (self.host, self.port)
+
                 self.sock.connect(sa)
             except socket.error, msg:
                 if self.debuglevel > 0:
@@ -719,24 +754,24 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
 
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None):
-        self.timeout = timeout
-        self.proxy_info = proxy_info
         httplib.HTTPSConnection.__init__(self, host, port=port, key_file=key_file,
                 cert_file=cert_file, strict=strict)
+        self.timeout = timeout
+        self.proxy_info = proxy_info
 
     def connect(self):
         "Connect to a host on a given (SSL) port."
 
         if self.proxy_info and self.proxy_info.isgood():
-            self.sock.setproxy(*self.proxy_info.astuple())
+            sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setproxy(*self.proxy_info.astuple())
         else:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.timeout is not None:
+        
+        if has_timeout(self.timeout):
             sock.settimeout(self.timeout)
         sock.connect((self.host, self.port))
-        ssl = socket.ssl(sock, self.key_file, self.cert_file)
-        self.sock = httplib.FakeSocket(sock, ssl)
+        self.sock =_ssl_wrap_socket(sock, self.key_file, self.cert_file)
 
 
 
@@ -780,6 +815,10 @@ the same interface as FileCache."""
 
         # If set to False then no redirects are followed, even safe ones.
         self.follow_redirects = True
+        
+        # Which HTTP methods do we apply optimistic concurrency to, i.e.
+        # which methods get an "if-match:" etag header added to them.
+        self.optimistic_concurrency_methods = ["PUT"]
 
         # If 'follow_redirects' is True, and this is set to True then
         # all redirecs are followed, including unsafe ones.
@@ -820,13 +859,17 @@ the same interface as FileCache."""
     def _conn_request(self, conn, request_uri, method, body, headers):
         for i in range(2):
             try:
-                conn.close()
                 conn.request(method, request_uri, body, headers)
-                response = conn.getresponse()
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
-            except httplib.HTTPException, e:
+            except (socket.error, httplib.HTTPException):
+                # Just because the server closed the connection doesn't apparently mean
+                # that the server didn't send a response.
+                pass
+            try:
+                response = conn.getresponse()
+            except (socket.error, httplib.HTTPException):
                 if i == 0:
                     conn.close()
                     conn.connect()
@@ -834,12 +877,15 @@ the same interface as FileCache."""
                 else:
                     raise
             else:
-                content = response.read()
+                content = ""
+                if method == "HEAD":
+                    response.close()
+                else:
+                    content = response.read()
                 response = Response(response)
                 if method != "HEAD":
                     content = _decompressContent(response, content)
-
-            break;
+            break
         return (response, content)
 
 
@@ -909,6 +955,8 @@ the same interface as FileCache."""
 
         return (response, content)
 
+    def _normalize_headers(self, headers):
+        return _normalize_headers(headers)
 
 # Need to catch and rebrand some exceptions
 # Then need to optionally turn all exceptions into status codes
@@ -940,7 +988,7 @@ a string that contains the response entity body.
             if headers is None:
                 headers = {}
             else:
-                headers = _normalize_headers(headers)
+                headers = self._normalize_headers(headers)
 
             if not headers.has_key('user-agent'):
                 headers['user-agent'] = "Python-httplib2/%s" % __version__
@@ -948,6 +996,10 @@ a string that contains the response entity body.
             uri = iri2uri(uri)
 
             (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
+            domain_port = authority.split(":")[0:2]
+            if len(domain_port) == 2 and domain_port[1] == '443' and scheme == 'http':
+                scheme = 'https'
+                authority = domain_port[0]
 
             conn_key = scheme+":"+authority
             if conn_key in self.connections:
@@ -963,8 +1015,8 @@ a string that contains the response entity body.
                     conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout, proxy_info=self.proxy_info)
                 conn.set_debuglevel(debuglevel)
 
-            if method in ["GET", "HEAD"] and 'range' not in headers:
-                headers['accept-encoding'] = 'compress, gzip'
+            if method in ["GET", "HEAD"] and 'range' not in headers and 'accept-encoding' not in headers:
+                headers['accept-encoding'] = 'gzip, deflate'
 
             info = email.Message.Message()
             cached_value = None
@@ -972,9 +1024,17 @@ a string that contains the response entity body.
                 cachekey = defrag_uri
                 cached_value = self.cache.get(cachekey)
                 if cached_value:
-                    info = email.message_from_string(cached_value)
+                    # info = email.message_from_string(cached_value)
+                    #
+                    # Need to replace the line above with the kludge below
+                    # to fix the non-existent bug not fixed in this
+                    # bug report: http://mail.python.org/pipermail/python-bugs-list/2005-September/030289.html
                     try:
-                        content = cached_value.split('\r\n\r\n', 1)[1]
+                        info, content = cached_value.split('\r\n\r\n', 1)
+                        feedparser = email.FeedParser.FeedParser()
+                        feedparser.feed(info)
+                        info = feedparser.close()
+                        feedparser._parse = None
                     except IndexError:
                         self.cache.delete(cachekey)
                         cachekey = None
@@ -982,13 +1042,25 @@ a string that contains the response entity body.
             else:
                 cachekey = None
 
-            if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
+            if method in self.optimistic_concurrency_methods and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
                 # http://www.w3.org/1999/04/Editing/
                 headers['if-match'] = info['etag']
 
             if method not in ["GET", "HEAD"] and self.cache and cachekey:
                 # RFC 2616 Section 13.10
                 self.cache.delete(cachekey)
+
+            # Check the vary header in the cache to see if this request
+            # matches what varies in the cache.
+            if method in ['GET', 'HEAD'] and 'vary' in info:
+                vary = info['vary']
+                vary_headers = vary.lower().replace(' ', '').split(',')
+                for header in vary_headers:
+                    key = '-varied-%s' % header
+                    value = info[key]
+                    if headers.get(header, '') != value:
+                            cached_value = None
+                            break
 
             if cached_value and method in ["GET", "HEAD"] and self.cache and 'range' not in headers:
                 if info.has_key('-x-permanent-redirect-url'):
@@ -1048,7 +1120,13 @@ a string that contains the response entity body.
                     self.cache.delete(cachekey)
                     content = new_content 
             else: 
-                (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
+                cc = _parse_cache_control(headers)
+                if cc.has_key('only-if-cached'):
+                    info['status'] = '504'
+                    response = Response(info)
+                    content = ""
+                else:
+                    (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
         except Exception, e:
             if self.force_exception_to_status_code:
                 if isinstance(e, HttpLib2ErrorWithResponse):
@@ -1102,7 +1180,7 @@ class Response(dict):
         # an httplib.HTTPResponse object.
         if isinstance(info, httplib.HTTPResponse):
             for key, value in info.getheaders(): 
-                self[key] = value 
+                self[key.lower()] = value 
             self.status = info.status
             self['status'] = str(self.status)
             self.reason = info.reason
