@@ -35,6 +35,8 @@ public class PropertiesResource {
 
     private Logger audit = Logger.getLogger(this.getClass().getPackage().getName() + ".audit");
     private Logger log = Logger.getLogger(this.getClass().getName());
+    
+    private final String propertyNameRegex = "[^\\s/]+";
 
     /** Creates a new instance of PropertiesResource */
     public PropertiesResource() {
@@ -87,7 +89,7 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, propertyNameRegex);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -116,7 +118,7 @@ public class PropertiesResource {
      * @return list of channels with their properties and tags that match
      */
     @GET
-    @Path("{propName}")
+    @Path("{propName : "+propertyNameRegex+"}")
     @Produces({"application/xml", "application/json"})
     public Response read(@PathParam("propName") String prop) {
         DbConnection db = DbConnection.getInstance();
@@ -157,7 +159,7 @@ public class PropertiesResource {
      * @return HTTP Response
      */
     @PUT
-    @Path("{propName}")
+    @Path("{propName : "+propertyNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("propName") String prop, XmlProperty data) {
         DbConnection db = DbConnection.getInstance();
@@ -165,7 +167,7 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, propertyNameRegex);
             cm.checkNameMatchesPayload(prop, data);
             db.getConnection();
             db.beginTransaction();
@@ -198,7 +200,7 @@ public class PropertiesResource {
      * @return HTTP Response
      */
     @POST
-    @Path("{propName}")
+    @Path("{propName : "+propertyNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("propName") String prop, XmlProperty data) {
         DbConnection db = DbConnection.getInstance();
@@ -235,7 +237,7 @@ public class PropertiesResource {
      * @return HTTP Response
      */
     @DELETE
-    @Path("{propName}")
+    @Path("{propName : "+propertyNameRegex+"}")
     public Response remove(@PathParam("propName") String prop) {
         DbConnection db = DbConnection.getInstance();
         ChannelManager cm = ChannelManager.getInstance();

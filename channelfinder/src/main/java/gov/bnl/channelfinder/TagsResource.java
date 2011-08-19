@@ -35,6 +35,8 @@ public class TagsResource {
 
     private Logger audit = Logger.getLogger(this.getClass().getPackage().getName() + ".audit");
     private Logger log = Logger.getLogger(this.getClass().getName());
+    
+    private final String tagNameRegex = "[^/\\s]";
 
     /** Creates a new instance of TagsResource */
     public TagsResource() {
@@ -87,7 +89,7 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, tagNameRegex);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -116,7 +118,7 @@ public class TagsResource {
      * @return list of channels with their properties and tags that match
      */
     @GET
-    @Path("{tagName}")
+    @Path("{tagName: "+tagNameRegex+"}")
     @Produces({"application/xml", "application/json"})
     public Response read(@PathParam("tagName") String tag) {
         DbConnection db = DbConnection.getInstance();
@@ -156,7 +158,7 @@ public class TagsResource {
      * @return HTTP Response
      */
     @PUT
-    @Path("{tagName}")
+    @Path("{tagName: "+tagNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("tagName") String tag, XmlTag data) {
         DbConnection db = DbConnection.getInstance();
@@ -164,7 +166,7 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, tagNameRegex);
             cm.checkNameMatchesPayload(tag, data);
             db.getConnection();
             db.beginTransaction();
@@ -197,7 +199,7 @@ public class TagsResource {
      * @return HTTP Response
      */
     @POST
-    @Path("{tagName}")
+    @Path("{tagName: "+tagNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("tagName") String tag, XmlTag data) {
         DbConnection db = DbConnection.getInstance();
@@ -234,7 +236,7 @@ public class TagsResource {
      * @return HTTP Response
      */
     @DELETE
-    @Path("{tagName}")
+    @Path("{tagName: "+tagNameRegex+"}")
     public Response remove(@PathParam("tagName") String tag) {
         DbConnection db = DbConnection.getInstance();
         ChannelManager cm = ChannelManager.getInstance();

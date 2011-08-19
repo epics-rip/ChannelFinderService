@@ -36,6 +36,7 @@ public class ChannelsResource {
 
     private Logger audit = Logger.getLogger(this.getClass().getPackage().getName() + ".audit");
     private Logger log = Logger.getLogger(this.getClass().getName());
+    private final String chNameRegex = "[^\\s]+";
   
     /** Creates a new instance of ChannelsResource */
     public ChannelsResource() {
@@ -87,7 +88,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, chNameRegex);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -115,9 +116,10 @@ public class ChannelsResource {
      * @return HTTP Response
      */
     @GET
-    @Path("{chName}")
+    @Path("{chName: "+chNameRegex+"}")
     @Produces({"application/xml", "application/json"})
     public Response read(@PathParam("chName") String chan) {
+        audit.info("getting ch:" + chan);
         DbConnection db = DbConnection.getInstance();
         ChannelManager cm = ChannelManager.getInstance();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
@@ -154,15 +156,16 @@ public class ChannelsResource {
      * @return HTTP response
      */
     @PUT
-    @Path("{chName}")
+    @Path("{chName: "+chNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
         ChannelManager cm = ChannelManager.getInstance();
         UserManager um = UserManager.getInstance();
+        System.out.println(securityContext.getUserPrincipal());
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, chNameRegex);
             cm.checkNameMatchesPayload(chan, data);
             db.getConnection();
             db.beginTransaction();
@@ -193,7 +196,7 @@ public class ChannelsResource {
      * @return HTTP response
      */
     @POST
-    @Path("{chName}")
+    @Path("{chName: "+chNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("chName") String chan, XmlChannel data) {
         DbConnection db = DbConnection.getInstance();
@@ -201,7 +204,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data);
+            cm.checkValidNameAndOwner(data, chNameRegex);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -231,8 +234,9 @@ public class ChannelsResource {
      * @return HTTP Response
      */
     @DELETE
-    @Path("{chName}")
+    @Path("{chName: "+chNameRegex+"}")
     public Response remove(@PathParam("chName") String chan) {
+        audit.info("deleting ch:" + chan);
         DbConnection db = DbConnection.getInstance();
         UserManager um = UserManager.getInstance();
         ChannelManager cm = ChannelManager.getInstance();

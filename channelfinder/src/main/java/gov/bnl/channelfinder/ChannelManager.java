@@ -407,10 +407,10 @@ public class ChannelManager {
      * @param data XmlChannel data to check
      * @throws CFException on error
      */
-    public void checkValidNameAndOwner(XmlChannel data) throws CFException {
-        if (data.getName() == null || data.getName().equals("")) {
+    public void checkValidNameAndOwner(XmlChannel data, String regex) throws CFException {
+        if (data.getName() == null || !data.getName().matches(regex)) {
             throw new CFException(Response.Status.BAD_REQUEST,
-                    "Invalid channel name (null or empty string)");
+                    "Invalid channel name " + data.getName());
         }
         if (data.getOwner() == null || data.getOwner().equals("")) {
             throw new CFException(Response.Status.BAD_REQUEST,
@@ -424,10 +424,10 @@ public class ChannelManager {
      * @param data XmlChannels data to check
      * @throws CFException on error
      */
-    public void checkValidNameAndOwner(XmlChannels data) throws CFException {
+    public void checkValidNameAndOwner(XmlChannels data, String regex) throws CFException {
         if (data == null || data.getChannels() == null) return;
         for (XmlChannel c : data.getChannels()) {
-            checkValidNameAndOwner(c);
+            checkValidNameAndOwner(c, regex);
         }
     }
 
@@ -453,10 +453,10 @@ public class ChannelManager {
      * @param data XmlTag data to check
      * @throws CFException on name mismatch
      */
-    public void checkValidNameAndOwner(XmlTag data) throws CFException {
-        if (data.getName() == null || data.getName().equals("")) {
+    public void checkValidNameAndOwner(XmlTag data, String regex) throws CFException {
+        if (data.getName() == null || !data.getName().matches(regex)) {
             throw new CFException(Response.Status.BAD_REQUEST,
-                    "Invalid tag name (null or empty string)");
+                    "Invalid tag name " + data.getName());
         }
         if (data.getOwner() == null || data.getOwner().equals("")) {
             throw new CFException(Response.Status.BAD_REQUEST,
@@ -470,10 +470,10 @@ public class ChannelManager {
      * @param data XmlTags data to check
      * @throws CFException on error
      */
-    public void checkValidNameAndOwner(XmlTags data) throws CFException {
+    public void checkValidNameAndOwner(XmlTags data, String regex) throws CFException {
         if (data == null || data.getTags() == null) return;
         for (XmlTag t : data.getTags()) {
-            checkValidNameAndOwner(t);
+            checkValidNameAndOwner(t, regex);
         }
     }
 
@@ -498,10 +498,10 @@ public class ChannelManager {
      * @param data XmlTag data to check
      * @throws CFException on error
      */
-    public void checkValidNameAndOwner(XmlProperty data) throws CFException {
-        if (data.getName() == null || data.getName().equals("")) {
+    public void checkValidNameAndOwner(XmlProperty data, String regex) throws CFException {
+        if (data.getName() == null || !data.getName().matches(regex)) {
             throw new CFException(Response.Status.BAD_REQUEST,
-                    "Invalid property name (empty string)");
+                    "Invalid property name " + data.getName());
         }
         if (data.getOwner() == null || data.getOwner().equals("")) {
             throw new CFException(Response.Status.BAD_REQUEST,
@@ -515,10 +515,10 @@ public class ChannelManager {
      * @param data XmlProperties data to check
      * @throws CFException on error
      */
-    public void checkValidNameAndOwner(XmlProperties data) throws CFException {
+    public void checkValidNameAndOwner(XmlProperties data, String regex) throws CFException {
         if (data == null || data.getProperties() == null) return;
         for (XmlProperty p : data.getProperties()) {
-            checkValidNameAndOwner(p);
+            checkValidNameAndOwner(p, regex);
         }
     }
 
