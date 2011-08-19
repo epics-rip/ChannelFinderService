@@ -359,17 +359,17 @@ class PostManyChannels(unittest.TestCase):
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
-        doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1nn_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1nn_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsAdminNoName(self):
-        doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1nn_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1nn_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsChanNoOwner(self):
         doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminNoOwner(self):
         doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsChanEmptyName(self):
-        doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1en_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1en_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsAdminEmptyName(self):
-        doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1en_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1en_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsChanEmptyOwner(self):
         doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
@@ -444,17 +444,17 @@ class PutOneChannel(unittest.TestCase):
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
-        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name (null or empty string)")
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsAdminNoName(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name (null or empty string)")
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsChanNoOwner(self):
         doPutAndFailMessageJSON(self, conn_chan, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminNoOwner(self):
         doPutAndFailMessageJSON(self, conn_admin, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsChanEmptyName(self):
-        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name (null or empty string)")
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsAdminEmptyName(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name (null or empty string)")
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsChanEmptyOwner(self):
         doPutAndFailMessageJSON(self, conn_chan, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
@@ -516,17 +516,17 @@ class PostOneChannel(unittest.TestCase):
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
-        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsAdminNoName(self):
-        doPostAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsChanNoOwner(self):
         doPostAndFailMessageJSON(self, conn_chan, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminNoOwner(self):
         doPostAndFailMessageJSON(self, conn_admin, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsChanEmptyName(self):
-        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsAdminEmptyName(self):
-        doPostAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name (null or empty string)")
+        doPostAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name ")
     def test_AuthorizedAsChanEmptyOwner(self):
         doPostAndFailMessageJSON(self, conn_chan, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
