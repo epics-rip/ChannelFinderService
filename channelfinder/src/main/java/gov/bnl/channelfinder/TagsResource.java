@@ -36,7 +36,7 @@ public class TagsResource {
     private Logger audit = Logger.getLogger(this.getClass().getPackage().getName() + ".audit");
     private Logger log = Logger.getLogger(this.getClass().getName());
     
-    private final String tagNameRegex = "[^/\\s]";
+    private final String tagNameRegex = "[^\\s/]+";
 
     /** Creates a new instance of TagsResource */
     public TagsResource() {
