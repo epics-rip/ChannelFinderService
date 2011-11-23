@@ -89,11 +89,11 @@ relations are taken from an LDAP server.
     the LDAP entries I create to run the integration tests. That should give you an idea
     about the structures that ChannelFinder expects.
 
-** Create the LDAP Connection for Authentication/Authorization
+** Create the LDAP Realm for Authentication/Authorization
 
   * Login to the Glassfish admin console.
 
-  * Open "Common Tasks" / "Configuration" / "Security" / "Realms".
+  * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
 
   * Create a new realm called "channelfinder", setting the "Class Name" to
     "com.sun.enterprise.security.auth.realm.ldap.LDAPRealm", and the "JAAS Context" to "ldapRealm".
@@ -104,7 +104,30 @@ relations are taken from an LDAP server.
   * Add a property called "group-search-filter" with the value "memberUid=%s" to make
     authentication work using the usual posixGroup definitions in the LDAP server.
 
-** Create the LDAP Connection for Testing Group Membership
+** Create the PAM Realm for Authentication/Authorization
+
+  * Login to the Glassfish admin console.
+
+  * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
+
+  * Create a new realm called "channelfinder", setting the "Class Name" to
+    "com.sun.enterprise.security.auth.realm.pam.PamRealm", and the "JAAS Context" to "pamRealm".
+
+** Setup script for group membership
+
+  * By default, the "id" command is used. If you are using the same user you have
+    from your (Linux) OS, no setting is needed.
+
+  * If you want to change the command (for Windows use or different user database)
+    
+    * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
+
+    * Create a new resource called "channelfinder/idManagerCommand", setting the "Resource Type" to
+      "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
+
+    * Add an additional properties with name "Value" and with the script name as value (e.g. "id.bat")
+
+** Create the LDAP Connection for Testing Group Membership (deprecated)
 
   * Login to the Glassfish admin console.
 
