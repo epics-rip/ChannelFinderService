@@ -149,7 +149,7 @@ in the web container.
     "javax.naming.security.credentials" to specify the name and password used
     to bind to LDAP.
     (My integration test setup uses "URL" = "ldap://localhost/dc=cf-test,dc=local",
-    "javax.naming.security.principal" = "cn=channelfinder,dc=local", and
+    "javax.naming.security.principal" = "cn=channelfinder,dc=cf-test,dc=local", and
     and "javax.naming.security.credentials" = "1234".)
 
   * Create a new resource called "channelfinder/userManager", setting the "Resource Type" to

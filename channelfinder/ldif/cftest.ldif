@@ -4,13 +4,19 @@ objectClass: organization
 dc: cf-test
 o: ChannelFinder Test
 
+dn: cn=channelfinder,dc=cf-test,dc=local
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+userPassword:: e1NIQX1jUkR0cE5DZUJpcWw1S09Rc0tWeXJBMHNBaUE9
+cn: channelfinder
+
 dn: ou=Group,dc=cf-test,dc=local
-objectclass:organizationalunit
+objectClass: organizationalunit
 ou: Group
 description: groups branch
 
 dn: ou=People,dc=cf-test,dc=local
-objectclass:organizationalunit
+objectClass: organizationalunit
 ou: People
 description: people branch
 
