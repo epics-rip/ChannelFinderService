@@ -79,6 +79,31 @@ in the web container.
 
   * Create a new JNDI resource called "jdbc/channelfinder", selecting the Connection Pool you just created.
 
+** Authentication/Authorization using PAM
+
+*** Create the PAM Realm for Service Authentication/Authorization
+
+  * Login to the Glassfish admin console.
+
+  * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
+
+  * Create a new realm called "channelfinder", setting the "Class Name" to
+    "com.sun.enterprise.security.auth.realm.pam.PamRealm", and the "JAAS Context" to "pamRealm".
+
+*** Setup Script for Determining Group Membership
+
+  * By default, the "id" command is used. If you are using the same user you have
+    from your (Linux) OS, no setting is needed.
+
+  * If you want to change the command (for Windows use or different user database):
+    
+    * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
+
+    * Create a new resource called "channelfinder/idManagerCommand", setting the "Resource Type" to
+      "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
+
+    * Add an additional property with name "Value" and with the script name as value (e.g. "id.bat").
+
 ** Authentication/Authorization using LDAP
 
 *** Install an LDAP Server
@@ -115,42 +140,22 @@ in the web container.
 
   * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
 
-  * Create a new resource called "channelfinderGroups", setting the "Resource Type" to
-    "javax.naming.directory.Directory", and the "Factory Class" to
-    "com.sun.jndi.ldap.LdapCtxFactory".
+  * Create a new resource called "channelfinder/ldapManagerConnection",
+    setting the "Resource Type" to "javax.naming.directory.Directory",
+    and the "Factory Class" to "com.sun.jndi.ldap.LdapCtxFactory".
 
   * Add the additional properties "URL" to specify the LDAP connection,
     "javax.naming.security.principal" and
     "javax.naming.security.credentials" to specify the name and password used
     to bind to LDAP.
-    (My integration test use "URL" = "ldap://localhost/dc=cf-test,dc=local",
+    (My integration test setup uses "URL" = "ldap://localhost/dc=cf-test,dc=local",
     "javax.naming.security.principal" = "cn=channelfinder,dc=local", and
     and "javax.naming.security.credentials" = "1234".)
 
-** Authentication/Authorization using PAM
+  * Create a new resource called "channelfinder/userManager", setting the "Resource Type" to
+    "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
 
-*** Create the PAM Realm for Service Authentication/Authorization
-
-  * Login to the Glassfish admin console.
-
-  * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
-
-  * Create a new realm called "channelfinder", setting the "Class Name" to
-    "com.sun.enterprise.security.auth.realm.pam.PamRealm", and the "JAAS Context" to "pamRealm".
-
-*** Setup Script for Determining Group Membership
-
-  * By default, the "id" command is used. If you are using the same user you have
-    from your (Linux) OS, no setting is needed.
-
-  * If you want to change the command (for Windows use or different user database)
-    
-    * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
-
-    * Create a new resource called "channelfinder/idManagerCommand", setting the "Resource Type" to
-      "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
-
-    * Add an additional properties with name "Value" and with the script name as value (e.g. "id.bat")
+  * Add an additional property with name "Value" and with "gov.bnl.channelfinder.LDAPUserManager" as value.
 
 ** Deploy the ChannelFinder Application
 

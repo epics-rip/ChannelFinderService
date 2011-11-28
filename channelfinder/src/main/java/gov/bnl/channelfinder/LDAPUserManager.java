@@ -26,7 +26,7 @@ import javax.naming.directory.SearchResult;
  */
 public class LDAPUserManager extends UserManager {
     private ThreadLocal<DirContext> ctx = new ThreadLocal<DirContext>();
-    private static final String ldapResourceName = "channelfinderGroups";
+    private static final String ldapResourceName = "channelfinder/ldapManagerConnection";
 
     /**
      * LDAP field name for the member UID
