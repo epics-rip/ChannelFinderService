@@ -62,7 +62,7 @@ public abstract class UserManager {
      */
     public static UserManager getInstance() {
         if (instance == null)
-            throw new IllegalStateException("UserManager could not be instanced");
+            throw new IllegalStateException("UserManager could not be instantiated");
         return instance;
     }
     
