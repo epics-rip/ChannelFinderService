@@ -9,9 +9,9 @@ Download
   Released versions:
 
 *----------------+----------------------+
-| Version 1.0.0  |  {{{http://downloads.sourceforge.net/channelfinder/ChannelFinder/channelfinder-1.0.0.tar.gz}Download v1.0.0}} |
+| Version 1.0.0  |  {{{https://downloads.sourceforge.net/project/channelfinder/ChannelFinder/channelfinder-1.0.0.tar.gz}Download v1.0.0}} |
 *----------------+----------------------+
 
   Latest unreleased version:
 
-  {{{https://irmis-dev.bnl.gov/hudson/job/ChannelFinder%20-%20Build/lastSuccessfulBuild/artifact/channelfinder/dist/channelfinder.tar.gz}Latest development build}}
+  {{{https://irmis-dev.bnl.gov/jenkins/job/ChannelFinder%20-%20Build/lastSuccessfulBuild/artifact/channelfinder/dist/channelfinder.tar.gz}Latest development build}}

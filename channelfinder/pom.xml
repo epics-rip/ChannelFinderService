@@ -30,8 +30,8 @@
         <url>http://sourceforge.net/apps/trac/channelfinder/</url>
     </issueManagement>
     <ciManagement>
-        <system>Hudson</system>
-        <url>https://irmis-dev.bnl.gov/hudson/view/ChannelFinder/</url>
+        <system>Jenkins</system>
+        <url>https://irmis-dev.bnl.gov/jenkins/view/ChannelFinder/</url>
     </ciManagement>
     <repositories>
         <repository>
