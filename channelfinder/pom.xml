@@ -26,8 +26,8 @@
         <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/ChannelFinder/</url>
     </scm>
     <issueManagement>
-        <system>trac</system>
-        <url>http://sourceforge.net/apps/trac/channelfinder/</url>
+        <system>JIRA</system>
+        <url>http://java.net/jira/browse/CHANNELFINDER/component/14299</url>
     </issueManagement>
     <ciManagement>
         <system>Jenkins</system>
