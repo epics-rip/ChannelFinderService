@@ -34,11 +34,11 @@ java.util.jar.Attributes attributes = manifest.getMainAttributes();
             <li><a href="ChannelFinder-API.pdf">API Description</a> (Jun 2010)</li>
         </ul>
 
-        <h2>ChannelFinder Project on SourceForge</h2>
+        <h2>ChannelFinder Project on SourceForge and Java.net</h2>
         <ul>
             <li><a href="http://channelfinder.sourceforge.net/">Homepage</a></li>
             <li><a href="http://sourceforge.net/projects/channelfinder/">Project Page</a></li>
-            <li><a href="http://sourceforge.net/apps/trac/channelfinder/">Wiki / Issue Tracker</a></li>
+            <li><a href="http://java.net/jira/browse/CHANNELFINDER">Issue Tracker</a></li>
             <li><a href="http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/">Repository Browser</a></li>
         </ul>
         <h3>Build Info</h3>
