@@ -114,6 +114,8 @@ Cs12_1e2P1_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u
 Cs2_P12_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}]}, u'tags': None}}}
 
 #     Properties
+P1 = '{"@name": "P1", "@value": "prop1"}'
+p1 = '{"@name": "p1", "@value": "prop1"}'
 P1_empty = '{"@name": "P1", "@owner": "' + testp + '"}'
 P1_empty_r = {u'@owner': testp, u'@name': u'P1'}
 p1_empty = '{"@name": "p1", "@owner": "' + testp + '"}'
@@ -132,12 +134,12 @@ Ps12_empty_r = {u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1'
 Ps12t_empty_r = {u'properties': {u'property': [{u'@owner': testt, u'@name': u'P1'}, {u'@owner': testt, u'@name': u'P2'}]}}
 Ps1234_empty = '{"properties": { "property": [' + P1_empty + ', ' + P2_empty + ', ' + P3_empty+ ', ' + P4_empty + ']}}'
 
-P1_C1 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
+P1_C1 = '{"@name": "P1", "@owner": "' + testp + '", "@value": "prop1", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
 P1_C1_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': testp, u'@name': u'P1'}
 P1_C1_P1nv = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1"}}}}}'
 P1_C1_P1ev = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": ""}}}}}'
 p1_C1 = '{"@name": "p1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "p1", "@value": "prop1"}}}}}'
-P1_C2 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}}}}'
+P1_C2 = '{"@name": "P1", "@owner": "' + testp + '", "@value": "prop1", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}}}}'
 P1_C2_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': testp, u'@name': u'P1'}
 P1_C12 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : [{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}, {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}]}}'
 P1_C3 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C3", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
@@ -1399,41 +1401,49 @@ class AddSingleProperty(unittest.TestCase):
         response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_empty)
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.P1C1, P1_C1, 401)
+        doPutAndFailJSON(self, conn_none, self.P1C1, P1, 401)
     def test_AuthorizedAsTag(self):
-        doPutAndFailJSON(self, conn_tag, self.P1C1, P1_C1, 403)
+        doPutAndFailJSON(self, conn_tag, self.P1C1, P1, 403)
 
     def test_AuthorizedAsProp(self):
-        doPutAndGetJSON(self, conn_prop, self.P1C1, P1_C1, 204, self.P1, P1_C1_r, 200)
+        doPutAndGetJSON(self, conn_prop, self.P1C1, P1, 204, self.P1, P1_C1_r, 200)
         doGetJSON(self, conn_prop, self.c, Cs12_1P1_r, 200)
     def test_AuthorizedAsChan(self):
-        doPutAndGetJSON(self, conn_chan, self.P1C1, P1_C1, 204, self.P1, P1_C1_r, 200)
+        doPutAndGetJSON(self, conn_chan, self.P1C1, P1, 204, self.P1, P1_C1_r, 200)
         doGetJSON(self, conn_chan, self.c, Cs12_1P1_r, 200)
     def test_AuthorizedAsAdmin(self):
-        doPutAndGetJSON(self, conn_admin, self.P1C1, P1_C1, 204, self.P1, P1_C1_r, 200)
+        doPutAndGetJSON(self, conn_admin, self.P1C1, P1, 204, self.P1, P1_C1_r, 200)
+        doGetJSON(self, conn_admin, self.c, Cs12_1P1_r, 200)
+
+# Add to C1, ignoring C2 in payload
+    def test_AuthorizedAsPropIgnorePayloadList(self):
+        doPutAndGetJSON(self, conn_prop, self.P1C1, P1_C2, 204, self.P1, P1_C1_r, 200)
+        doGetJSON(self, conn_prop, self.c, Cs12_1P1_r, 200)
+    def test_AuthorizedAsAdminIgnorePayloadList(self):
+        doPutAndGetJSON(self, conn_admin, self.P1C1, P1_C2, 204, self.P1, P1_C1_r, 200)
         doGetJSON(self, conn_admin, self.c, Cs12_1P1_r, 200)
 
 # As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2NonMember(self):
-        doPutAndFailMessageJSON(self, conn_prop2, self.P1C1, P1_C1, 403, "User '" + user_prop2 + "' does not belong to owner group '" + testp + "' of property 'P1'")
+        doPutAndFailMessageJSON(self, conn_prop2, self.P1C1, P1, 403, "User '" + user_prop2 + "' does not belong to owner group '" + testp + "' of property 'P1'")
 
 # Invalid payload (missing or null or empty property value in embedded list)
     def test_AuthorizedAsPropNullPropValue(self):
-        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
     def test_AuthorizedAsAdminNullPropValue(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.P1C1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+        doPutAndFailMessageJSON(self, conn_admin, self.P1C1, P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
     def test_AuthorizedAsPropEmptyPropValue(self):
-        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
     def test_AuthorizedAsAdminEmptyPropValue(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.P1C1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+        doPutAndFailMessageJSON(self, conn_admin, self.P1C1, P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
 # Adding property to non-existing channel
     def test_AuthorizedAsPropNonexChannel(self):
-        doPutAndFailMessageJSON(self, conn_prop, self.P1C3, P1_C3, 404, "Channels specified in property update do not exist")
+        doPutAndFailMessageJSON(self, conn_prop, self.P1C3, P1, 404, "Channels specified in property update do not exist")
 
 # Payload and URL names do not match
     def test_AuthorizedAsPropLcPayload(self):
-        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, p1_C1, 400, "Specified property name 'P1' and payload property name 'p1' do not match")
+        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, p1, 400, "Specified property name 'P1' and payload property name 'p1' do not match")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
