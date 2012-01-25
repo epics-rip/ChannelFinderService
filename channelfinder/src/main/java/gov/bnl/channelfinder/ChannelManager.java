@@ -199,7 +199,7 @@ public class ChannelManager {
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addSingleProperty(String prop, String chan, XmlProperty data) throws CFException {
-        UpdateValuesQuery.updateProperty(prop, data);
+        UpdateValuesQuery.updateSingleProperty(prop, chan, data);
     }
 
     /**

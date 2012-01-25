@@ -74,8 +74,24 @@ public class UpdateValuesQuery {
     private UpdateValuesQuery(String name, String channel) {
         this.oldname = name;
         this.name = name;
-        channels = new XmlChannels(new XmlChannel(channel));
-        isTagQuery = true;
+        this.isTagQuery = true;
+        this.channels = new XmlChannels(new XmlChannel(channel));
+    }
+
+    /**
+     * Creates a new instance of UpdateValuesQuery for a single property on a single channel
+     *
+     * @param name name of tag to add
+     * @param owner owner for tag to add
+     * @param channel channel to add tag to
+     */
+    private UpdateValuesQuery(String name, String channel, XmlProperty data) {
+        this.oldname = name;
+        this.name = name;
+        XmlChannel chan = new XmlChannel(channel);
+        chan.addXmlProperty(data);
+        this.channels = new XmlChannels(chan);
+        
     }
 
     /**
@@ -220,6 +236,7 @@ public class UpdateValuesQuery {
     /**
      * Updates a property in the database.
      *
+     * @param name name of property to update
      * @param prop XmlProperty
      * @throws CFException wrapping an SQLException
      */
@@ -229,7 +246,20 @@ public class UpdateValuesQuery {
     }
 
     /**
-     * Updates a tag in the database, adding it to all channels in <tt>tag</tt>.
+     * Updates a single property instance in the database.
+     *
+     * @param name name of property to update
+     * @param channel name of channel to update
+     * @param prop XmlProperty
+     * @throws CFException wrapping an SQLException
+     */
+    public static void updateSingleProperty(String name, String channel, XmlProperty prop) throws CFException {
+        UpdateValuesQuery q = new UpdateValuesQuery(name, channel, prop);
+        q.executeQuery(DbConnection.getInstance().getConnection());
+    }
+
+    /**
+     * Updates the <tt>tag</tt> in the database, adding it to all channels in <tt>tag</tt>.
      *
      * @param tag XmlTag
      * @throws CFException wrapping an SQLException

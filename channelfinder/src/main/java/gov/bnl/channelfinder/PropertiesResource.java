@@ -288,7 +288,7 @@ public class PropertiesResource {
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
+                cm.checkUserBelongsToGroupOfProperty(um.getUserName(), data.getName());
             }
             cm.addSingleProperty(prop, chan, data);
             db.commit();
