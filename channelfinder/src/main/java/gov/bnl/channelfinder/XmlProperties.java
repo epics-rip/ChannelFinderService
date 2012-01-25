@@ -61,6 +61,15 @@ public class XmlProperties {
     }
 
     /**
+     * Removes a property from the property collection.
+     *
+     * @param item the XmlProperty to remove
+     */
+    public void removeXmlProperty(XmlProperty item) {
+        this.properties.remove(item);
+    }
+
+    /**
      * Creates a compact string representation for the log.
      *
      * @param data XmlChannel to create the string representation for

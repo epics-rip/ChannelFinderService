@@ -169,6 +169,7 @@ public class PropertiesResource {
         try {
             cm.checkValidNameAndOwner(data, propertyNameRegex);
             cm.checkNameMatchesPayload(prop, data);
+            cm.checkValidValue(data.getXmlChannels());
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -208,6 +209,7 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            cm.checkValidValue(data.getXmlChannels());
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -282,6 +284,7 @@ public class PropertiesResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             cm.checkNameMatchesPayload(prop, data);
+            cm.checkValidValue(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {

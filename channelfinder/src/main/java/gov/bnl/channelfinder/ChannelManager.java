@@ -47,7 +47,11 @@ public class ChannelManager {
         for (XmlProperty s : src.getXmlProperties().getProperties()) {
             for (XmlProperty d : dest.getXmlProperties().getProperties()) {
                 if (d.getName().equals(s.getName())) {
-                    d.setValue(s.getValue());
+                    if ("".equals(s.getValue())) {
+                        dest.getXmlProperties().removeXmlProperty(d);
+                    } else {
+                        d.setValue(s.getValue());
+                    }
                     continue src_props;
                 }
             }
@@ -495,7 +499,7 @@ public class ChannelManager {
     /**
      * Check the property in <tt>data</tt> for valid name/owner data.
      *
-     * @param data XmlTag data to check
+     * @param data XmlProperty data to check
      * @throws CFException on error
      */
     public void checkValidNameAndOwner(XmlProperty data, String regex) throws CFException {
@@ -520,6 +524,93 @@ public class ChannelManager {
         for (XmlProperty p : data.getProperties()) {
             checkValidNameAndOwner(p, regex);
         }
+    }
+
+    /**
+     * Check the property in <tt>data</tt> for valid value data.
+     *
+     * @param data XmlProperty data to check
+     * @throws CFException on error
+     */
+    public void checkValidValue(XmlProperty data) throws CFException {
+        if (data.getValue() == null || data.getValue().equals("")) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid property value (missing or null or empty string) for '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check all properties in <tt>data</tt> for valid value data.
+     *
+     * @param data XmlProperties data to check
+     * @throws CFException on error
+     */
+    public void checkValidValue(XmlProperties data) throws CFException {
+        if (data == null || data.getProperties() == null) return;
+        for (XmlProperty p : data.getProperties()) {
+            checkValidValue(p);
+        }
+    }
+
+    /**
+     * Check all properties in <tt>data</tt> for valid value data.
+     *
+     * @param data XmlChannel data to check
+     * @throws CFException on error
+     */
+    public void checkValidValue(XmlChannel data) throws CFException {
+        if (data == null || data.getXmlProperties() == null) return;
+        checkValidValue(data.getXmlProperties());
+    }
+
+    /**
+     * Check all properties in <tt>data</tt> for valid value data.
+     *
+     * @param data XmlProperties data to check
+     * @throws CFException on error
+     */
+    public void checkValidValue(XmlChannels data) throws CFException {
+        if (data == null || data.getChannels() == null) return;
+        for (XmlChannel c : data.getChannels()) {
+            checkValidValue(c);
+        }
+    }
+
+    /**
+     * Check the property in <tt>data</tt> has a non-null value.
+     *
+     * @param data XmlProperty data to check
+     * @throws CFException on error
+     */
+    public void checkValueNotNull(XmlProperty data) throws CFException {
+        if (data.getValue() == null) {
+            throw new CFException(Response.Status.BAD_REQUEST,
+                    "Invalid property value (missing or null) for '" + data.getName() + "'");
+        }
+    }
+
+    /**
+     * Check all properties in <tt>data</tt> have non-null values.
+     *
+     * @param data XmlProperties data to check
+     * @throws CFException on error
+     */
+    public void checkValueNotNull(XmlProperties data) throws CFException {
+        if (data == null || data.getProperties() == null) return;
+        for (XmlProperty p : data.getProperties()) {
+            checkValueNotNull(p);
+        }
+    }
+
+    /**
+     * Check all properties in <tt>data</tt> have non-null values.
+     *
+     * @param data XmlChannel data to check
+     * @throws CFException on error
+     */
+    public void checkValueNotNull(XmlChannel data) throws CFException {
+        if (data == null || data.getXmlProperties() == null) return;
+        checkValueNotNull(data.getXmlProperties());
     }
 
     /**

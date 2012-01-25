@@ -89,6 +89,7 @@ public class ChannelsResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             cm.checkValidNameAndOwner(data, chNameRegex);
+            cm.checkValidValue(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
@@ -166,6 +167,7 @@ public class ChannelsResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             cm.checkValidNameAndOwner(data, chNameRegex);
+            cm.checkValidValue(data);
             cm.checkNameMatchesPayload(chan, data);
             db.getConnection();
             db.beginTransaction();
@@ -205,6 +207,7 @@ public class ChannelsResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             cm.checkValidNameAndOwner(data, chNameRegex);
+            cm.checkValueNotNull(data);
             db.getConnection();
             db.beginTransaction();
             if (!um.userHasAdminRole()) {
