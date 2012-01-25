@@ -28,10 +28,10 @@ java.util.jar.Attributes attributes = manifest.getMainAttributes();
         <h1>ChannelFinder Directory Service</h1>
         <h3>Version: <%=attributes.getValue("Implementation-Version")%> &nbsp;&nbsp;&nbsp;&nbsp;
             Build: <%=attributes.getValue("Build-Number")%></h3>
-        <h2>External Design Documents</h2>
+        <h2>Design Documents</h2>
         <ul>
             <li><a href="ChannelFinder-Design.pdf">Design Document</a> (Jan 2010)</li>
-            <li><a href="ChannelFinder-API.pdf">API Description</a> (Jun 2010)</li>
+            <li><a href="ChannelFinder-API.pdf">API Description</a> (Jan 2012)</li>
         </ul>
 
         <h2>ChannelFinder Project on SourceForge and Java.net</h2>
