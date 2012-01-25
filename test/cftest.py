@@ -73,6 +73,7 @@ C1_full_r = {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': [{u
 C2_full_r = {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P3', u'@value': u'prop3'}, {u'@owner': testp, u'@name': u'P4', u'@value': u'prop4'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T33'}, {u'@owner': testt, u'@name': u'T44'}]}}
 C3_full_r = {u'@owner': testc, u'@name': u'C3', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}, {u'@owner': testp, u'@name': u'P3', u'@value': u'prop1'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T2'}, {u'@owner': testt, u'@name': u'T33'}]}}
 C4_full_r = {u'@owner': testc, u'@name': u'C4', u'properties': {u'property': [{u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}, {u'@owner': testp, u'@name': u'P4', u'@value': u'prop4'}]}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T44'}]}}
+C1eP1_full_r = {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'P2', u'@value': u'prop2'}}, u'tags': {u'tag': [{u'@owner': testt, u'@name': u'T1'}, {u'@owner': testt, u'@name': u'T2'}]}}
 Cs1234_full_r = {u'channels': {u'channel': [C1_full_r, C2_full_r, C3_full_r, C4_full_r]}}
 Cs12_1t_2_empty = '{"channels": {"channel": [' + C1t_empty + ', ' + C2_empty + ']}}'
 Cs12_full = '{"channels": {"channel": [' + C1_full + ', ' + C2_full + ']}}'
@@ -83,6 +84,18 @@ Cs1_full_r = {u'channels': {u'channel': C1_full_r}}
 Cs3_full_r = {u'channels': {u'channel': C3_full_r}}
 Cs4_full_r = {u'channels': {u'channel': C4_full_r}}
 None_r = {u'channels': None}
+
+# tests with empty, null and no value for property
+P1ev = '{"@name": "P1", "@value": ""}'
+P1nv = '{"@name": "P1"}'
+P3ev = '{"@name": "P3", "@value": ""}'
+
+C1_P1ev = '{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": [' + P1ev + ']}}'
+C1_P1nv = '{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": [' + P1nv + ']}}'
+C1_P3ev = '{"@name": "C1", "@owner": "' + testc + '", "properties": {"property": [' + P3ev + ']}}'
+
+Cs12_P1ev = '{"channels": {"channel": [' + C1_P1ev + ', ' + C2_full + ']}}'
+Cs12_P1nv = '{"channels": {"channel": [' + C1_P1nv + ', ' + C2_full + ']}}'
 
 # replies needed for tags and properties URLs
 Cs12_1e2t2_r = {u'channels': {u'channel': [{u'@owner': testc, u'@name': u'C1', u'properties': None, u'tags': None}, {u'@owner': testc, u'@name': u'C2', u'properties': None, u'tags': {u'tag': {u'@owner': testt, u'@name': u'T2'}}}]}}
@@ -121,6 +134,8 @@ Ps1234_empty = '{"properties": { "property": [' + P1_empty + ', ' + P2_empty + '
 
 P1_C1 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": "prop1"}}}}}'
 P1_C1_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C1', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': testp, u'@name': u'P1'}
+P1_C1_P1nv = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1"}}}}}'
+P1_C1_P1ev = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "P1", "@value": ""}}}}}'
 p1_C1 = '{"@name": "p1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C1", "@owner": "' + testc + '", "properties": {"property": {"@name": "p1", "@value": "prop1"}}}}}'
 P1_C2 = '{"@name": "P1", "@owner": "' + testp + '", "channels": {"channel" : {"@name": "C2", "@owner": "' + testc + '", "properties": {"property": [{"@name": "P1", "@value": "prop1"}, {"@name": "P2", "@value": "prop2"}]}}}}'
 P1_C2_r = {u'channels': {u'channel': {u'@owner': testc, u'@name': u'C2', u'properties': {u'property': {u'@owner': testp, u'@name': u'P1', u'@value': u'prop1'}}, u'tags': None}}, u'@owner': testp, u'@name': u'P1'}
@@ -374,6 +389,14 @@ class PostManyChannels(unittest.TestCase):
         doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
         doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
+    def test_AuthorizedAsChanEmptyPropValue(self):
+        doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminEmptyPropValue(self):
+        doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsChanNullPropValue(self):
+        doPostAndFailMessageJSON(self, conn_chan, self.c, Cs12_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminNullPropValue(self):
+        doPostAndFailMessageJSON(self, conn_admin, self.c, Cs12_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.c + '/C1', headers=copy(jsonheader))
@@ -444,21 +467,33 @@ class PutOneChannel(unittest.TestCase):
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
-        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name ")
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name")
     def test_AuthorizedAsAdminNoName(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name ")
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name")
     def test_AuthorizedAsChanNoOwner(self):
         doPutAndFailMessageJSON(self, conn_chan, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminNoOwner(self):
         doPutAndFailMessageJSON(self, conn_admin, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsChanEmptyName(self):
-        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name ")
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name")
     def test_AuthorizedAsAdminEmptyName(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name ")
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name")
     def test_AuthorizedAsChanEmptyOwner(self):
         doPutAndFailMessageJSON(self, conn_chan, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
         doPutAndFailMessageJSON(self, conn_admin, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
+    def test_AuthorizedAsChanEmptyPropValue(self):
+        doPutAndGetJSON(self, conn_chan, self.C1, C1_full, 204, self.C1, C1_full_r, 200)
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminEmptyPropValue(self):
+        doPutAndGetJSON(self, conn_chan, self.C1, C1_full, 204, self.C1, C1_full_r, 200)
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsChanNullPropValue(self):
+        doPutAndGetJSON(self, conn_chan, self.C1, C1_full, 204, self.C1, C1_full_r, 200)
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminNullPropValue(self):
+        doPutAndGetJSON(self, conn_chan, self.C1, C1_full, 204, self.C1, C1_full_r, 200)
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
@@ -514,6 +549,14 @@ class PostOneChannel(unittest.TestCase):
         doPostAndGetJSON(self, conn_chan, self.C1, C1t_empty, 204, self.C1, C1t_full_r, 200)
         doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
+# Delete existing property P1
+    def test_AuthorizedAsChanDeleteProperty(self):
+        doPostAndGetJSON(self, conn_chan, self.C1, C1_P1ev, 204, self.C1, C1eP1_full_r, 200)
+
+# Delete existing property P1
+    def test_AuthorizedAsChanDeleteNonexistingProperty(self):
+        doPostAndFailJSON(self, conn_chan, self.C1, C1_P3ev, 404)
+
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
         doPostAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name ")
@@ -531,6 +574,10 @@ class PostOneChannel(unittest.TestCase):
         doPostAndFailMessageJSON(self, conn_chan, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
         doPostAndFailMessageJSON(self, conn_admin, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
+    def test_AuthorizedAsChanNullPropValue(self):
+        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1_P1nv, 400, "Invalid property value (missing or null) for 'P1'")
+    def test_AuthorizedAsAdminNullPropValue(self):
+        doPostAndFailMessageJSON(self, conn_admin, self.C1, C1_P1nv, 400, "Invalid property value (missing or null) for 'P1'")
 
 # post for nonexisting channel
     def test_AuthorizedAsChanNonexChannel(self):
@@ -1141,6 +1188,16 @@ class PutOnePropertyWithChannels(unittest.TestCase):
     def test_AuthorizedAsPropLcPayload(self):
         doPutAndFailMessageJSON(self, conn_prop, self.P1, p1_C1, 400, "Specified property name 'P1' and payload property name 'p1' do not match")
 
+# Invalid payload (missing or null or empty property value in embedded list)
+    def test_AuthorizedAsPropNullPropValue(self):
+        doPutAndFailMessageJSON(self, conn_prop, self.P1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminNullPropValue(self):
+        doPutAndFailMessageJSON(self, conn_admin, self.P1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsPropEmptyPropValue(self):
+        doPutAndFailMessageJSON(self, conn_prop, self.P1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminEmptyPropValue(self):
+        doPutAndFailMessageJSON(self, conn_admin, self.P1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+
     def tearDown(self):
         response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
         response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
@@ -1210,10 +1267,10 @@ class PostOneProperty(unittest.TestCase):
 
 
 #############################################################################################
-# Test .../tags/<name> POST   extended version, with channels in payload
+# Test .../properties/<name> POST   extended version, with channels in payload
 #############################################################################################
 class UpdatePropertyWithChannels(unittest.TestCase):
-    """Test POST and GET on the .../tags/<name> target - with channels in the payload"""
+    """Test POST and GET on the .../properties/<name> target - with channels in the payload"""
     def setUp(self):
         self.C1 = 'resources/channels/C1'
         self.C2 = 'resources/channels/C2'
@@ -1252,6 +1309,16 @@ class UpdatePropertyWithChannels(unittest.TestCase):
     def test_AuthorizedAsAdminNewValue(self):
         doPostAndGetJSON(self, conn_admin, self.P2, P2_C1v, 204, self.c, Cs123_1P12v_2P12_3e_r, 200)
         doGetJSON(self, conn_tag, self.P2, P2_C1v2_r, 200)
+
+# Invalid payload (missing or null or empty property value in embedded list)
+    def test_AuthorizedAsPropNullPropValue(self):
+        doPostAndFailMessageJSON(self, conn_prop, self.P1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminNullPropValue(self):
+        doPostAndFailMessageJSON(self, conn_admin, self.P1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsPropEmptyPropValue(self):
+        doPostAndFailMessageJSON(self, conn_prop, self.P1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminEmptyPropValue(self):
+        doPostAndFailMessageJSON(self, conn_admin, self.P1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
 # Non-existing tag
     def test_AuthorizedAsPropNonexTag(self):
@@ -1349,6 +1416,16 @@ class AddSingleProperty(unittest.TestCase):
 # As '" + user_prop2 + "' user that does not belong to group of property
     def test_AuthorizedAsProppy2NonMember(self):
         doPutAndFailMessageJSON(self, conn_prop2, self.P1C1, P1_C1, 403, "User '" + user_prop2 + "' does not belong to owner group '" + testp + "' of property 'P1'")
+
+# Invalid payload (missing or null or empty property value in embedded list)
+    def test_AuthorizedAsPropNullPropValue(self):
+        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminNullPropValue(self):
+        doPutAndFailMessageJSON(self, conn_admin, self.P1C1, P1_C1_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsPropEmptyPropValue(self):
+        doPutAndFailMessageJSON(self, conn_prop, self.P1C1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
+    def test_AuthorizedAsAdminEmptyPropValue(self):
+        doPutAndFailMessageJSON(self, conn_admin, self.P1C1, P1_C1_P1ev, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
 # Adding property to non-existing channel
     def test_AuthorizedAsPropNonexChannel(self):
