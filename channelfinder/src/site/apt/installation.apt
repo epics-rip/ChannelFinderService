@@ -38,12 +38,19 @@ in the web container.
     following the instructions for your platform.\
     <Alternatively:> Install the mySQL server from your distribution using a package manager.
 
-  * Create the ChannelFinder tables using the <<<sql/channelfinder-base.sql>>>
-    script in the distribution tar.
-    Unless you are running the mySQL server locally on your machine with access restricted to localhost,
+  * Unless you are running the mySQL server locally on your machine with access restricted to localhost,
     it is strongly advisable to create a user for the ChannelFinder service and give it
     sufficient rights on the channelfinder database. Having the ChannelFinder service access
-    the database as root is a possible security hole.
+    the database as root is a possible security hole. Do something like:
+
+----------
+    create database channelfinder;
+    create user channelfinder@localhost identified by '<password>';
+    grant all on channelfinder.* to channelfinder;
+----------
+
+  * Create the ChannelFinder tables using the <<<sql/channelfinder-base.sql>>>
+    script in the distribution tar.
 
   * Download the JDBC driver from {{{http://www.mysql.com/downloads/connector/j/}MySQL.com}}.
     Extract the driver <<<mysql-connector-java-<n>.<n>.<n>-bin.jar>>> from the archive and
