@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response;
  */
 public class ListPropertiesQuery {
     private String name;
+    private PreparedStatement ps;
 
     private ListPropertiesQuery() {
     }
@@ -36,7 +37,6 @@ public class ListPropertiesQuery {
      * @throws CFException wrapping an SQLException
      */
     private ResultSet executeQuery(Connection con, boolean isTagQuery) throws CFException {
-        PreparedStatement ps;
         List<String> name_params = new ArrayList<String>();
 
         StringBuilder query = new StringBuilder("SELECT id, name, owner FROM property ");
@@ -62,6 +62,20 @@ public class ListPropertiesQuery {
     }
 
     /**
+     * Close the query and release all resources related to it.
+     *
+     * @throws CFException wrapping an SQLException
+     */
+    private void close() throws CFException {
+        try {
+            ps.close();
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception closing property/tag list query", e);
+        }
+    }
+
+    /**
      * Returns the list of properties in the database.
      *
      * @return XmlProperties
@@ -76,7 +90,9 @@ public class ListPropertiesQuery {
                 while (rs.next()) {
                     result.addXmlProperty(new XmlProperty(rs.getString("name"), rs.getString("owner")));
                 }
+                rs.close();
             }
+            q.close();
             return result;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
@@ -99,7 +115,9 @@ public class ListPropertiesQuery {
                 while (rs.next()) {
                     result = new XmlProperty(rs.getString("name"), rs.getString("owner"));
                 }
+                rs.close();
             }
+            q.close();
             return result;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
@@ -122,7 +140,9 @@ public class ListPropertiesQuery {
                 while (rs.next()) {
                     result.addXmlTag(new XmlTag(rs.getString("name"), rs.getString("owner")));
                 }
+                rs.close();
             }
+            q.close();
             return result;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
@@ -145,7 +165,9 @@ public class ListPropertiesQuery {
                 while (rs.next()) {
                     result = new XmlTag(rs.getString("name"), rs.getString("owner"));
                 }
+                rs.close();
             }
+            q.close();
             return result;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,

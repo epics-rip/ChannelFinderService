@@ -50,6 +50,8 @@ public class CreateChannelQuery {
             ResultSet rs = ps.getGeneratedKeys();
             rs.first();
             id = rs.getLong(1);
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while adding channel '" + chan.getName() +"'", e);
@@ -99,6 +101,7 @@ public class CreateChannelQuery {
                     }
                 }
                 ps.executeUpdate();
+                ps.close();
             } catch (SQLException e) {
                 throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                         "SQL Exception while adding properties/tags for channel '" + chan.getName() + "'", e);

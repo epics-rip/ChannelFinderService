@@ -70,6 +70,8 @@ public class DeletePropertyQuery {
                     throw new CFException(Response.Status.NOT_FOUND,
                             "Channel '" + channel + "' does not exist");
                 }
+                rs.close();
+                ps.close();
             } catch (SQLException e) {
                 throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                         "SQL Exception while preparing deletion of property/tag '" + name
@@ -87,6 +89,7 @@ public class DeletePropertyQuery {
                             "Property/tag '" + name + "' does not exist for channel '"
                             + channel + "'");
                 }
+                ps.close();
             } catch (SQLException e) {
                 throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                         "SQL Exception while deleting property/tag '" + name +
@@ -101,6 +104,7 @@ public class DeletePropertyQuery {
                     ps = con.prepareStatement(query);
                     ps.setLong(1, pid);
                     int rows = ps.executeUpdate();
+                    ps.close();
                 } catch (SQLException e) {
                     throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                             "SQL Exception while deleting property/tag '" + name + "'", e);
@@ -115,6 +119,7 @@ public class DeletePropertyQuery {
                         throw new CFException(Response.Status.NOT_FOUND,
                                 "Property/tag '" + name + "' does not exist");
                     }
+                    ps.close();
                 } catch (SQLException e) {
                     throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                             "SQL Exception while deleting property/tag '" + name + "'", e);

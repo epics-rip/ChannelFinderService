@@ -37,6 +37,7 @@ public class FindChannelsQuery {
     private List<String> chan_matches = new ArrayList();
     private List<String> tag_matches = new ArrayList();
     private List<String> tag_patterns = new ArrayList();
+    private PreparedStatement ps;
 
     private void addTagMatches(Collection<String> matches) {
         for (String m : matches) {
@@ -128,6 +129,8 @@ public class FindChannelsQuery {
                 // Add key to list of matching channel ids
                 ids.add(rs.getLong(1));
             }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while getting channel ids in property match query", e);
@@ -154,6 +157,8 @@ public class FindChannelsQuery {
             while (rs.next()) {
                 ids.add(rs.getLong(1));
             }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while getting channel ids in tag match query", e);
@@ -222,7 +227,7 @@ public class FindChannelsQuery {
         query.append(" ORDER BY channel, property");
 
         try {
-            PreparedStatement ps = con.prepareStatement(query.toString());
+            ps = con.prepareStatement(query.toString());
             int i = 1;
             for (long p : id_params) {
                 ps.setLong(i++, p);
@@ -295,6 +300,20 @@ public class FindChannelsQuery {
     }
 
     /**
+     * Close the query and release all resources related to it.
+     *
+     * @throws CFException wrapping an SQLException
+     */
+    private void close() throws CFException {
+        try {
+            ps.close();
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception closing channels query", e);
+        }
+    }
+
+    /**
      * Finds channels by matching property/tag values and/or channel and/or tag names.
      *
      * @param matches MultiMap of query parameters
@@ -318,7 +337,9 @@ public class FindChannelsQuery {
                     }
                     addProperty(xmlChan, rs);
                 }
+                rs.close();
             }
+            q.close();
             return xmlChans;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
@@ -351,7 +372,9 @@ public class FindChannelsQuery {
                     }
                     addProperty(xmlChan, rs);
                 }
+                rs.close();
             }
+            q.close();
             return xmlChans;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
@@ -379,11 +402,13 @@ public class FindChannelsQuery {
                     }
                     addProperty(xmlChan, rs);
                 }
+                rs.close();
             }
+            q.close();
+            return xmlChan;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while parsing result of single channel search request", e);
         }
-        return xmlChan;
     }
 }

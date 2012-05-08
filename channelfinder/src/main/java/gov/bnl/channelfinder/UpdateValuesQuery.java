@@ -133,6 +133,7 @@ public class UpdateValuesQuery {
                 ps.setLong(3, pid);
 
                 ps.executeUpdate();
+                ps.close();
             } catch (SQLException e) {
                 throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                         "SQL Exception while updating "
@@ -162,6 +163,8 @@ public class UpdateValuesQuery {
                 // Add key to map of matching channel ids
                 ids.put(rs.getString("name"), rs.getLong("id"));
             }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while retrieving channel ids for insertion of "
@@ -199,6 +202,7 @@ public class UpdateValuesQuery {
                 ps.setLong(i++, id);
             }
             ps.executeUpdate();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while deleting values for " + getType() + " '"
@@ -225,6 +229,7 @@ public class UpdateValuesQuery {
                 }
             }
             ps.executeUpdate();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while inserting values for " + getType()

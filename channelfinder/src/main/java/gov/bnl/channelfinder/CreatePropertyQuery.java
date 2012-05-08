@@ -54,7 +54,8 @@ public class CreatePropertyQuery {
             ps.setString(1, name);
             ps.setString(2, owner);
             ps.setBoolean(3, isTagQuery);
-            ps.execute();
+            ps.executeUpdate();
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while adding " + getType() + " '" + name +"'", e);

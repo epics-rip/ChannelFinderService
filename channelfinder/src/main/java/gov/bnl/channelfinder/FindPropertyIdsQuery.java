@@ -23,6 +23,7 @@ import javax.ws.rs.core.Response;
 public class FindPropertyIdsQuery {
 
     private List<String> names = new ArrayList();
+    private PreparedStatement ps;
 
     private FindPropertyIdsQuery(XmlChannel data) {
         for (XmlProperty prop : data.getXmlProperties().getProperties()) {
@@ -45,7 +46,6 @@ public class FindPropertyIdsQuery {
      * @throws CFException wrapping an SQLException
      */
     private ResultSet executeQuery(Connection con) throws CFException {
-        PreparedStatement ps;
         List<String> name_params = new ArrayList<String>();
 
         StringBuilder query = new StringBuilder("SELECT id, name FROM property");
@@ -74,6 +74,20 @@ public class FindPropertyIdsQuery {
     }
 
     /**
+     * Close the query and release all resources related to it.
+     *
+     * @throws CFException wrapping an SQLException
+     */
+    private void close() throws CFException {
+        try {
+            ps.close();
+        } catch (SQLException e) {
+            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "SQL Exception closing property id query", e);
+        }
+    }
+
+    /**
      * Find the property names and ids for a specified channel.
      *
      * @param data the XmlChannel for which to generate the map
@@ -89,7 +103,9 @@ public class FindPropertyIdsQuery {
                 while (rs.next()) {
                     result.put(rs.getString("name"), rs.getInt("id"));
                 }
+                rs.close();
             }
+            q.close();
             return result;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
@@ -106,13 +122,15 @@ public class FindPropertyIdsQuery {
      */
     public static Long getPropertyId(String name) throws CFException {
         FindPropertyIdsQuery q = new FindPropertyIdsQuery(name);
+        Long result = null;
         try {
             ResultSet rs = q.executeQuery(DbConnection.getInstance().getConnection());
             if (rs != null && rs.first()) {
-                return rs.getLong("id");
-            } else {
-                return null;
+                result = rs.getLong("id");
             }
+            rs.close();
+            q.close();
+            return result;
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception scanning result of single property id request", e);

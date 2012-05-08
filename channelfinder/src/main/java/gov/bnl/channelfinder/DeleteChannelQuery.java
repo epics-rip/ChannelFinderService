@@ -43,6 +43,7 @@ public class DeleteChannelQuery {
                 throw new CFException(Response.Status.NOT_FOUND,
                         "Channel '" + name + "' does not exist");
             }
+            ps.close();
         } catch (SQLException e) {
             throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
                     "SQL Exception while deleting channel '" + name + "'", e);
