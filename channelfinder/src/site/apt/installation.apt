@@ -190,6 +190,11 @@ SourceForge project site, and Build information.
   For in-depth testing of the service, I recommend using the
 {{{http://code.google.com/p/rest-client/}rest-client}} application, that allows a complete
 detailed specification of a request and its payload, giving a lot more options than using a browser.
+To use rest-client for SSL connections, you will have to download the server certificate of your
+Glassfish server (e.g. using a web browser), then use <<<keytool>>> to load it into a trust store,
+which then can be configured in rest-client.
+{{{http://xcitestudios.com/blog/2011/03/04/using-ssl-in-restclient/}These instructions}} will give
+you a general idea.
 
 ** Using the Integration Tests
 
