@@ -305,12 +305,13 @@ public class FindChannelsQuery {
      * @throws CFException wrapping an SQLException
      */
     private void close() throws CFException {
-        try {
-            ps.close();
-        } catch (SQLException e) {
-            throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "SQL Exception closing channels query", e);
-        }
+        if (ps != null)
+            try {
+                ps.close();
+            } catch (SQLException e) {
+                throw new CFException(Response.Status.INTERNAL_SERVER_ERROR,
+                        "SQL Exception closing channels query", e);
+            }
     }
 
     /**
