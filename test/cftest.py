@@ -11,6 +11,10 @@ base_url = os.getenv("BASEURL")
 if base_url is None:
     base_url = _testConf.get('DEFAULT', 'BaseURL')
 
+secure_url = os.getenv("SECUREURL")
+if secure_url is None:
+    secure_url = _testConf.get('DEFAULT', 'SecureURL')
+
 user_tag = _testConf.get('DEFAULT', 'tagUsername')
 user_prop = _testConf.get('DEFAULT', 'propUsername')
 user_prop2 =_testConf.get('DEFAULT', 'propUsername2')
@@ -19,17 +23,17 @@ user_chan2 =_testConf.get('DEFAULT', 'channelUsername2')
 user_admin = _testConf.get('DEFAULT', 'username')
 
 conn_none  = Connection(base_url)
-conn_tag   = Connection(base_url, username=user_tag,   \
+conn_tag   = Connection(secure_url, username=user_tag,   \
                         password=_testConf.get('DEFAULT', 'tagPassword'))
-conn_prop  = Connection(base_url, username=user_prop,  \
+conn_prop  = Connection(secure_url, username=user_prop,  \
                         password=_testConf.get('DEFAULT', 'propPassword'))
-conn_prop2 = Connection(base_url, username=user_prop2, \
+conn_prop2 = Connection(secure_url, username=user_prop2, \
                         password=_testConf.get('DEFAULT', 'propPassword2'))
-conn_chan  = Connection(base_url, username=user_chan,  \
+conn_chan  = Connection(secure_url, username=user_chan,  \
                         password=_testConf.get('DEFAULT', 'channelPassword'))
-conn_chan2 = Connection(base_url, username=user_chan2, \
+conn_chan2 = Connection(secure_url, username=user_chan2, \
                         password=_testConf.get('DEFAULT', 'channelPassword2'))
-conn_admin = Connection(base_url, username=user_admin, \
+conn_admin = Connection(secure_url, username=user_admin, \
                         password=_testConf.get('DEFAULT', 'password'))
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
