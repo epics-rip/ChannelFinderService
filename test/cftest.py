@@ -23,17 +23,26 @@ user_chan2 =_testConf.get('DEFAULT', 'channelUsername2')
 user_admin = _testConf.get('DEFAULT', 'username')
 
 conn_none  = Connection(base_url)
+conn_none_secure = Connection(secure_url)
 conn_tag   = Connection(secure_url, username=user_tag,   \
                         password=_testConf.get('DEFAULT', 'tagPassword'))
+conn_tag_plain = Connection(base_url, username=user_tag,   \
+                        password=_testConf.get('DEFAULT', 'tagPassword'))
 conn_prop  = Connection(secure_url, username=user_prop,  \
+                        password=_testConf.get('DEFAULT', 'propPassword'))
+conn_prop_plain = Connection(base_url, username=user_prop,  \
                         password=_testConf.get('DEFAULT', 'propPassword'))
 conn_prop2 = Connection(secure_url, username=user_prop2, \
                         password=_testConf.get('DEFAULT', 'propPassword2'))
 conn_chan  = Connection(secure_url, username=user_chan,  \
                         password=_testConf.get('DEFAULT', 'channelPassword'))
+conn_chan_plain = Connection(base_url, username=user_chan,  \
+                        password=_testConf.get('DEFAULT', 'channelPassword'))
 conn_chan2 = Connection(secure_url, username=user_chan2, \
                         password=_testConf.get('DEFAULT', 'channelPassword2'))
 conn_admin = Connection(secure_url, username=user_admin, \
+                        password=_testConf.get('DEFAULT', 'password'))
+conn_admin_plain = Connection(base_url, username=user_admin, \
                         password=_testConf.get('DEFAULT', 'password'))
 
 jsonheader = {'content-type':'application/json','accept':'application/json'}
@@ -257,6 +266,51 @@ def doDeleteAndFailMessageJSON(self, conn, d_url, d_resp, err_mess):
     self.assertFalse(response[u'body'].find(err_mess) == -1,
     'error message from server:\n' + response[u'body'] + '\ndoes not contain the expected string: "' + err_mess + '"')
 
+def doPostAndFailPlain(self, p_url, p_body):
+    p_resp = 302
+    response = conn_tag_plain.request_post(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_prop_plain.request_post(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_chan_plain.request_post(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_admin_plain.request_post(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+
+def doPutAndFailPlain(self, p_url, p_body):
+    p_resp = 302
+    response = conn_tag_plain.request_put(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_prop_plain.request_put(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_chan_plain.request_put(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_admin_plain.request_put(p_url, headers=copy(jsonheader), body=p_body)
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+
+def doDeleteAndFailPlain(self, p_url):
+    p_resp = 302
+    response = conn_tag_plain.request_delete(p_url, headers=copy(jsonheader))
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_prop_plain.request_delete(p_url, headers=copy(jsonheader))
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_chan_plain.request_delete(p_url, headers=copy(jsonheader))
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+    response = conn_admin_plain.request_delete(p_url, headers=copy(jsonheader))
+    self.assertEqual(`p_resp`, response[u'headers']['status'],
+    'unexpected return code for post operation - expected ' + `p_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
+
 
 #############################################################################################
 # Test .../channels GET                             all kinds of queries
@@ -272,6 +326,9 @@ class QueryChannels(unittest.TestCase):
 
     def test_AllChans(self):
         doGetJSON(self, conn_none, self.c + "", Cs1234_full_r, 200)
+
+    def test_AllChansSecure(self):
+        doGetJSON(self, conn_none_secure, self.c + "", Cs1234_full_r, 200)
 
     def test_OneNameStarPattern(self):
         doGetJSON(self, conn_none, self.c + "?~name=C*", Cs1234_full_r, 200)
@@ -293,6 +350,9 @@ class QueryChannels(unittest.TestCase):
 
     def test_AndOrCombiPropValues(self):
         doGetJSON(self, conn_none, self.c + "?P3=prop1&P3=prop3&P2=prop2", Cs3_full_r, 200)
+
+    def test_AndOrCombiPropValuesSecure(self):
+        doGetJSON(self, conn_none_secure, self.c + "?P3=prop1&P3=prop3&P2=prop2", Cs3_full_r, 200)
 
     def test_OneTag(self):
         doGetJSON(self, conn_none, self.c + "?~tag=t2", Cs13_full_r, 200)
@@ -346,6 +406,8 @@ class PutManyChannels(unittest.TestCase):
 
     def test_AuthorizedAsAdmin(self):
         doPutAndFailJSON(self, conn_admin, self.c, Cs1_full, 405)
+    def test_AuthorizedAsAdminPlain(self):
+        doPutAndFailJSON(self, conn_admin_plain, self.c, Cs1_full, 302)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
@@ -363,11 +425,15 @@ class PostManyChannels(unittest.TestCase):
         response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps1234_empty)
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.c, Cs12_full, 401)
+        doPostAndFailJSON(self, conn_none, self.c, Cs12_full, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.c, Cs12_full, 401)
     def test_AuthorizedAsTag(self):
         doPostAndFailJSON(self, conn_tag, self.c, Cs12_full, 403)
     def test_AuthorizedAsProp(self):
         doPostAndFailJSON(self, conn_prop, self.c, Cs12_full, 403)
+    def test_AuthorizedPlain(self):
+        doPostAndFailPlain(self, self.c, Cs12_full)
 
     def test_AuthorizedAsChan(self):
         doPostAndGetJSON(self, conn_chan, self.c, Cs12_full, 204, self.c, Cs12_full_r, 200)
@@ -429,11 +495,15 @@ class PutOneChannel(unittest.TestCase):
         response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps12_empty)
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.C1, C1_full, 401)
+        doPutAndFailJSON(self, conn_none, self.C1, C1_full, 302)
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.C1, C1_full, 401)
     def test_AuthorizedAsTag(self):
         doPutAndFailJSON(self, conn_tag, self.C1, C1_full, 403)
     def test_AuthorizedAsProp(self):
         doPutAndFailJSON(self, conn_prop, self.C1, C1_full, 403)
+    def test_AuthorizedPlain(self):
+        doPutAndFailPlain(self, self.C1, C1_full)
 
 # add one "empty" channel (no properties and tags)
     def test_EmptyAuthorizedAsChan(self):
@@ -523,11 +593,15 @@ class PostOneChannel(unittest.TestCase):
         response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_full)
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.C1, C1_full2, 401)
+        doPostAndFailJSON(self, conn_none, self.C1, C1_full2, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.C1, C1_full2, 401)
     def test_AuthorizedAsTag(self):
         doPostAndFailJSON(self, conn_tag, self.C1, C1_full2, 403)
     def test_AuthorizedAsProp(self):
         doPostAndFailJSON(self, conn_prop, self.C1, C1_full2, 403)
+    def test_AuthorizedPlain(self):
+        doPostAndFailPlain(self, self.C1, C1_full2)
 
     def test_AuthorizedAsChan(self):
         doPostAndGetJSON(self, conn_chan, self.C1, C1_full2, 204, self.C1, C1_full2_r, 200)
@@ -616,11 +690,15 @@ class DeleteChannel(unittest.TestCase):
         response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
-        doDeleteAndFailJSON(self, conn_none, self.C1, 401)
+        doDeleteAndFailJSON(self, conn_none, self.C1, 302)
+    def test_UnauthorizedSecure(self):
+        doDeleteAndFailJSON(self, conn_none_secure, self.C1, 401)
     def test_AuthorizedAsTag(self):
         doDeleteAndFailJSON(self, conn_tag, self.C1, 403)
     def test_AuthorizedAsProp(self):
         doDeleteAndFailJSON(self, conn_prop, self.C1, 403)
+    def test_AuthorizedPlain(self):
+        doDeleteAndFailPlain(self, self.C1)
 
 # Delete C1 and check on .../channels/C1 and .../channels URLs
     def test_AuthorizedAsChan(self):
@@ -668,6 +746,8 @@ class PutManyTags(unittest.TestCase):
 
     def test_AuthorizedAsAdmin(self):
         doPutAndFailJSON(self, conn_admin, self.t, Ts1p_empty, 405)
+    def test_AuthorizedAsAdminPlain(self):
+        doPutAndFailJSON(self, conn_admin_plain, self.t, Ts1p_empty, 302)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
@@ -684,7 +764,11 @@ class PostManyTags(unittest.TestCase):
         self.T2 = 'resources/tags/T2'
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.t, Ts12_empty, 401)
+        doPostAndFailJSON(self, conn_none, self.t, Ts12_empty, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.t, Ts12_empty, 401)
+    def test_AuthorizedPlain(self):
+        doPostAndFailPlain(self, self.t, Ts12_empty)
 
     def test_AuthorizedAsTag(self):
         doPostAndGetJSON(self, conn_tag, self.t, Ts12_empty, 204, self.t, Ts12_empty_r, 200)
@@ -720,7 +804,11 @@ class PutOneTag(unittest.TestCase):
         self.T1 = 'resources/tags/T1'
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.T1, T1_empty, 401)
+        doPutAndFailJSON(self, conn_none, self.T1, T1_empty, 302)
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.T1, T1_empty, 401)
+    def test_AuthorizedPlain(self):
+        doPutAndFailPlain(self, self.T1, T1_empty)
 
     def test_AuthorizedAsTag(self):
         doPutAndGetJSON(self, conn_tag, self.T1, T1_empty, 204, self.T1, T1_empty_r, 200)
@@ -762,7 +850,9 @@ class PutOneTagWithChannels(unittest.TestCase):
         response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.T1, T1_C1, 401)
+        doPutAndFailJSON(self, conn_none, self.T1, T1_C1, 302)
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.T1, T1_C1, 401)
 
     def test_AuthorizedAsTag(self):
         doPutAndGetJSON(self, conn_tag, self.T1, T1_C1, 204, self.T1, T1_C1_r, 200)
@@ -813,7 +903,11 @@ class PostOneTag(unittest.TestCase):
         response = conn_admin.request_put(self.T2, headers=copy(jsonheader), body=T2_C2)
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.T1, T1p_empty, 401)
+        doPostAndFailJSON(self, conn_none, self.T1, T1p_empty, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.T1, T1p_empty, 401)
+    def test_AuthorizedPlain(self):
+        doPostAndFailPlain(self, self.T1, T1p_empty)
 
 # Set a new tag owner
 # channy does not belong to testp, so no test as Tag at this point
@@ -875,7 +969,9 @@ class UpdateTagWithChannels(unittest.TestCase):
         response = conn_admin.request_put(self.T2, headers=copy(jsonheader), body=T2_C2)
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.T2, T2_C23, 401)
+        doPostAndFailJSON(self, conn_none, self.T2, T2_C23, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.T2, T2_C23, 401)
 
 # Add a channel, test through .../channels GET and .../tags/T2 GET
     def test_AuthorizedAsTag(self):
@@ -926,7 +1022,11 @@ class DeleteTag(unittest.TestCase):
         response = conn_admin.request_put(self.T2, headers=copy(jsonheader), body=T2_C2)
 
     def test_Unauthorized(self):
-        doDeleteAndFailJSON(self, conn_none, self.T1, 401)
+        doDeleteAndFailJSON(self, conn_none, self.T1, 302)
+    def test_UnauthorizedSecure(self):
+        doDeleteAndFailJSON(self, conn_none_secure, self.T1, 401)
+    def test_AuthorizedPlain(self):
+        doDeleteAndFailPlain(self, self.T1)
 
     def test_AuthorizedAsTag(self):
         doDeleteAndGetJSON(self, conn_tag, self.T1, 200, self.T1, "", 404)
@@ -973,7 +1073,11 @@ class AddSingleTag(unittest.TestCase):
         response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_empty)
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.T1C1, T1_C1, 401)
+        doPutAndFailJSON(self, conn_none, self.T1C1, T1_C1, 302)
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.T1C1, T1_C1, 401)
+    def test_AuthorizedPlain(self):
+        doPutAndFailPlain(self, self.T1C1, T1_C1)
 
     def test_AuthorizedAsTag(self):
         doPutAndGetJSON(self, conn_tag, self.T1C1, T1_C1, 204, self.T1, T1_C1_r, 200)
@@ -1023,7 +1127,11 @@ class DeleteSingleTag(unittest.TestCase):
         response = conn_admin.request_put(self.T1, headers=copy(jsonheader), body=T1_C12)
 
     def test_Unauthorized(self):
-        doDeleteAndFailJSON(self, conn_none, self.T1C1, 401)
+        doDeleteAndFailJSON(self, conn_none, self.T1C1, 302)
+    def test_UnauthorizedSecure(self):
+        doDeleteAndFailJSON(self, conn_none_secure, self.T1C1, 401)
+    def test_AuthorizedPlain(self):
+        doDeleteAndFailPlain(self, self.T1C1)
 
     def test_AuthorizedAsTag(self):
         doDeleteAndGetJSON(self, conn_tag, self.T1C1, 200, self.T1, T1_C2_r, 200)
@@ -1066,6 +1174,8 @@ class PutManyProperties(unittest.TestCase):
 
     def test_AuthorizedAsAdmin(self):
         doPutAndFailJSON(self, conn_admin, self.p, Ps1t_empty, 405)
+    def test_AuthorizedAsAdminPlain(self):
+        doPutAndFailJSON(self, conn_admin_plain, self.p, Ps1t_empty, 302)
 
     def tearDown(self):
         response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
@@ -1082,10 +1192,13 @@ class PostManyProperties(unittest.TestCase):
         self.P2 = 'resources/properties/P2'
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.urlp, Ps12_empty, 401)
-
+        doPostAndFailJSON(self, conn_none, self.urlp, Ps12_empty, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.urlp, Ps12_empty, 401)
     def test_AuthorizedAsTag(self):
         doPostAndFailJSON(self, conn_tag, self.urlp, Ps12_empty, 403)
+    def test_AuthorizedPlain(self):
+        doPostAndFailPlain(self, self.urlp, Ps12_empty)
 
     def test_AuthorizedAsProp(self):
         doPostAndGetJSON(self, conn_prop, self.urlp, Ps12_empty, 204, self.urlp, Ps12_empty_r, 200)
@@ -1127,10 +1240,13 @@ class PutOneProperty(unittest.TestCase):
         self.P1 = 'resources/properties/P1'
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.P1, P1_empty, 401)
-
+        doPutAndFailJSON(self, conn_none, self.P1, P1_empty, 302)
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.P1, P1_empty, 401)
     def test_AuthorizedAsTag(self):
         doPutAndFailJSON(self, conn_tag, self.P1, P1_empty, 403)
+    def test_AuthorizedPlain(self):
+        doPutAndFailPlain(self, self.P1, P1_empty)
 
     def test_AuthorizedAsProp(self):
         doPutAndGetJSON(self, conn_prop, self.P1, P1_empty, 204, self.P1, P1_empty_r, 200)
@@ -1166,9 +1282,8 @@ class PutOnePropertyWithChannels(unittest.TestCase):
         response = conn_admin.request_put(self.C1, headers=copy(jsonheader), body=C1_empty)
         response = conn_admin.request_put(self.C2, headers=copy(jsonheader), body=C2_empty)
 
-    def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.P1, P1_C1, 401)
-
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.P1, P1_C1, 401)
     def test_AuthorizedAsTag(self):
         doPutAndFailJSON(self, conn_tag, self.P1, P1_C1, 403)
 
@@ -1229,9 +1344,13 @@ class PostOneProperty(unittest.TestCase):
         response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.P1, P1t_empty, 401)
+        doPostAndFailJSON(self, conn_none, self.P1, P1t_empty, 302)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.P1, P1t_empty, 401)
     def test_AuthorizedAsTag(self):
         doPostAndFailJSON(self, conn_tag, self.P1, P1t_empty, 403)
+    def test_AuthorizedPlain(self):
+        doPostAndFailPlain(self, self.P1, P1t_empty)
 
 # Set a new property owner
     def test_AuthorizedAsPropNewOwner(self):
@@ -1291,8 +1410,8 @@ class UpdatePropertyWithChannels(unittest.TestCase):
         response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
         response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
-    def test_Unauthorized(self):
-        doPostAndFailJSON(self, conn_none, self.P2, P2_C23, 401)
+    def test_UnauthorizedSecure(self):
+        doPostAndFailJSON(self, conn_none_secure, self.P2, P2_C23, 401)
 
     def test_AuthorizedAsTag(self):
         doPostAndFailJSON(self, conn_tag, self.P2, P2_C23, 403)
@@ -1360,9 +1479,13 @@ class DeleteProperty(unittest.TestCase):
         response = conn_admin.request_put(self.P2, headers=copy(jsonheader), body=P2_C2)
 
     def test_Unauthorized(self):
-        doDeleteAndFailJSON(self, conn_none, self.P1, 401)
+        doDeleteAndFailJSON(self, conn_none, self.P1, 302)
+    def test_UnauthorizedSecure(self):
+        doDeleteAndFailJSON(self, conn_none_secure, self.P1, 401)
     def test_AuthorizedAsTag(self):
         doDeleteAndFailJSON(self, conn_tag, self.P1, 403)
+    def test_AuthorizedPlain(self):
+        doDeleteAndFailPlain(self, self.P1)
 
     def test_AuthorizedAsProp(self):
         doDeleteAndGetJSON(self, conn_prop, self.P1, 200, self.P1, "", 404)
@@ -1405,9 +1528,13 @@ class AddSingleProperty(unittest.TestCase):
         response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_empty)
 
     def test_Unauthorized(self):
-        doPutAndFailJSON(self, conn_none, self.P1C1, P1, 401)
+        doPutAndFailJSON(self, conn_none, self.P1C1, P1, 302)
+    def test_UnauthorizedSecure(self):
+        doPutAndFailJSON(self, conn_none_secure, self.P1C1, P1, 401)
     def test_AuthorizedAsTag(self):
         doPutAndFailJSON(self, conn_tag, self.P1C1, P1, 403)
+    def test_AuthorizedPlain(self):
+        doPutAndFailPlain(self, self.P1C1, P1)
 
     def test_AuthorizedAsProp(self):
         doPutAndGetJSON(self, conn_prop, self.P1C1, P1, 204, self.P1, P1_C1_r, 200)
@@ -1472,9 +1599,13 @@ class DeleteSingleProperty(unittest.TestCase):
         response = conn_admin.request_put(self.P1, headers=copy(jsonheader), body=P1_C12)
 
     def test_Unauthorized(self):
-        doDeleteAndFailJSON(self, conn_none, self.P1C1, 401)
+        doDeleteAndFailJSON(self, conn_none, self.P1C1, 302)
+    def test_UnauthorizedSecure(self):
+        doDeleteAndFailJSON(self, conn_none_secure, self.P1C1, 401)
     def test_AuthorizedAsTag(self):
         doDeleteAndFailJSON(self, conn_tag, self.P1C1, 403)
+    def test_AuthorizedPlain(self):
+        doDeleteAndFailPlain(self, self.P1C1)
 
     def test_AuthorizedAsProp(self):
         doDeleteAndGetJSON(self, conn_prop, self.P1C1, 200, self.P1, P1_C2_r, 200)
