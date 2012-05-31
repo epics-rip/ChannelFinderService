@@ -30,6 +30,7 @@ CREATE TABLE `value` (
   PRIMARY KEY  (`id`),
   KEY `value_channel` USING BTREE (`channel_id`),
   KEY `value_property` USING BTREE (`property_id`),
+  KEY `value_value` USING BTREE (`value`),
   CONSTRAINT `value_property` FOREIGN KEY (`property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `value_channel` FOREIGN KEY (`channel_id`) REFERENCES `channel` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
