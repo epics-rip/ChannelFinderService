@@ -56,7 +56,7 @@
         <dependency>
             <groupId>com.sun.jersey.glassfish.v3</groupId>
             <artifactId>jersey-gfv3-core</artifactId>
-            <version>1.2</version>
+            <version>1.13</version>
             <scope>provided</scope>
             <type>pom</type>
         </dependency>
