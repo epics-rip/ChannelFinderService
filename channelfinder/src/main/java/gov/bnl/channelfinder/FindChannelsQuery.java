@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.MultivaluedMap;
@@ -29,6 +31,8 @@ import javax.ws.rs.core.Response;
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 public class FindChannelsQuery {
+
+    private static final Logger log = Logger.getLogger(FindChannelsQuery.class.getName());
 
     private enum SearchType {
         CHANNEL, TAG
@@ -289,12 +293,18 @@ public class FindChannelsQuery {
      *
      */
     private static void addProperty(XmlChannel c, ResultSet rs) throws SQLException {
-        if (rs.getString("property") != null) {
+        String property = rs.getString("property");
+        if (property != null) {
             if (rs.getBoolean("is_tag")) {
-                c.addXmlTag(new XmlTag(rs.getString("property"), rs.getString("powner")));
+                c.addXmlTag(new XmlTag(property, rs.getString("powner")));
             } else {
-                c.addXmlProperty(new XmlProperty(rs.getString("property"),
-                        rs.getString("powner"), rs.getString("value")));
+                String value = rs.getString("value");
+                if (value == null || value.isEmpty()) {
+                    log.log(Level.WARNING, "Ignoring illegal property " + property
+                            + " for channel {0}", c.getName() );
+                    return;
+                }
+                c.addXmlProperty(new XmlProperty(property, rs.getString("powner"), value));
             }
         }
     }
