@@ -143,6 +143,23 @@
                 <artifactId>maven-jxr-plugin</artifactId>
                 <version>2.3</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.7.1</version>
+                <configuration>
+                    <columnNames>Fix Version,Priority,Type,Summary,Assignee,Key,Status,Resolution</columnNames>
+                    <sortColumnNames>Fix Version,Priority,Key DESC</sortColumnNames>
+                    <component>Service</component>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>jira-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
          </plugins>
     </reporting>
 </project>
