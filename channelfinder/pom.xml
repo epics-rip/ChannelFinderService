@@ -5,17 +5,17 @@
     <artifactId>ChannelFinder</artifactId>
     <packaging>war</packaging>
     <version>1.1.2-SNAPSHOT</version>
+    
     <name>ChannelFinder Directory Service</name>
     <description>ChannelFinder is a directory server, implemented as a REST style web service.
         Its intended use is within control systems, namely the EPICS Control system, for which it
     has been written.</description>
     <url>http://channelfinder.sourceforge.net/ChannelFinder/</url>
-    <licenses>
-        <license>
-            <name>GNU General Public License 2 with Classpath Exception</name>
-            <url>LICENSE.TXT</url>
-        </license>
-    </licenses>
+    
+    <organization>
+        <name>Helmholtz-Zentrum Berlin für Materialien und Energie GmbH</name>
+    </organization>
+    <inceptionYear>2010</inceptionYear>
     <developers>
         <developer>
             <name>Ralph Lange</name>
@@ -26,6 +26,13 @@
             </roles>
         </developer>
     </developers>
+    <licenses>
+        <license>
+            <name>GNU General Public License 2 with Classpath Exception</name>
+            <url>LICENSE.TXT</url>
+        </license>
+    </licenses>
+
     <scm>
         <connection>scm:hg:http://channelfinder.hg.sourceforge.net:8000/hgroot/channelfinder/ChannelFinder</connection>
         <developerConnection>scm:hg:ssh://user@channelfinder.hg.sourceforge.net/hgroot/channelfinder/ChannelFinder</developerConnection>
@@ -39,6 +46,7 @@
         <system>Jenkins</system>
         <url>https://irmis-dev.bnl.gov/jenkins/view/ChannelFinder/</url>
     </ciManagement>
+
     <repositories>
         <repository>
             <id>java.net2</id>
@@ -46,6 +54,7 @@
             <url>http://download.java.net/maven/2</url>
         </repository>
     </repositories>
+
     <dependencies>
         <dependency>
             <groupId>javax</groupId>
@@ -98,21 +107,21 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.mycila.maven-license-plugin</groupId>
-                <artifactId>maven-license-plugin</artifactId>
-                <version>1.9.0</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.2</version>
                 <configuration>
-                    <header>header.txt</header>
-                    <includes>
-                        <include>src/**/*.java</include>
-                    </includes>
-                    <strictCheck>true</strictCheck>
+                    <licenseName>gpl_v2_cpe</licenseName>
+                    <licenseResolver>file://${basedir}/src/license</licenseResolver>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>first</id>
                         <goals>
-                            <goal>check</goal>
+                            <goal>update-file-header</goal>
+                            <goal>update-project-license</goal>
                         </goals>
+                        <phase>process-sources</phase>
                     </execution>
                 </executions>
             </plugin>
