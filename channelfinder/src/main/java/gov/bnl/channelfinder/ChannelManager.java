@@ -10,9 +10,6 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import java.sql.Connection;
-import java.util.Collection;
-import java.util.Collections;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 

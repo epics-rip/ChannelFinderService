@@ -12,8 +12,8 @@ package gov.bnl.channelfinder;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Channels (collection) object that can be represented as XML/JSON in payload data.

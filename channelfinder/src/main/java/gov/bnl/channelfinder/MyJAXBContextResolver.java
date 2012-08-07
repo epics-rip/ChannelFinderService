@@ -14,8 +14,8 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.json.JSONJAXBContext;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 
 /**
