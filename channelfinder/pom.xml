@@ -47,6 +47,16 @@
         <url>https://irmis-dev.bnl.gov/jenkins/view/ChannelFinder/</url>
     </ciManagement>
 
+    <distributionManagement>
+    	<!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
+    	(id values there should match ids below) -->
+        <repository>
+            <id>epics.releases</id>
+            <name>EPICS Repository</name>
+            <url>scp://shell.sourceforge.net/home/project-web/epics/htdocs/maven2</url>
+        </repository>
+    </distributionManagement>
+
     <repositories>
         <repository>
             <id>java.net2</id>
