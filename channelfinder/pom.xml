@@ -39,12 +39,12 @@
         <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/ChannelFinder/</url>
     </scm>
     <issueManagement>
-        <system>JIRA</system>
+        <system>JIRA at java.net</system>
         <url>http://java.net/jira/browse/CHANNELFINDER/component/14299</url>
     </issueManagement>
     <ciManagement>
-        <system>Jenkins</system>
-        <url>https://irmis-dev.bnl.gov/jenkins/view/ChannelFinder/</url>
+        <system>Jenkins on CloudBees</system>
+        <url>https://openepics.ci.cloudbees.com/view/ChannelFinder/</url>
     </ciManagement>
 
     <distributionManagement>
