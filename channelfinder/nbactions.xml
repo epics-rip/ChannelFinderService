@@ -7,4 +7,12 @@
                 <goal>site:site</goal>
             </goals>
         </action>
+        <action>
+            <actionName>CUSTOM-Run @CARGO/Glassfish</actionName>
+            <displayName>Run CARGO</displayName>
+            <goals>
+                <goal>verify</goal>
+                <goal>cargo-maven2-plugin:run</goal>
+            </goals>
+        </action>
     </actions>
