@@ -135,14 +135,14 @@ dn: cn=cf-tags,ou=Group,dc=cf-test,dc=local
 cn: cf-tags
 objectClass: posixGroup
 description: cf-tags group
-gidNumber: 24004
+gidNumber: 24006
 memberUid: tag
 
 dn: cn=cf-properties,ou=Group,dc=cf-test,dc=local
 cn: cf-properties
 objectClass: posixGroup
 description: cf-properties group
-gidNumber: 24005
+gidNumber: 24007
 memberUid: property
 memberUid: property2
 
@@ -150,7 +150,7 @@ dn: cn=cf-channels,ou=Group,dc=cf-test,dc=local
 cn: cf-channels
 objectClass: posixGroup
 description: cf-channels group
-gidNumber: 24006
+gidNumber: 24008
 memberUid: channel
 memberUid: channel2
 
@@ -158,5 +158,5 @@ dn: cn=cf-admins,ou=Group,dc=cf-test,dc=local
 cn: cf-admins
 objectClass: posixGroup
 description: cf-admins group
-gidNumber: 24007
+gidNumber: 24009
 memberUid: admin
