@@ -76,10 +76,6 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
-        <pluginRepository>
-            <id>javabuilders</id>
-            <url>http://javabuilders.googlecode.com/svn/repo</url>
-        </pluginRepository>
     </pluginRepositories>
 
     <repositories>
@@ -286,18 +282,26 @@
               </executions>
             </plugin>
             <plugin>
-                <groupId>maven-python-mojos</groupId>
-                <artifactId>maven-bdd-plugin</artifactId>
-                <version>1.0.6</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
                 <executions>
                     <execution>
+                        <phase>integration-test</phase>
                         <goals>
-                            <goal>nose</goal>
+                            <goal>exec</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
+                    <executable>nosetests</executable>
                     <workingDirectory>../test</workingDirectory>
+                    <arguments>
+                        <argument>-v</argument>
+                        <argument>-s</argument>
+                        <argument>--with-xunit</argument>
+                        <argument>--xunit-file=${project.build.directory}/failsafe-reports/nosetests.xml</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>
