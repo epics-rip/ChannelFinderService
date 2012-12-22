@@ -1,0 +1,24 @@
+#!/bin/sh
+
+case $1 in
+tag)
+    echo "uid=23001(tag) gid=23001(tag) groups=23001(tag),24001(cf-ttags),24004(cf-xxxx),24005(cf-testx),24006(cf-tags)"
+    ;;
+property)
+    echo "uid=23002(property) gid=23002(property) groups=23002(property),24001(cf-ttags),24002(cf-tproperties),24004(cf-xxxx),24005(cf-testx),24007(cf-properties)"
+    ;;
+channel)
+    echo "uid=23003(channel) gid=23003(channel) groups=23003(channel),24001(cf-ttags),24002(cf-tproperties),24003(cf-tchannels),24004(cf-xxxx),24005(cf-testx),24008(cf-channels)"
+    ;;
+admin)
+    echo "uid=23004(admin) gid=23004(admin) groups=23004(admin),24009(cf-admins)"
+    ;;
+property2)
+    echo "uid=23005(property2) gid=23005(property2) groups=23005(property2),24001(cf-ttags),24007(cf-properties)"
+    ;;
+channel2)
+    echo "uid=23006(channel2) gid=23006(channel2) groups=23006(channel2),24002(cf-tproperties),24003(cf-tchannels),24008(cf-channels)"
+    ;;
+*)
+    echo "id: $1: No such user"
+esac
