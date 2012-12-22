@@ -8,11 +8,23 @@
             </goals>
         </action>
         <action>
-            <actionName>CUSTOM-Run @CARGO/Glassfish</actionName>
+            <actionName>CUSTOM-Run CARGO</actionName>
             <displayName>Run CARGO</displayName>
             <goals>
                 <goal>verify</goal>
-                <goal>cargo-maven2-plugin:run</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-Stop CARGO</actionName>
+            <displayName>Stop CARGO</displayName>
+            <goals>
+                <goal>cargo:stop</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>build</actionName>
+            <goals>
+                <goal>install</goal>
             </goals>
         </action>
     </actions>
