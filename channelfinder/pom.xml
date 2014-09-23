@@ -168,10 +168,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.3</version>
+                <version>1.7</version>
                 <configuration>
                     <licenseName>gpl_v2_cpe</licenseName>
-                    <licenseResolver>file://${basedir}/src/license</licenseResolver>
+                    <licenseResolver>${project.baseUri}src/license</licenseResolver>
                 </configuration>
                 <executions>
                     <execution>
