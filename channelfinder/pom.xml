@@ -41,9 +41,8 @@
     </properties>
 
     <scm>
-        <connection>scm:hg:http://channelfinder.hg.sourceforge.net:8000/hgroot/channelfinder/ChannelFinder</connection>
-        <developerConnection>scm:hg:ssh://user@channelfinder.hg.sourceforge.net/hgroot/channelfinder/ChannelFinder</developerConnection>
-        <url>http://channelfinder.hg.sourceforge.net/hgweb/channelfinder/ChannelFinder/</url>
+        <connection>scm:git:https://github.com/ChannelFinder/ChannelFinderService.git</connection>
+        <url>https://github.com/ChannelFinder/ChannelFinderService</url>
     </scm>
     <issueManagement>
         <system>JIRA</system>
