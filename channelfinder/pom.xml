@@ -13,13 +13,13 @@
     <url>http://channelfinder.sourceforge.net/ChannelFinder/</url>
     
     <organization>
-        <name>Helmholtz-Zentrum Berlin für Materialien und Energie GmbH</name>
+        <name>Brookhaven National Laboratory</name>
     </organization>
     <inceptionYear>2010</inceptionYear>
     <developers>
         <developer>
             <name>Ralph Lange</name>
-            <organization>Helmholtz-Zentrum Berlin / BESSY II</organization>
+            <organization>ITER Organization</organization>
             <roles>
                 <role>Project Manager</role>
                 <role>Architect</role>
