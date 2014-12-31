@@ -117,7 +117,7 @@
         <dependency>
             <groupId>com.sun.jersey.glassfish.v3</groupId>
             <artifactId>jersey-gfv3-core</artifactId>
-            <version>1.13</version>
+            <version>1.18.3</version>
             <scope>provided</scope>
             <type>pom</type>
         </dependency>
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.21</version>
+            <version>5.1.34</version>
         </dependency>
     </dependencies>
 
