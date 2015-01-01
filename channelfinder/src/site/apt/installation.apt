@@ -16,9 +16,10 @@
 
 Installation
 
-  ChannelFinder is a Java EE5 REST-style web service. The directory data is held in
-a MySQL relational database. Service authentication/authorization is done using the
-methods provided by the web container (connecting to e.g. LDAP or PAM).
+  ChannelFinderService is a Java EE5 REST-style web service. The directory data is held in
+a database, the reference implementation uses MySQL.
+Service authentication/authorization is done using the methods provided by the web container
+(connecting to e.g. LDAP or PAM).
 Application authorization, i.e. determining user/group relations, is either available
 through an LDAP connection or through a command line script (default: "id") configured
 in the web container.
@@ -49,8 +50,8 @@ in the web container.
     <Alternatively:> Install the mySQL server from your distribution using a package manager.
 
   * Unless you are running the mySQL server locally on your machine with access restricted to localhost,
-    it is strongly advisable to create a user for the ChannelFinder service and give it
-    sufficient rights on the channelfinder database. Having the ChannelFinder service access
+    it is strongly advisable to create a user for the ChannelFinderService and give it
+    sufficient rights on the channelfinder database. Having the ChannelFinderService access
     the database as root is a possible security hole. Do something like:
 
 ----------
@@ -174,9 +175,9 @@ in the web container.
 
   * Add an additional property with name "Value" and with "gov.bnl.channelfinder.LDAPUserManager" as value.
 
-** Deploy the ChannelFinder Application
+** Deploy the ChannelFinderService Application
 
-  * Drop the ChannelFinder WAR file <<<war/ChannelFinder.war>>> into
+  * Drop the ChannelFinderService WAR file <<<war/ChannelFinder.war>>> into
     <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.
     (You may have to create the autodeploy directory if it doesn't exist yet.)\
     <Alternatively:> Call <<<asadmin deploy <WAR-file>>>> (<<<asadmin.bat>>> on Windows)

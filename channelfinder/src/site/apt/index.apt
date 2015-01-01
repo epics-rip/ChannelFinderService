@@ -16,7 +16,7 @@
 
 ChannelFinder Overview
 
-  ChannelFinder is a directory server, implemented as a REST style web service.
+  ChannelFinderService is a directory server, implemented as a REST style web service.
 Its intended use is within control systems, namely the EPICS Control system, for which it has been written.
 
 * Motivation and Objectives
@@ -28,7 +28,7 @@ unique predictable names. It does not free every application from being configur
 so that it knows all channel names it might be interested in beforehand.
 
   ChannelFinder tries to overcome this limitation by implementing a generic directory service,
-which applications can query for a list of channels that match certain conditions,
+ChannelFinderService, which applications can query for a list of channels that match certain conditions,
 such as physical functionality or location. It also provides mechanisms to create channel name aliases,
 allowing for different perspectives of the same set of channel names.
 
