@@ -13,13 +13,24 @@
     <url>http://channelfinder.sourceforge.net/ChannelFinderService/</url>
     
     <organization>
-        <name>Brookhaven National Laboratory</name>
+        <name>Brookhaven National Laboratory / National Synchrotron Light Source II</name>
+        <url>http://www.bnl.gov/ps/</url>
     </organization>
     <inceptionYear>2010</inceptionYear>
     <developers>
         <developer>
             <name>Ralph Lange</name>
+            <email>ralph.lange@gmx.de</email>
             <organization>ITER Organization</organization>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Kunal Shroff</name>
+            <email>shroffk@bnl.gov</email>
+            <organization>Brookhaven National Laboratory</organization>
             <roles>
                 <role>Project Manager</role>
                 <role>Architect</role>
