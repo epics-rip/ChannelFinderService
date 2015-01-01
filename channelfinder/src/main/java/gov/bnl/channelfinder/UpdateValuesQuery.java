@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to add a property to channel(s).
  * 
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class UpdateValuesQuery {
 
@@ -268,9 +268,10 @@ public class UpdateValuesQuery {
     }
 
     /**
-     * Updates the <tt>tag</tt> in the database, adding it to all channels in <tt>tag</tt>.
+     * Updates the tag <tt>name</tt> in the database, adding it to all channels in <tt>tag</tt>.
      *
-     * @param tag XmlTag
+     * @param name tag to add
+     * @param tag XmlTag containing channels to add tag to
      * @throws CFException wrapping an SQLException
      */
     public static void updateTag(String name, XmlTag tag) throws CFException {

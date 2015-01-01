@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Channels (collection) object that can be represented as XML/JSON in payload data.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 
 @XmlRootElement(name = "tags")
@@ -30,7 +30,7 @@ public class XmlTags {
     }
 
     /** Creates a new instance of XmlTags with one initial tag.
-     * @param c initial element
+     * @param t initial element
      */
     public XmlTags(XmlTag t) {
         tags.add(t);

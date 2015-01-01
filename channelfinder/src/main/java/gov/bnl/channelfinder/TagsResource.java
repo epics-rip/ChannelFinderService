@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
 /**
  * Top level Jersey HTTP methods for the .../tags URL
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 @Path("/tags/")
 public class TagsResource {
@@ -49,8 +49,7 @@ public class TagsResource {
     /**
      * GET method for retrieving the list of tags in the database.
      *
-     * @param name URI path parameter: tag name to search for
-     * @return list of channels with their properties and tags that match
+     * @return HTTP Response
      */
 
     @GET

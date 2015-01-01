@@ -21,7 +21,7 @@ import javax.xml.bind.JAXBContext;
 /**
  * Gets inserted into JAXB to configure JSON marshalling.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 @Provider
 public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {

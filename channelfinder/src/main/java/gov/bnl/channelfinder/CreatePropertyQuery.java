@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to create a property/tag.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class CreatePropertyQuery {
 

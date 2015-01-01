@@ -31,7 +31,7 @@ import javax.ws.rs.core.Response;
 /**
  *  JDBC query to retrieve channels from the directory .
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class FindChannelsQuery {
 
@@ -97,6 +97,7 @@ public class FindChannelsQuery {
      *
      * @param con connection to use
      * @return a set of channel ids that match
+     * @throws CFException wrapping an SQLException
      */
     private Set<Long> getIdsFromPropertyAndTagMatch(Connection con) throws CFException {
         StringBuilder query = new StringBuilder("SELECT p0.channel_id FROM prop_value p0 WHERE");
@@ -148,6 +149,7 @@ public class FindChannelsQuery {
      *
      * @param con connection to use
      * @return a set of channel ids that match
+     * @throws CFException wrapping an SQLException
      */
     private Set<Long> getIdsFromTagMatch(Connection con, String match) throws CFException {
         String query = "SELECT p0.channel_id FROM prop_value p0"
@@ -329,6 +331,7 @@ public class FindChannelsQuery {
      *
      * @param matches MultiMap of query parameters
      * @return XmlChannels container with all found channels and their properties/tags
+     * @throws CFException wrapping an SQLException
      */
     public static XmlChannels findChannelsByMultiMatch(MultivaluedMap<String, String> matches) throws CFException {
         FindChannelsQuery q = new FindChannelsQuery(matches);
@@ -361,8 +364,9 @@ public class FindChannelsQuery {
     /**
      * Returns channels found by matching property/tag values and/or channel names.
      *
-     * @param query query to be used for matching
+     * @param name property name to match
      * @return XmlChannels container with all found channels and their properties/tags
+     * @throws CFException wrapping an SQLException
      */
     public static XmlChannels findChannelsByPropertyName(String name) throws CFException {
         FindChannelsQuery q = new FindChannelsQuery(SearchType.TAG, name);

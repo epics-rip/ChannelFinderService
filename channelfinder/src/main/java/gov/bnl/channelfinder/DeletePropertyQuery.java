@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to delete a property from one or all channel(s).
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class DeletePropertyQuery {
 
@@ -138,6 +138,7 @@ public class DeletePropertyQuery {
      * channels and the property/tag itself).
      *
      * @param name property/tag name
+     * @throws CFException wrapping an SQLException
      */
     public static void removeProperty(String name) throws CFException {
         DeletePropertyQuery q = new DeletePropertyQuery(name, true);
@@ -149,6 +150,7 @@ public class DeletePropertyQuery {
      * channels and the property/tag itself).
      *
      * @param name property/tag name
+     * @throws CFException wrapping an SQLException
      */
     public static void removeExistingProperty(String name) throws CFException {
         DeletePropertyQuery q = new DeletePropertyQuery(name, true);
@@ -173,7 +175,7 @@ public class DeletePropertyQuery {
      *
      * @param name property/tag name
      * @param channel channel to delete <tt>name</tt> from
-     * @return new FindChannelsQuery instance
+     * @throws CFException wrapping an SQLException
      */
     public static void deleteOneValue(String name, String channel) throws CFException {
         DeletePropertyQuery q = new DeletePropertyQuery(name, channel);

@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to find properties/tags.
  * 
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class ListPropertiesQuery {
     private String name;
@@ -108,6 +108,7 @@ public class ListPropertiesQuery {
     /**
      * Finds a property in the database by name.
      *
+     * @param name property to find
      * @return XmlProperty
      * @throws CFException wrapping an SQLException
      */
@@ -158,6 +159,7 @@ public class ListPropertiesQuery {
     /**
      * Finds a tag in the database by name.
      *
+     * @param name tag to find
      * @return XmlTag
      * @throws CFException wrapping an SQLException
      */

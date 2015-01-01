@@ -20,7 +20,7 @@ import javax.xml.ws.WebServiceException;
 /**
  * Database connection handling: connections and transactions.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class DbConnection {
 

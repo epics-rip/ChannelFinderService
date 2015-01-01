@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
 /**
  * Top level Jersey HTTP methods for the .../channels URL
  * 
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 
 @Path("/channels/")

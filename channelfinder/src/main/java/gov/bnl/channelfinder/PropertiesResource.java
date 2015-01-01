@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
 /**
  * Top level Jersey HTTP methods for the .../properties URL
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 @Path("/properties/")
 public class PropertiesResource {
@@ -49,8 +49,7 @@ public class PropertiesResource {
     /**
      * GET method for retrieving the list of properties in the database.
      *
-     * @param name URI path parameter: tag name to search for
-     * @return list of channels with their properties and tags that match
+     * @return HTTP Response
      */
 
     @GET
@@ -119,7 +118,7 @@ public class PropertiesResource {
      * path parameter <tt>propName</tt> and its channels.
      *
      * @param prop URI path parameter: property name to search for
-     * @return list of channels with their properties and tags that match
+     * @return HTTP Response
      */
     @GET
     @Path("{propName : "+propertyNameRegex+"}")

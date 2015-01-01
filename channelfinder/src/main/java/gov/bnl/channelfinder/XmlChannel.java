@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Channel object that can be represented as XML/JSON in payload data.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 
 @XmlRootElement(name = "channel")
@@ -83,7 +83,7 @@ public class XmlChannel {
     /**
      * Setter for channel owner.
      *
-     * @param owner
+     * @param owner owner to set
      */
     public void setOwner(String owner) {
         this.owner = owner;
@@ -139,7 +139,7 @@ public class XmlChannel {
     /**
      * Adds an XmlTag to the collection.
      *
-     * @param tag
+     * @param tag tag to add
      */
     public void addXmlTag(XmlTag tag) {
         this.tags.addXmlTag(tag);

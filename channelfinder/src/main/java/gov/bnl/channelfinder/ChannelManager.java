@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 /**
  * Central business logic layer that implements all directory operations.
  * 
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <Ralph.Lange@helmholtz-berlin.de>}
  */
 public class ChannelManager {
 
@@ -81,9 +81,9 @@ public class ChannelManager {
     }
 
     /**
-     * Return channels found by matching tags against a collection of name patterns.
+     * Return channels found by matching a property name.
      *
-     * @param matches collection of name patterns to match
+     * @param name property name to match
      * @return XmlChannels container with all found channels and their properties
      * @throws CFException wrapping an SQLException
      */
@@ -126,6 +126,7 @@ public class ChannelManager {
     /**
      * List all properties in the database.
      *
+     * @return XmlProperties container with all properties
      * @throws CFException wrapping an SQLException
      */
     public XmlProperties listProperties() throws CFException {
@@ -238,6 +239,7 @@ public class ChannelManager {
     /**
      * List all tags in the database.
      *
+     * @return XmlTags container with all tags
      * @throws CFException wrapping an SQLException
      */
     public XmlTags listTags() throws CFException {
@@ -306,7 +308,7 @@ public class ChannelManager {
      * Add the tag identified by <tt>tag</tt> to the single channel <tt>channel</tt>.
      *
      * @param tag tag to add
-     * @param channel
+     * @param channel channel to add to
      * @throws CFException on ownership mismatch, or wrapping an SQLException
      */
     public void addSingleTag(String tag, String channel) throws CFException {
@@ -410,6 +412,7 @@ public class ChannelManager {
      * Check the channel in <tt>data</tt> for valid name/owner data.
      *
      * @param data XmlChannel data to check
+     * @param regex regular expression for channel name
      * @throws CFException on error
      */
     public void checkValidNameAndOwner(XmlChannel data, String regex) throws CFException {
@@ -427,6 +430,7 @@ public class ChannelManager {
      * Check all channels in <tt>data</tt> for valid name/owner data.
      *
      * @param data XmlChannels data to check
+     * @param regex regular expression for channel name
      * @throws CFException on error
      */
     public void checkValidNameAndOwner(XmlChannels data, String regex) throws CFException {
@@ -456,6 +460,7 @@ public class ChannelManager {
      * Check the tag in <tt>data</tt> for valid name/owner data.
      *
      * @param data XmlTag data to check
+     * @param regex regular expression for channel name
      * @throws CFException on name mismatch
      */
     public void checkValidNameAndOwner(XmlTag data, String regex) throws CFException {
@@ -473,6 +478,7 @@ public class ChannelManager {
      * Check all tags in <tt>data</tt> for valid name/owner data.
      *
      * @param data XmlTags data to check
+     * @param regex regular expression for channel name
      * @throws CFException on error
      */
     public void checkValidNameAndOwner(XmlTags data, String regex) throws CFException {
@@ -501,6 +507,7 @@ public class ChannelManager {
      * Check the property in <tt>data</tt> for valid name/owner data.
      *
      * @param data XmlProperty data to check
+     * @param regex regular expression for channel name
      * @throws CFException on error
      */
     public void checkValidNameAndOwner(XmlProperty data, String regex) throws CFException {
@@ -518,6 +525,7 @@ public class ChannelManager {
      * Check all properties in <tt>data</tt> for valid name/owner data.
      *
      * @param data XmlProperties data to check
+     * @param regex regular expression for channel name
      * @throws CFException on error
      */
     public void checkValidNameAndOwner(XmlProperties data, String regex) throws CFException {

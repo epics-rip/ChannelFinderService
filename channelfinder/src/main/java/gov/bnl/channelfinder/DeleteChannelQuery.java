@@ -18,7 +18,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to delete one channel.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class DeleteChannelQuery {
 
@@ -58,7 +58,7 @@ public class DeleteChannelQuery {
      * Deletes a channel and its properties/tags from the database, failing if the
      * channel does not exist.
      *
-     * @param chan XmlChannel object
+     * @param name channel to delete
      * @throws CFException on fail or wrapping an SQLException
      */
     public static void deleteChannelFailNoexist(String name) throws CFException {
@@ -69,7 +69,7 @@ public class DeleteChannelQuery {
     /**
      * Deletes a channel and its properties/tags from the database.
      *
-     * @param chan XmlChannel object
+     * @param name channel to delete
      * @throws CFException wrapping an SQLException
      */
     public static void deleteChannelIgnoreNoexist(String name) throws CFException {

@@ -27,7 +27,7 @@ import javax.naming.InitialContext;
 /**
  * Uses Unix command 'id' to determine the group membership.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class IDUserManager extends UserManager {
     

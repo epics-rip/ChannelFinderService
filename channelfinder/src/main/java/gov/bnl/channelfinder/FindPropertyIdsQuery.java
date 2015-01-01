@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response;
 /**
  * JDBC query to find database ids for properties/tags.
  * 
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class FindPropertyIdsQuery {
 

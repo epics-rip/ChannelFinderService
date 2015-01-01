@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * Property object that can be represented as XML/JSON in payload data.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 @XmlType(propOrder = {"name","value","owner","xmlChannels"})
 @XmlRootElement(name = "property")
@@ -38,8 +38,8 @@ public class XmlProperty {
     /**
      * Creates a new instance of XmlProperty.
      *
-     * @param name
-     * @param owner
+     * @param name property name
+     * @param owner property owner
      */
     public XmlProperty(String name, String owner) {
         this.owner = owner;
@@ -49,9 +49,9 @@ public class XmlProperty {
     /**
      * Creates a new instance of XmlProperty.
      *
-     * @param name
-     * @param owner
-     * @param value
+     * @param name property name
+     * @param owner property owner
+     * @param value property value
      */
     public XmlProperty(String name, String owner, String value) {
         this.value = value;
