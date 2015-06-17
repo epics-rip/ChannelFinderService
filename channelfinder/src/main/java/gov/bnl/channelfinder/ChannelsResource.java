@@ -10,6 +10,8 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
@@ -24,6 +26,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 /**
  * Top level Jersey HTTP methods for the .../channels URL
@@ -125,15 +137,15 @@ public class ChannelsResource {
     @Produces({"application/xml", "application/json"})
     public Response read(@PathParam("chName") String chan) {
         audit.info("getting ch:" + chan);
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        long start = System.currentTimeMillis();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlChannel result = null;
         try {
-            db.getConnection();
-            db.beginTransaction();
-            result = cm.findChannelByName(chan);
-            db.commit();
+            GetResponse response = client.prepareGet("channels", "channel", chan).execute().actionGet();
+            ObjectMapper mapper = new ObjectMapper();
+            result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
             Response r;
             if (result == null) {
                 r = Response.status(Response.Status.NOT_FOUND).build();
@@ -142,12 +154,10 @@ public class ChannelsResource {
             }
             log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
             return r;
-        } catch (CFException e) {
-            log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
-                    + e.getResponseStatusCode() +  "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -164,32 +174,26 @@ public class ChannelsResource {
     @Path("{chName: "+chNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        long start = System.currentTimeMillis();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
-        System.out.println(securityContext.getUserPrincipal());
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            cm.checkValidNameAndOwner(data, chNameRegex);
-            cm.checkValidValue(data);
-            cm.checkNameMatchesPayload(chan, data);
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
-            }
-            cm.createOrReplaceChannel(chan, data);
-            db.commit();
+            IndexRequest indexRequest = new IndexRequest("channels", "channel", chan)
+                    .source(mapper.writeValueAsBytes(data));
+            UpdateRequest updateRequest = new UpdateRequest("channels", "channel", chan)
+                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest);
+            UpdateResponse result = client.update(updateRequest).get();
             Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus()
-                    + "|data=" + XmlChannel.toLog(data));
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
+                    + XmlChannel.toLog(data));
             return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|ERROR|" + e.getResponseStatusCode()
-                    + "|data=" + XmlChannel.toLog(data) + "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException(um.getUserName(),"PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -205,31 +209,24 @@ public class ChannelsResource {
     @Path("{chName: "+chNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("chName") String chan, XmlChannel data) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        long start = System.currentTimeMillis();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            cm.checkValidNameAndOwner(data, chNameRegex);
-            cm.checkValueNotNull(data);
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroupOfChannel(um.getUserName(), chan);
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
-            }
-            cm.updateChannel(chan, data);
-            db.commit();
+            UpdateRequest updateRequest = new UpdateRequest("channels", "channel", chan)
+                    .doc(mapper.writeValueAsBytes(data));
+            UpdateResponse result = client.update(updateRequest).get();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
                     + "|data=" + XmlChannel.toLog(data));
             return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
-                    + "|data=" + XmlChannel.toLog(data) + "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException(um.getUserName(),"POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -244,27 +241,23 @@ public class ChannelsResource {
     @Path("{chName: "+chNameRegex+"}")
     public Response remove(@PathParam("chName") String chan) {
         audit.info("deleting ch:" + chan);
-        DbConnection db = DbConnection.getInstance();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
         UserManager um = UserManager.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), cm.findChannelByName(chan));
-            }
-            cm.removeExistingChannel(chan);
-            db.commit();
+            DeleteResponse response = client.prepareDelete("channels", "channel", chan).execute().get();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
             return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
-                    + "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException(um.getUserName(), "DELETE", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
+    }
+
+    private Response handleException(String user, String requestType, Response.Status status, Exception e){
+        log.warning(user + "|" + uriInfo.getPath() + "|"+requestType+"|ERROR|" + status +  "|cause=" + e);
+        return new CFException(status, e.getMessage()).toResponse();
     }
 }
