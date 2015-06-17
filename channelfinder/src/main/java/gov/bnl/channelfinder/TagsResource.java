@@ -10,8 +10,11 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 import java.io.IOException;
 import java.util.logging.Logger;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -24,6 +27,23 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 
 /**
  * Top level Jersey HTTP methods for the .../tags URL
@@ -56,25 +76,23 @@ public class TagsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public Response list() {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlTags result = null;
+        XmlTags result = new XmlTags();
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            db.getConnection();
-            db.beginTransaction();
-            result = cm.listTags();
-            db.commit();
+            SearchResponse response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).execute().actionGet();
+            for (SearchHit hit : response.getHits()) {
+                result.addXmlTag(mapper.readValue(hit.getSourceAsString(), XmlTag.class));
+            }
             Response r = Response.ok(result).build();
             log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
                     + "|returns " + result.getTags().size() + " tags");
             return r;
-        } catch (CFException e) {
-            log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
-                    + e.getResponseStatusCode() +  "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException(user,Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -88,29 +106,29 @@ public class TagsResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public Response add(XmlTags data) throws IOException {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            cm.checkValidNameAndOwner(data, tagNameRegex);
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            for (XmlTag tag : data.getTags()) {
+                bulkRequest.add(client.prepareUpdate("tags", "tag", tag.getName()).setDoc(mapper.writeValueAsBytes(tag))
+                        .setUpsert(new IndexRequest("tags", "tag", tag.getName()).source(mapper.writeValueAsBytes(tag))));
             }
-            cm.createOrReplaceTags(data);
-            db.commit();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
-                    + "|data=" + XmlTags.toLog(data));
-            return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
-                    + "|data=" + XmlTags.toLog(data) + "|cause=" + e);
-            return e.toResponse();
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, null);
+            } else {
+                Response r = Response.noContent().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
+                        + XmlTags.toLog(data));
+                return r;
+            }
+        } catch (Exception e) {
+            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -125,15 +143,15 @@ public class TagsResource {
     @Path("{tagName: "+tagNameRegex+"}")
     @Produces({"application/xml", "application/json"})
     public Response read(@PathParam("tagName") String tag) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        long start = System.currentTimeMillis();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlTag result = null;
+        XmlTag result = null;        
         try {
-            db.getConnection();
-            db.beginTransaction();
-            result = cm.findTagByName(tag);
-            db.commit();
+            GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+            ObjectMapper mapper = new ObjectMapper();
+            result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
             Response r;
             if (result == null) {
                 r = Response.status(Response.Status.NOT_FOUND).build();
@@ -142,12 +160,14 @@ public class TagsResource {
             }
             log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
             return r;
-        } catch (CFException e) {
-            log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|"
-                    + e.getResponseStatusCode() +  "|cause=" + e);
-            return e.toResponse();
+        } catch (JsonParseException e) {
+            return handleException(user, Response.Status.INTERNAL_SERVER_ERROR , e);
+        } catch (JsonMappingException e) {
+            return handleException(user, Response.Status.INTERNAL_SERVER_ERROR , e);
+        } catch (IOException e) {
+            return handleException(user, Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -165,30 +185,26 @@ public class TagsResource {
     @Path("{tagName: "+tagNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("tagName") String tag, XmlTag data) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        long start = System.currentTimeMillis();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            cm.checkValidNameAndOwner(data, tagNameRegex);
-            cm.checkNameMatchesPayload(tag, data);
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
-            }
-            cm.createOrReplaceTag(tag, data);
-            db.commit();
+            IndexRequest indexRequest = new IndexRequest("tags", "tag", tag).source(jsonBuilder().startObject()
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject());
+            UpdateRequest updateRequest = new UpdateRequest("tags", "tag", tag).doc(
+                    jsonBuilder().startObject()
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject()).upsert(indexRequest);
+            UpdateResponse result = client.update(updateRequest).get();
             Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus()
-                    + "|data=" + XmlTag.toLog(data));
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
+                    + XmlTag.toLog(data));
             return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|ERROR|" + e.getResponseStatusCode()
-                    + "|data=" + XmlTag.toLog(data) + "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -206,29 +222,23 @@ public class TagsResource {
     @Path("{tagName: "+tagNameRegex+"}")
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("tagName") String tag, XmlTag data) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        long start = System.currentTimeMillis();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroupOfTag(um.getUserName(), tag);
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
-            }
-            cm.updateTag(tag, data);
-            db.commit();
+            UpdateRequest updateRequest = new UpdateRequest("tags", "tag", tag).doc(jsonBuilder().startObject()
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject());
+            UpdateResponse result = client.update(updateRequest).get();
             Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
-                    + "|data=" + XmlTag.toLog(data));
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
+                    + XmlTag.toLog(data));
             return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|POST|ERROR|" + e.getResponseStatusCode()
-                    + "|data=" + XmlTag.toLog(data) + "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException(um.getUserName() , Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -242,27 +252,18 @@ public class TagsResource {
     @DELETE
     @Path("{tagName: "+tagNameRegex+"}")
     public Response remove(@PathParam("tagName") String tag) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), cm.findTagByName(tag));
-            }
-            cm.removeExistingProperty(tag);
-            db.commit();
+            DeleteResponse response = client.prepareDelete("tags", "tag", tag).execute().get();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
             return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
-                    + "|cause=" + e);
-            return e.toResponse();
+        } catch (Exception e) {
+            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            db.releaseConnection();
+            client.close();
         }
     }
 
@@ -279,30 +280,8 @@ public class TagsResource {
     @Path("{tagName}/{chName}")
     @Consumes({"application/xml", "application/json"})
     public Response addSingle(@PathParam("tagName") String tag, @PathParam("chName") String chan, XmlTag data) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
-        UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-        try {
-            cm.checkNameMatchesPayload(tag, data);
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), data);
-            }
-            cm.addSingleTag(tag, chan);
-            db.commit();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus()
-                    + "|data=" + XmlTag.toLog(data));
-            return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|ERROR|" + e.getResponseStatusCode()
-                    + "|data=" + XmlTag.toLog(data) + "|cause=" + e);
-            return e.toResponse();
-        } finally {
-            db.releaseConnection();
-        }
+       //TODO
+        return null;
     }
 
     /**
@@ -316,27 +295,34 @@ public class TagsResource {
     @DELETE
     @Path("{tagName}/{chName}")
     public Response removeSingle(@PathParam("tagName") String tag, @PathParam("chName") String chan) {
-        DbConnection db = DbConnection.getInstance();
-        ChannelManager cm = ChannelManager.getInstance();
-        UserManager um = UserManager.getInstance();
-        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-        try {
-            db.getConnection();
-            db.beginTransaction();
-            if (!um.userHasAdminRole()) {
-                cm.checkUserBelongsToGroup(um.getUserName(), cm.findTagByName(tag));
-            }
-            cm.removeSingleTag(tag, chan);
-            db.commit();
-            Response r = Response.ok().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
-            return r;
-        } catch (CFException e) {
-            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
-                    + "|cause=" + e);
-            return e.toResponse();
-        } finally {
-            db.releaseConnection();
-        }
+//        DbConnection db = DbConnection.getInstance();
+//        ChannelManager cm = ChannelManager.getInstance();
+//        UserManager um = UserManager.getInstance();
+//        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+//        try {
+//            db.getConnection();
+//            db.beginTransaction();
+//            if (!um.userHasAdminRole()) {
+//                cm.checkUserBelongsToGroup(um.getUserName(), cm.findTagByName(tag));
+//            }
+//            cm.removeSingleTag(tag, chan);
+//            db.commit();
+//            Response r = Response.ok().build();
+//            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+//            return r;
+//        } catch (CFException e) {
+//            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
+//                    + "|cause=" + e);
+//            return e.toResponse();
+//        } finally {
+//            db.releaseConnection();
+//        }
+        //TODO
+        return null;
+    }
+
+    private Response handleException(String user, Response.Status status, Exception e){
+        log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status +  "|cause=" + e);
+        return new CFException(status, e.getMessage()).toResponse();
     }
 }

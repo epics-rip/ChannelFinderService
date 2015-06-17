@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>gov.bnl.channelfinder</groupId>
     <artifactId>ChannelFinder</artifactId>
     <packaging>war</packaging>
     <version>1.1.2-SNAPSHOT</version>
-    
+
     <name>ChannelFinder Directory Service</name>
     <description>ChannelFinder is a directory server, implemented as a REST style web service.
         Its intended use is within control systems, namely the EPICS Control system, for which it
     has been written.</description>
     <url>http://channelfinder.sourceforge.net/ChannelFinder/</url>
-    
+
     <organization>
         <name>Helmholtz-Zentrum Berlin für Materialien und Energie GmbH</name>
     </organization>
@@ -55,8 +55,8 @@
     </ciManagement>
 
     <distributionManagement>
-    	<!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
-    	(id values there should match ids below) -->
+        <!-- To be able to deploy, set login/passwd in your m2 settings.xml, 
+            <servers> section (id values there should match ids below) -->
         <repository>
             <id>epics.releases</id>
             <name>EPICS Repository</name>
@@ -132,6 +132,11 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.21</version>
         </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>1.5.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -184,16 +189,16 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin> 
-                <artifactId>maven-deploy-plugin</artifactId> 
-                <version>2.7</version> 
-                <dependencies> 
-                    <dependency> 
-                        <groupId>org.apache.maven.wagon</groupId> 
-                        <artifactId>wagon-ssh</artifactId> 
-                        <version>2.2</version> 
-                    </dependency> 
-                </dependencies> 
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh</artifactId>
+                        <version>2.2</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -239,47 +244,47 @@
                 </executions>
             </plugin>
             <plugin>
-              <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
-              <version>1.3.1</version>
-              <configuration>
-                <container>
-                  <containerId>glassfish3x</containerId>
-                  <zipUrlInstaller>
-                    <url>http://download.java.net/glassfish/3.1.2.2/release/glassfish-3.1.2.2.zip</url>
-                  </zipUrlInstaller>
-                  <dependencies>
-                      <dependency>
-                          <groupId>mysql</groupId>
-                          <artifactId>mysql-connector-java</artifactId>
-                      </dependency>
-                  </dependencies>
-                </container>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven2-plugin</artifactId>
+                <version>1.3.1</version>
                 <configuration>
-                    <configfiles>
-                        <configfile>
-                            <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
-                            <todir>cargo-domain/config</todir>
-                        </configfile>
-                    </configfiles>
+                    <container>
+                        <containerId>glassfish3x</containerId>
+                        <zipUrlInstaller>
+                            <url>http://download.java.net/glassfish/3.1.2.2/release/glassfish-3.1.2.2.zip</url>
+                        </zipUrlInstaller>
+                        <dependencies>
+                            <dependency>
+                                <groupId>mysql</groupId>
+                                <artifactId>mysql-connector-java</artifactId>
+                            </dependency>
+                        </dependencies>
+                    </container>
+                    <configuration>
+                        <configfiles>
+                            <configfile>
+                                <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
+                                <todir>cargo-domain/config</todir>
+                            </configfile>
+                        </configfiles>
+                    </configuration>
                 </configuration>
-              </configuration>
-              <executions>
-                  <execution>
-                      <id>start-cargo</id>
-                      <phase>pre-integration-test</phase>
-                      <goals>
-                          <goal>start</goal>
-                      </goals>
-                  </execution>
-                  <execution>
-                      <id>stop-cargo</id>
-                      <phase>post-integration-test</phase>
-                      <goals>
-                          <goal>stop</goal>
-                      </goals>
-                  </execution>
-              </executions>
+                <executions>
+                    <execution>
+                        <id>start-cargo</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-cargo</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -333,7 +338,8 @@
                 <artifactId>maven-changes-plugin</artifactId>
                 <version>2.7.1</version>
                 <configuration>
-                    <columnNames>Fix Version,Priority,Type,Summary,Assignee,Key,Status,Resolution</columnNames>
+                    <columnNames>Fix
+                        Version,Priority,Type,Summary,Assignee,Key,Status,Resolution</columnNames>
                     <sortColumnNames>Fix Version,Priority,Key DESC</sortColumnNames>
                     <component>Service</component>
                 </configuration>
@@ -358,6 +364,6 @@
                     </reportSet>
                 </reportSets>
             </plugin>
-         </plugins>
+        </plugins>
     </reporting>
 </project>
