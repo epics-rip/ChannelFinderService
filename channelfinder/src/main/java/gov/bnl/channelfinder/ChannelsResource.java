@@ -406,6 +406,11 @@ public class ChannelsResource {
             if (channel.getName() == null || channel.getName().isEmpty()) {
                 throw new IllegalArgumentException("Invalid channel name ");
             }
+            for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
+                if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
+                    throw new IllegalArgumentException("Invalid property value (missing or null or empty string) for '"+xmlProperty.getName()+"'");
+                }
+            }
         }
         List<String> tagsNames = new ArrayList<String>();
         List<String> propertyNames = new ArrayList<String>();
@@ -438,6 +443,11 @@ public class ChannelsResource {
     private boolean validateChannel(XmlChannel channel, Client client) throws JsonParseException, JsonMappingException, IOException {
         if (channel.getName() == null || channel.getName().isEmpty()) {
             throw new IllegalArgumentException("Invalid channel name ");
+        }
+        for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
+            if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
+                throw new IllegalArgumentException("Invalid property value (missing or null or empty string) for '"+xmlProperty.getName()+"'");
+            }
         }
         List<String> tagsNames = new ArrayList<String>();
         List<String> propertyNames = new ArrayList<String>();
