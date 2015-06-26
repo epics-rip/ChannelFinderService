@@ -38,6 +38,7 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
@@ -116,9 +117,10 @@ public class TagsResource {
                 bulkRequest.add(client.prepareUpdate("tags", "tag", tag.getName()).setDoc(mapper.writeValueAsBytes(tag))
                         .setUpsert(new IndexRequest("tags", "tag", tag.getName()).source(mapper.writeValueAsBytes(tag))));
             }
+            bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
-                return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, null);
+                return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, null);
             } else {
                 Response r = Response.noContent().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
@@ -126,7 +128,7 @@ public class TagsResource {
                 return r;
             }
         } catch (Exception e) {
-            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR , e);
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
             client.close();
         }
@@ -145,7 +147,7 @@ public class TagsResource {
     public Response read(@PathParam("tagName") String tag) {
         long start = System.currentTimeMillis();
         Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
+        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlTag result = null;        
         try {
@@ -187,22 +189,45 @@ public class TagsResource {
     public Response create(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
         Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
+        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
             IndexRequest indexRequest = new IndexRequest("tags", "tag", tag).source(jsonBuilder().startObject()
                     .field("name", data.getName()).field("owner", data.getOwner()).endObject());
             UpdateRequest updateRequest = new UpdateRequest("tags", "tag", tag).doc(
                     jsonBuilder().startObject()
                     .field("name", data.getName()).field("owner", data.getOwner()).endObject()).upsert(indexRequest);
-            UpdateResponse result = client.update(updateRequest).get();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
-                    + XmlTag.toLog(data));
-            return r;
+            bulkRequest.add(updateRequest);
+            if (data.getXmlChannels() != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
+                            .doc(mapper.writeValueAsBytes(new XmlTag(tag))));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                throw new Exception();
+            } else {
+                GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+                ObjectMapper mapper = new ObjectMapper();
+                XmlTag result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
+                Response r;
+                if (result == null) {
+                    r = Response.status(Response.Status.NOT_FOUND).build();
+                } else {
+                    r = Response.ok(result).build();
+                }
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
+                        + XmlTag.toLog(data));
+                return r;
+            }
         } catch (Exception e) {
-            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -224,12 +249,12 @@ public class TagsResource {
     public Response update(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
         Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
+        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             UpdateRequest updateRequest = new UpdateRequest("tags", "tag", tag).doc(jsonBuilder().startObject()
-                    .field("name", data.getName()).field("owner", data.getOwner()).endObject());
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject()).refresh(true);
             UpdateResponse result = client.update(updateRequest).get();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
@@ -256,12 +281,12 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse response = client.prepareDelete("tags", "tag", tag).execute().get();
+            DeleteResponse response = client.prepareDelete("tags", "tag", tag).setRefresh(true).execute().get();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
             return r;
         } catch (Exception e) {
-            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
