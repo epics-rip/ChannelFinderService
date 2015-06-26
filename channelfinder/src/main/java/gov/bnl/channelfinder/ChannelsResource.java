@@ -299,7 +299,7 @@ public class ChannelsResource {
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
         long start = System.currentTimeMillis();
         Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
+        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -310,11 +310,10 @@ public class ChannelsResource {
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", chan)
                     .source(mapper.writeValueAsBytes(data));
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest);
-            UpdateResponse result = client.update(updateRequest).get();
+                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest).refresh(true);
+            UpdateResponse result = client.update(updateRequest).actionGet();
             Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
-                    + XmlChannel.toLog(data));
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + XmlChannel.toLog(data));
             return r;
         } catch (IllegalArgumentException e) {
             return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, e);
@@ -339,7 +338,7 @@ public class ChannelsResource {
     public Response update(@PathParam("chName") String chan, XmlChannel data) {
         long start = System.currentTimeMillis();
         Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
+        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -347,9 +346,21 @@ public class ChannelsResource {
             start = System.currentTimeMillis();
             validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+            XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
+            channel.setName(data.getName());
+            channel.setOwner(data.getOwner());
+            channel.getXmlProperties().getProperties().addAll(data.getXmlProperties().getProperties());
+            channel.getXmlTags().getTags().addAll(data.getXmlTags().getTags());
+
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(data));
-            UpdateResponse result = client.update(updateRequest).get();
+                    .doc(mapper.writeValueAsBytes(channel)).refresh(true);
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            UpdateResponse result = client.update(updateRequest).actionGet();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
                     + "|data=" + XmlChannel.toLog(data));
@@ -378,7 +389,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse response = client.prepareDelete("channelfinder", "channel", chan).execute().get();
+            DeleteResponse response = client.prepareDelete("channelfinder", "channel", chan).setRefresh(true).execute().get();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
             return r;
@@ -429,7 +440,7 @@ public class ChannelsResource {
                 && propertyNames.containsAll(ChannelUtil.getPropertyNames(channels.getChannels()))) {
             return true;
         }else{
-            throw new IllegalArgumentException("The Tags and/or Properties don't exist");
+            throw new IllegalArgumentException("One or more of the Tags and/or Properties on the channels don't exist");
         }
     }
     
@@ -441,12 +452,15 @@ public class ChannelsResource {
      * @throws JsonParseException 
      */
     private boolean validateChannel(XmlChannel channel, Client client) throws JsonParseException, JsonMappingException, IOException {
+
         if (channel.getName() == null || channel.getName().isEmpty()) {
             throw new IllegalArgumentException("Invalid channel name ");
         }
+
         for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
             if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
-                throw new IllegalArgumentException("Invalid property value (missing or null or empty string) for '"+xmlProperty.getName()+"'");
+                throw new IllegalArgumentException(
+                        "Invalid property value (missing or null or empty string) for '" + xmlProperty.getName() + "'");
             }
         }
         List<String> tagsNames = new ArrayList<String>();
@@ -466,7 +480,7 @@ public class ChannelsResource {
                 && propertyNames.containsAll(ChannelUtil.getPropertyNames(channel))) {
             return true;
         } else {
-            throw new IllegalArgumentException("The Tags and/or Properties don't exist");
+            throw new IllegalArgumentException("One or more of the Tags and/or Properties on the channel don't exist");
         }
     }
 }
