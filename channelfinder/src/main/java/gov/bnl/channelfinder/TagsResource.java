@@ -13,6 +13,8 @@ package gov.bnl.channelfinder;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
@@ -25,10 +27,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.annotate.JsonIgnoreType;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -45,6 +49,9 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 /**
  * Top level Jersey HTTP methods for the .../tags URL
@@ -293,25 +300,60 @@ public class TagsResource {
     }
 
     /**
-     * PUT method for adding the tag identified by <tt>tag</tt> to the single channel
-     * <tt>chan</tt> (both path parameters).
-     *
-     * @param tag URI path parameter: tag name
-     * @param chan URI path parameter: channel to update <tt>tag</tt> to
-     * @param data tag data (ignored)
+     * PUT method for adding the tag identified by <tt>tag</tt> to the single
+     * channel <tt>chan</tt> (both path parameters). 
+     * 
+     * TODO: could be simplified
+     * with multi index update and script which can use wildcards thus removing
+     * the need to explicitly define the entire tag
+     * 
+     * @param tag
+     *            URI path parameter: tag name
+     * @param chan
+     *            URI path parameter: channel to update <tt>tag</tt> to
+     * @param data
+     *            tag data (ignored)
      * @return HTTP Response
      */
     @PUT
     @Path("{tagName}/{chName}")
     @Consumes({"application/xml", "application/json"})
     public Response addSingle(@PathParam("tagName") String tag, @PathParam("chName") String chan, XmlTag data) {
-       //TODO
-        return null;
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        XmlTag result = null;
+        try {
+            GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
+            result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
+            
+            if (result != null) {
+                String str = mapper.writeValueAsString(result);
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", result.getName());
+                param.put("owner", result.getOwner());
+                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                        .script("if (ctx._source.xmlTags.tags.contains(tag)) {ctx.op = 'none'} else {ctx._source.xmlTags.tags.add(tag)}")
+                        .addScriptParam("tag", param)).actionGet();
+                Response r = Response.ok().build();
+                return r;
+            }else{
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+        } catch (Exception e) {
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+        } finally {
+            client.close();
+        }
     }
 
     /**
      * DELETE method for deleting the tag identified by <tt>tag</tt> from the channel
      * <tt>chan</tt> (both path parameters).
+     *
+     * TODO: Can be simplified with a multi index script update
      *
      * @param tag URI path parameter: tag name to remove
      * @param chan URI path parameter: channel to remove <tt>tag</tt> from
@@ -319,35 +361,60 @@ public class TagsResource {
      */
     @DELETE
     @Path("{tagName}/{chName}")
-    public Response removeSingle(@PathParam("tagName") String tag, @PathParam("chName") String chan) {
-//        DbConnection db = DbConnection.getInstance();
-//        ChannelManager cm = ChannelManager.getInstance();
-//        UserManager um = UserManager.getInstance();
-//        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-//        try {
-//            db.getConnection();
-//            db.beginTransaction();
-//            if (!um.userHasAdminRole()) {
-//                cm.checkUserBelongsToGroup(um.getUserName(), cm.findTagByName(tag));
-//            }
-//            cm.removeSingleTag(tag, chan);
-//            db.commit();
-//            Response r = Response.ok().build();
-//            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
-//            return r;
-//        } catch (CFException e) {
-//            log.warning(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|ERROR|" + e.getResponseStatusCode()
-//                    + "|cause=" + e);
-//            return e.toResponse();
-//        } finally {
-//            db.releaseConnection();
-//        }
-        //TODO
-        return null;
+    public Response removeSingle(@PathParam("tagName") final String tag, @PathParam("chName") String chan) {
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        XmlChannel result = null;
+        try {
+            GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+            ObjectMapper mapper = new ObjectMapper();
+            result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
+            if (result != null) {
+                Collection<XmlTag> removeTag = Collections2.filter(result.getXmlTags().getTags(),
+                        new Predicate<XmlTag>() {
+                            @Override
+                            public boolean apply(XmlTag xmlTag) {
+                                if (xmlTag.getName().equals(tag))
+                                    return true;
+                                else
+                                    return false;
+                            }
+                        });
+                HashMap<String, String> param = new HashMap<String, String>();
+                for (XmlTag xmlTag : removeTag) {
+                    param.put("name", xmlTag.getName());
+                    param.put("owner", xmlTag.getOwner());
+                }
+                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                        .script("ctx._source.xmlTags.tags.remove(tag)")
+                        .addScriptParam("tag", param)).actionGet();
+                Response r = Response.ok().build();
+                return r;
+            } else {
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+        } catch (Exception e) {
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+        } finally {
+            client.close();
+        }
     }
 
     private Response handleException(String user, Response.Status status, Exception e){
         log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status +  "|cause=" + e);
         return new CFException(status, e.getMessage()).toResponse();
+    }
+    
+    /**
+     * A filter to be used with the jackson mapper to ignore the embedded
+     * xmlchannels in the tag object
+     * 
+     * @author Kunal Shroff
+     *
+     */
+    @JsonIgnoreType
+    public class MyMixInForXmlChannels {
+        //
     }
 }
