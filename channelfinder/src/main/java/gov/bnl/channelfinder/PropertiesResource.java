@@ -13,6 +13,8 @@ package gov.bnl.channelfinder;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -26,6 +28,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Response.Status;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -41,6 +44,11 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+
+import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
 
 /**
  * Top level Jersey HTTP methods for the .../properties URL
@@ -123,6 +131,7 @@ public class PropertiesResource {
                         .setUpsert(new IndexRequest("properties", "property", property.getName())
                                 .source(mapper.writeValueAsBytes(property))));
             }
+            bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 // TODO remove the null
@@ -205,8 +214,8 @@ public class PropertiesResource {
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
             UpdateRequest updateRequest = new UpdateRequest("properties", "property", prop).doc(jsonBuilder()
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject())
-                    .upsert(indexRequest);
-            UpdateResponse result = client.update(updateRequest).get();
+                    .upsert(indexRequest).refresh(true);
+            UpdateResponse result = client.update(updateRequest).actionGet();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + result.getId() + r.getStatus()
                     + "|data=" + XmlProperty.toLog(data));
@@ -287,48 +296,47 @@ public class PropertiesResource {
      * PUT method for adding the property identified by <tt>prop</tt> to the
      * channel <tt>chan</tt> (both path parameters).
      *
-     * @param prop
-     *            URI path parameter: property name
-     * @param chan
-     *            URI path parameter: channel to addSingle <tt>tag</tt> to
-     * @param data
-     *            tag data (specifying tag ownership)
+     * @param prop URI path parameter: property name
+     * @param chan URI path parameter: channel to addSingle <tt>tag</tt> to
+     * @param data property data (specifying property ownership & value)
      * @return HTTP Response
      */
     @PUT
     @Path("{tagName}/{chName}")
     @Consumes({ "application/xml", "application/json" })
     public Response addSingle(@PathParam("tagName") String prop, @PathParam("chName") String chan, XmlProperty data) {
-        // DbConnection db = DbConnection.getInstance();
-        // ChannelManager cm = ChannelManager.getInstance();
-        // UserManager um = UserManager.getInstance();
-        // um.setUser(securityContext.getUserPrincipal(),
-        // securityContext.isUserInRole("Administrator"));
-        // try {
-        // cm.checkNameMatchesPayload(prop, data);
-        // cm.checkValidValue(data);
-        // db.getConnection();
-        // db.beginTransaction();
-        // if (!um.userHasAdminRole()) {
-        // cm.checkUserBelongsToGroupOfProperty(um.getUserName(),
-        // data.getName());
-        // }
-        // cm.addSingleProperty(prop, chan, data);
-        // db.commit();
-        // Response r = Response.noContent().build();
-        // audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" +
-        // r.getStatus()
-        // + "|data=" + XmlProperty.toLog(data));
-        // return r;
-        // } catch (CFException e) {
-        // log.warning(um.getUserName() + "|" + uriInfo.getPath() +
-        // "|PUT|ERROR|" + e.getResponseStatusCode()
-        // + "|data=" + XmlProperty.toLog(data) + "|cause=" + e);
-        // return e.toResponse();
-        // } finally {
-        // db.releaseConnection();
-        // }
-        return null;
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        XmlProperty result = null;
+        try {
+            GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
+            result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
+            if (result != null) {
+                String str = mapper.writeValueAsString(result);
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("value", data.getValue());
+                // ignores the provided user and matches the one present in the properties index
+                param.put("owner", result.getOwner());
+
+                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                        .script("for (property in ctx._source.xmlProperties.properties) { "
+                                + "if (property.name == prop.name) { property.value = prop.value } "
+                                + "else {ctx._source.xmlProperties.properties.add(prop)}};")
+                        .addScriptParam("prop", param)).actionGet();
+                Response r = Response.ok().build();
+                return r;
+            }else{
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+        } catch (Exception e) {
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+        } finally {
+            client.close();
+        }
     }
 
     /**
@@ -344,33 +352,24 @@ public class PropertiesResource {
     @DELETE
     @Path("{propName}/{chName}")
     public Response removeSingle(@PathParam("propName") String prop, @PathParam("chName") String chan) {
-        // DbConnection db = DbConnection.getInstance();
-        // ChannelManager cm = ChannelManager.getInstance();
-        // UserManager um = UserManager.getInstance();
-        // um.setUser(securityContext.getUserPrincipal(),
-        // securityContext.isUserInRole("Administrator"));
-        // try {
-        // db.getConnection();
-        // db.beginTransaction();
-        // if (!um.userHasAdminRole()) {
-        // cm.checkUserBelongsToGroup(um.getUserName(),
-        // cm.findPropertyByName(prop));
-        // }
-        // cm.removeSingleProperty(prop, chan);
-        // db.commit();
-        // Response r = Response.ok().build();
-        // audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|"
-        // + r.getStatus());
-        // return r;
-        // } catch (CFException e) {
-        // log.warning(um.getUserName() + "|" + uriInfo.getPath() +
-        // "|DELETE|ERROR|" + e.getResponseStatusCode()
-        // + "|cause=" + e);
-        // return e.toResponse();
-        // } finally {
-        // db.releaseConnection();
-        // }
-        return null;
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        XmlChannel result = null;
+        try {
+            UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                    .script(" removeProps = new java.util.ArrayList();"
+                            + "for (property in ctx._source.xmlProperties.properties) "
+                            + "{ if (property.name == prop) { removeProps.add(property)} }; "
+                            + "for (removeProp in removeProps) {ctx._source.xmlProperties.properties.remove(removeProp)}")
+                    .addScriptParam("prop", prop)).actionGet();
+            Response r = Response.ok().build();
+            return r;
+        } catch (Exception e) {
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+        } finally {
+            client.close();
+        }
     }
 
     private Response handleException(String user, Response.Status status, Exception e) {
