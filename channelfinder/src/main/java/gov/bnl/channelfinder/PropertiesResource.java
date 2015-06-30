@@ -109,8 +109,7 @@ public class PropertiesResource {
     /**
      * POST method for creating multiple properties.
      *
-     * @param data
-     *            XmlProperties data (from payload)
+     * @param data XmlProperties data (from payload)
      * @return HTTP Response
      * @throws IOException
      *             when audit or log fail
@@ -193,10 +192,10 @@ public class PropertiesResource {
      * attribute in the XML root element is mandatory. Values for the properties
      * are taken from the payload.
      *
-     * @param prop
-     *            URI path parameter: property name
-     * @param data
-     *            list of channels to add the property <tt>name</tt> to
+     * TODO: implement the destructive write.
+     *
+     * @param prop URI path parameter: property name
+     * @param data list of channels to add the property <tt>name</tt> to
      * @return HTTP Response
      */
     @PUT
@@ -210,16 +209,47 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
             IndexRequest indexRequest = new IndexRequest("properties", "property", prop).source(jsonBuilder()
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
             UpdateRequest updateRequest = new UpdateRequest("properties", "property", prop).doc(jsonBuilder()
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject())
                     .upsert(indexRequest).refresh(true);
-            UpdateResponse result = client.update(updateRequest).actionGet();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + result.getId() + r.getStatus()
-                    + "|data=" + XmlProperty.toLog(data));
-            return r;
+            bulkRequest.add(updateRequest);
+            if (data.getXmlChannels() != null) {
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("value", data.getValue());
+                param.put("owner", data.getOwner());
+                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
+                            .refresh(true)
+                            .script("removeProp = new Object();"
+                                    + "for (xmlProperty in ctx._source.xmlProperties.properties) "
+                                    + "{ if (xmlProperty.name == prop.name) { removeProp = xmlProperty} }; "
+                                    + "ctx._source.xmlProperties.properties.remove(removeProp);"
+                                    + "ctx._source.xmlProperties.properties.add(prop)")
+                            .addScriptParam("prop", param));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                throw new Exception();
+            } else {
+                GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+                ObjectMapper mapper = new ObjectMapper();
+                XmlProperty result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
+                Response r;
+                if (result == null) {
+                    r = Response.status(Response.Status.NOT_FOUND).build();
+                } else {
+                    r = Response.ok(result).build();
+                }
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data=" + XmlProperty.toLog(data));
+                return r;
+            }
         } catch (Exception e) {
             return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -234,10 +264,8 @@ public class PropertiesResource {
      * element is mandatory. Values for the properties are taken from the
      * payload.
      *
-     * @param prop
-     *            URI path parameter: property name
-     * @param data
-     *            list of channels to add the property <tt>name</tt> to
+     * @param prop URI path parameter: property name
+     * @param data list of channels to add the property <tt>name</tt> to
      * @return HTTP Response
      */
     @POST
@@ -245,19 +273,49 @@ public class PropertiesResource {
     @Consumes({ "application/xml", "application/json" })
     public Response update(@PathParam("propName") String prop, XmlProperty data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient()
-                .addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        System.out.println("client initialization: " + (System.currentTimeMillis() - start));
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        audit.info("client initialization: " + (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
             UpdateRequest updateRequest = new UpdateRequest("properties", "property", prop).doc(jsonBuilder()
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
-            UpdateResponse result = client.update(updateRequest).get();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + result.getId() + r.getStatus()
-                    + "|data=" + XmlProperty.toLog(data));
-            return r;
+            bulkRequest.add(updateRequest);
+            if (data.getXmlChannels() != null) {
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("value", data.getValue());
+                param.put("owner", data.getOwner());
+                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
+                            .refresh(true)
+                            .script("removeProp = new Object();"
+                                    + "for (xmlProperty in ctx._source.xmlProperties.properties) "
+                                    + "{ if (xmlProperty.name == prop.name) { removeProp = xmlProperty} }; "
+                                    + "ctx._source.xmlProperties.properties.remove(removeProp);"
+                                    + "ctx._source.xmlProperties.properties.add(prop)")
+                            .addScriptParam("prop", param));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                throw new Exception();
+            } else {
+                GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+                ObjectMapper mapper = new ObjectMapper();
+                XmlProperty result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
+                Response r;
+                if (result == null) {
+                    r = Response.status(Response.Status.NOT_FOUND).build();
+                } else {
+                    r = Response.ok(result).build();
+                }
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data=" + XmlProperty.toLog(data));
+                return r;
+            }
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -276,12 +334,11 @@ public class PropertiesResource {
     @DELETE
     @Path("{propName : " + propertyNameRegex + "}")
     public Response remove(@PathParam("propName") String prop) {
-        Client client = new TransportClient()
-                .addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse response = client.prepareDelete("properties", "property", prop).execute().get();
+            DeleteResponse response = client.prepareDelete("properties", "property", prop).setRefresh(true).execute().actionGet();
             Response r = Response.ok().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus() + response.getId());
             return r;
@@ -323,9 +380,11 @@ public class PropertiesResource {
                 param.put("owner", result.getOwner());
 
                 UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .script("for (property in ctx._source.xmlProperties.properties) { "
-                                + "if (property.name == prop.name) { property.value = prop.value } "
-                                + "else {ctx._source.xmlProperties.properties.add(prop)}};")
+                        .script("removeProps = new java.util.ArrayList(); "
+                                + "for (property in ctx._source.xmlProperties.properties) "
+                                + "{ if (property.name == prop.name) { removeProps.add(property)} }; "
+                                + "for (removeProp in removeProps) {ctx._source.xmlProperties.properties.remove(removeProp)}; "
+                                + "ctx._source.xmlProperties.properties.add(prop)")
                         .addScriptParam("prop", param)).actionGet();
                 Response r = Response.ok().build();
                 return r;
@@ -359,8 +418,8 @@ public class PropertiesResource {
         try {
             UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
                     .script(" removeProps = new java.util.ArrayList();"
-                            + "for (property in ctx._source.xmlProperties.properties) "
-                            + "{ if (property.name == prop) { removeProps.add(property)} }; "
+                            + "for (property in ctx._source.xmlProperties.properties)"
+                            + "{ if (property.name == prop.name) { removeProps.add(property)} };"
                             + "for (removeProp in removeProps) {ctx._source.xmlProperties.properties.remove(removeProp)}")
                     .addScriptParam("prop", prop)).actionGet();
             Response r = Response.ok().build();

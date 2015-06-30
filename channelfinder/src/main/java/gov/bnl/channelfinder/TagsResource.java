@@ -56,7 +56,7 @@ import com.google.common.collect.Collections2;
 /**
  * Top level Jersey HTTP methods for the .../tags URL
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Kunal Shroff <shroffk@bnl.gov>, Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 @Path("/tags/")
 public class TagsResource {
@@ -186,6 +186,8 @@ public class TagsResource {
      * structure <tt>data</tt>.
      * Setting the owner attribute in the XML root element is mandatory.
      *
+     * TODO: implement the destructive write
+     * 
      * @param tag URI path parameter: tag name
      * @param data XmlTag structure containing the list of channels to be tagged
      * @return HTTP Response
@@ -208,10 +210,20 @@ public class TagsResource {
                     .field("name", data.getName()).field("owner", data.getOwner()).endObject()).upsert(indexRequest);
             bulkRequest.add(updateRequest);
             if (data.getXmlChannels() != null) {
-                ObjectMapper mapper = new ObjectMapper();
+//                ObjectMapper mapper = new ObjectMapper();
+//                mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("owner", data.getOwner());
                 for (XmlChannel channel : data.getXmlChannels().getChannels()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
-                            .doc(mapper.writeValueAsBytes(new XmlTag(tag))));
+                            .refresh(true)
+                            .script("removeTag = new Object();"
+                                    + "for (xmltag in ctx._source.xmlTags.tags) "
+                                    + "{ if (xmltag.name == tag.name) { removeTag = xmltag} }; "
+                                    + "ctx._source.xmlTags.tags.remove(removeTag);"
+                                    + "ctx._source.xmlTags.tags.add(tag)")
+                            .addScriptParam("tag", param));
                 }
             }
             bulkRequest.setRefresh(true);
@@ -245,6 +257,8 @@ public class TagsResource {
      * adding it to all channels identified by the channels inside the payload
      * structure <tt>data</tt>.
      * Setting the owner attribute in the XML root element is mandatory.
+     * 
+     * TODO: Optimize the bulk channel update
      *
      * @param tag URI path parameter: tag name
      * @param data list of channels to addSingle the tag <tt>name</tt> to
@@ -260,13 +274,46 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
             UpdateRequest updateRequest = new UpdateRequest("tags", "tag", tag).doc(jsonBuilder().startObject()
-                    .field("name", data.getName()).field("owner", data.getOwner()).endObject()).refresh(true);
-            UpdateResponse result = client.update(updateRequest).get();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
-                    + XmlTag.toLog(data));
-            return r;
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject());
+            bulkRequest.add(updateRequest);
+            if (data.getXmlChannels() != null) {
+//                ObjectMapper mapper = new ObjectMapper();
+//                mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("owner", data.getOwner());
+                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
+                            .refresh(true)
+                            .script("removeTag = new Object();"
+                                    + "for (xmltag in ctx._source.xmlTags.tags) "
+                                    + "{ if (xmltag.name == tag.name) { removeTag = xmltag} }; "
+                                    + "ctx._source.xmlTags.tags.remove(removeTag);"
+                                    + "ctx._source.xmlTags.tags.add(tag)")
+                            .addScriptParam("tag", param));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                throw new Exception();
+            } else {
+                GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+                ObjectMapper mapper = new ObjectMapper();
+                XmlTag result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
+                Response r;
+                if (result == null) {
+                    r = Response.status(Response.Status.NOT_FOUND).build();
+                } else {
+                    r = Response.ok(result).build();
+                }
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
+                        + XmlTag.toLog(data));
+                return r;
+            }
         } catch (Exception e) {
             return handleException(um.getUserName() , Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -335,7 +382,12 @@ public class TagsResource {
                 param.put("name", result.getName());
                 param.put("owner", result.getOwner());
                 UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .script("if (ctx._source.xmlTags.tags.contains(tag)) {ctx.op = 'none'} else {ctx._source.xmlTags.tags.add(tag)}")
+                        .refresh(true)
+                        .script("removeTags = new java.util.ArrayList();"
+                            + "for (tag in ctx._source.xmlTags.tags) "
+                            + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
+                            + "for (removeTag in removeTags) {ctx._source.xmlTags.tags.remove(removeTag)};"
+                            + "ctx._source.xmlTags.tags.add(tag)")
                         .addScriptParam("tag", param)).actionGet();
                 Response r = Response.ok().build();
                 return r;
@@ -366,9 +418,10 @@ public class TagsResource {
         XmlChannel result = null;
         try {
             UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                    .refresh(true)
                     .script(" removeTags = new java.util.ArrayList();"
                             + "for (tag in ctx._source.xmlTags.tags) "
-                            + "{ if (tag.name == tagName) { removeTags.add(tag)} }; "
+                            + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
                             + "for (removeTag in removeTags) {ctx._source.xmlTags.tags.remove(removeTag)}")
                     .addScriptParam("tagName", tag)).actionGet();
             Response r = Response.ok().build();
