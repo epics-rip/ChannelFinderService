@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response.Status;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -43,6 +44,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
 import com.google.common.base.Predicate;
@@ -338,10 +340,32 @@ public class PropertiesResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse response = client.prepareDelete("properties", "property", prop).setRefresh(true).execute().actionGet();
-            Response r = Response.ok().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus() + response.getId());
-            return r;
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            bulkRequest.add(new DeleteRequest("properties", "property", prop));
+            SearchResponse qbResult = client.prepareSearch("channelfinder")
+                    .setQuery(QueryBuilders.matchQuery("xmlProperties.properties.name", prop)).addField("name").setSize(10000).execute().actionGet();
+            if (qbResult != null) {
+                for (SearchHit hit : qbResult.getHits()) {
+                    String channelName = hit.field("name").getValue().toString();
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).refresh(true)
+                            .script("removeProp = new Object();" 
+                                    + "for (xmlProp in ctx._source.xmlProperties.properties) "
+                                    + "{ if (xmlProp.name == prop) { removeProp = xmlProp} }; "
+                                    + "ctx._source.xmlProperties.properties.remove(removeProp);")
+                            .addScriptParam("prop", prop));
+                }
+            }
+            
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                throw new Exception();
+            } else {
+                Response r = Response.ok().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+                return r;
+            }
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {

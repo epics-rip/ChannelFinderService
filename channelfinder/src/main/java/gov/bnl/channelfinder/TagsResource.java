@@ -13,8 +13,10 @@ package gov.bnl.channelfinder;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
@@ -37,6 +39,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -48,6 +51,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
 import com.google.common.base.Predicate;
@@ -335,10 +339,31 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse response = client.prepareDelete("tags", "tag", tag).setRefresh(true).execute().get();
-            Response r = Response.ok().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
-            return r;
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            bulkRequest.add(new DeleteRequest("tags", "tag", tag));
+            SearchResponse qbResult = client.prepareSearch("channelfinder")
+                    .setQuery(QueryBuilders.matchQuery("xmlTags.tags.name", tag)).addField("name").setSize(10000).execute().actionGet();
+            if (qbResult != null) {
+                for (SearchHit hit : qbResult.getHits()) {
+                    String channelName = hit.field("name").getValue().toString();
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).refresh(true)
+                            .script("removeTag = new Object();" + "for (xmltag in ctx._source.xmlTags.tags) "
+                                    + "{ if (xmltag.name == tag) { removeTag = xmltag} }; "
+                                    + "ctx._source.xmlTags.tags.remove(removeTag);")
+                            .addScriptParam("tag", tag));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                throw new Exception();
+            } else {
+                Response r = Response.ok().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+                return r;
+            }
+//            DeleteResponse response = client.prepareDelete("tags", "tag", tag).setRefresh(true).execute().get();
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
