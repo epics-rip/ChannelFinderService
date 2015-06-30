@@ -353,8 +353,6 @@ public class TagsResource {
      * DELETE method for deleting the tag identified by <tt>tag</tt> from the channel
      * <tt>chan</tt> (both path parameters).
      *
-     * TODO: Can be simplified with a multi index script update
-     *
      * @param tag URI path parameter: tag name to remove
      * @param chan URI path parameter: channel to remove <tt>tag</tt> from
      * @return HTTP Response
@@ -367,33 +365,14 @@ public class TagsResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlChannel result = null;
         try {
-            GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
-            ObjectMapper mapper = new ObjectMapper();
-            result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
-            if (result != null) {
-                Collection<XmlTag> removeTag = Collections2.filter(result.getXmlTags().getTags(),
-                        new Predicate<XmlTag>() {
-                            @Override
-                            public boolean apply(XmlTag xmlTag) {
-                                if (xmlTag.getName().equals(tag))
-                                    return true;
-                                else
-                                    return false;
-                            }
-                        });
-                HashMap<String, String> param = new HashMap<String, String>();
-                for (XmlTag xmlTag : removeTag) {
-                    param.put("name", xmlTag.getName());
-                    param.put("owner", xmlTag.getOwner());
-                }
-                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .script("ctx._source.xmlTags.tags.remove(tag)")
-                        .addScriptParam("tag", param)).actionGet();
-                Response r = Response.ok().build();
-                return r;
-            } else {
-                return Response.status(Status.BAD_REQUEST).build();
-            }
+            UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                    .script(" removeTags = new java.util.ArrayList();"
+                            + "for (tag in ctx._source.xmlTags.tags) "
+                            + "{ if (tag.name == tagName) { removeTags.add(tag)} }; "
+                            + "for (removeTag in removeTags) {ctx._source.xmlTags.tags.remove(removeTag)}")
+                    .addScriptParam("tagName", tag)).actionGet();
+            Response r = Response.ok().build();
+            return r;
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
