@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
 
@@ -100,4 +101,37 @@ public class ChannelUtil {
         return channelNames;
     }
 
+    /**
+     * 
+     * Return the property object with the name <tt>propertyName</tt> if it
+     * exists on the channel <tt>channel</tt> else return null
+     * 
+     * @param channel
+     * @param propertyName
+     * @return Property
+     */
+    public static XmlProperty getProperty(XmlChannel channel, String propertyName) {
+        Collection<XmlProperty> property = Collections2.filter(channel.getXmlProperties().getProperties(),
+                new PropertyNamePredicate(propertyName));
+        if (property.size() == 1)
+            return property.iterator().next();
+        else
+            return null;
+    }
+
+    private static class PropertyNamePredicate implements Predicate<XmlProperty> {
+
+        private String propertyName;
+
+        PropertyNamePredicate(String propertyName) {
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public boolean apply(XmlProperty input) {
+            if (input.getName().equals(propertyName))
+                return true;
+            return false;
+        }
+    }
 }

@@ -218,19 +218,30 @@ public class PropertiesResource {
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject())
                     .upsert(indexRequest).refresh(true);
             bulkRequest.add(updateRequest);
+            
+            SearchResponse qbResult = client.prepareSearch("channelfinder")
+                    .setQuery(QueryBuilders.matchQuery("xmlProperties.properties.name", prop)).addField("name").setSize(10000).execute().actionGet();
+            if (qbResult != null) {
+                for (SearchHit hit : qbResult.getHits()) {
+                    String channelName = hit.field("name").getValue().toString();
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).refresh(true)
+                            .script("removeProp = new Object();" 
+                                    + "for (xmlProp in ctx._source.xmlProperties.properties) "
+                                    + "{ if (xmlProp.name == prop) { removeProp = xmlProp} }; "
+                                    + "ctx._source.xmlProperties.properties.remove(removeProp);")
+                            .addScriptParam("prop", prop));
+                }
+            }
+            
             if (data.getXmlChannels() != null) {
-                HashMap<String, String> param = new HashMap<String, String>(); 
-                param.put("name", data.getName());
-                param.put("value", data.getValue());
-                param.put("owner", data.getOwner());
                 for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                    HashMap<String, String> param = new HashMap<String, String>(); 
+                    param.put("name", data.getName());
+                    param.put("owner", data.getOwner());
+                    param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .refresh(true)
-                            .script("removeProp = new Object();"
-                                    + "for (xmlProperty in ctx._source.xmlProperties.properties) "
-                                    + "{ if (xmlProperty.name == prop.name) { removeProp = xmlProperty} }; "
-                                    + "ctx._source.xmlProperties.properties.remove(removeProp);"
-                                    + "ctx._source.xmlProperties.properties.add(prop)")
+                            .script("ctx._source.xmlProperties.properties.add(prop)")
                             .addScriptParam("prop", param));
                 }
             }
@@ -285,11 +296,11 @@ public class PropertiesResource {
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
             bulkRequest.add(updateRequest);
             if (data.getXmlChannels() != null) {
-                HashMap<String, String> param = new HashMap<String, String>(); 
-                param.put("name", data.getName());
-                param.put("value", data.getValue());
-                param.put("owner", data.getOwner());
                 for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                    HashMap<String, String> param = new HashMap<String, String>(); 
+                    param.put("name", data.getName());
+                    param.put("owner", data.getOwner());
+                    param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .refresh(true)
                             .script("removeProp = new Object();"
@@ -443,9 +454,10 @@ public class PropertiesResource {
             UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
                     .script(" removeProps = new java.util.ArrayList();"
                             + "for (property in ctx._source.xmlProperties.properties)"
-                            + "{ if (property.name == prop.name) { removeProps.add(property)} };"
+                            + "{ if (property.name == prop) { removeProps.add(property)} };"
                             + "for (removeProp in removeProps) {ctx._source.xmlProperties.properties.remove(removeProp)}")
-                    .addScriptParam("prop", prop)).actionGet();
+                    .addScriptParam("prop", prop)
+                    .refresh(true)).actionGet();
             Response r = Response.ok().build();
             return r;
         } catch (Exception e) {
