@@ -268,12 +268,12 @@ public class ChannelsResource {
         try {
             GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
             ObjectMapper mapper = new ObjectMapper();
-            result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
             Response r;
-            if (result == null) {
-                r = Response.status(Response.Status.NOT_FOUND).build();
-            } else {
+            if (response.isExists()) {
+                result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
                 r = Response.ok(result).build();
+            } else {
+                r = Response.status(Response.Status.NOT_FOUND).build();
             }
             log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
             return r;
