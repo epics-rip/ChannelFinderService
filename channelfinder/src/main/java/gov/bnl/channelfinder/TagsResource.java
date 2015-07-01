@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
@@ -54,6 +56,7 @@ import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
@@ -213,23 +216,49 @@ public class TagsResource {
                     jsonBuilder().startObject()
                     .field("name", data.getName()).field("owner", data.getOwner()).endObject()).upsert(indexRequest);
             bulkRequest.add(updateRequest);
-            if (data.getXmlChannels() != null) {
-//                ObjectMapper mapper = new ObjectMapper();
-//                mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
-                HashMap<String, String> param = new HashMap<String, String>(); 
-                param.put("name", data.getName());
-                param.put("owner", data.getOwner());
-                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
-                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
-                            .refresh(true)
-                            .script("removeTag = new Object();"
-                                    + "for (xmltag in ctx._source.xmlTags.tags) "
-                                    + "{ if (xmltag.name == tag.name) { removeTag = xmltag} }; "
-                                    + "ctx._source.xmlTags.tags.remove(removeTag);"
-                                    + "ctx._source.xmlTags.tags.add(tag)")
-                            .addScriptParam("tag", param));
-                }
+            SearchResponse qbResult = client.prepareSearch("channelfinder")
+                    .setQuery(QueryBuilders.matchQuery("xmlTags.tags.name", tag)).addField("name").setSize(10000).execute().actionGet();
+
+            Set<String> existingChannels = new HashSet<String>();
+            for (SearchHit hit : qbResult.getHits()) {
+                existingChannels.add(hit.field("name").getValue().toString());
             }
+
+            Set<String> newChannels = new HashSet<String>();
+            if (data.getXmlChannels() != null) {
+                newChannels.addAll(
+                        Collections2.transform(data.getXmlChannels().getChannels(), new Function<XmlChannel, String>() {
+                            @Override
+                            public String apply(XmlChannel channel) {
+                                return channel.getName();
+                            }
+                        }));
+            }
+
+            Set<String> remove = new HashSet<String>(existingChannels);
+            remove.removeAll(newChannels);
+            
+            Set<String> add = new HashSet<String>(newChannels);
+            add.removeAll(existingChannels);
+
+            HashMap<String, String> param = new HashMap<String, String>(); 
+            param.put("name", data.getName());
+            param.put("owner", data.getOwner());
+            for (String ch : remove) {
+                bulkRequest.add(new UpdateRequest("channelfinder", "channel", ch).refresh(true)
+                        .script("removeTag = new Object();" 
+                                + "for (xmltag in ctx._source.xmlTags.tags) "
+                                + "{ if (xmltag.name == tag.name) { removeTag = xmltag} }; "
+                                + "ctx._source.xmlTags.tags.remove(removeTag);")
+                        .addScriptParam("tag", param));
+            }
+            for (String ch : add) {
+                bulkRequest.add(new UpdateRequest("channelfinder", "channel", ch)
+                        .refresh(true)
+                        .script("ctx._source.xmlTags.tags.add(tag)")
+                        .addScriptParam("tag", param));
+            }
+
             bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
@@ -245,8 +274,8 @@ public class TagsResource {
                 } else {
                     r = Response.ok(result).build();
                 }
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
-                        + XmlTag.toLog(data));
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|"
+                        + (System.currentTimeMillis() - start) + "|" + r.getStatus() + "|data=" + XmlTag.toLog(data));
                 return r;
             }
         } catch (Exception e) {
