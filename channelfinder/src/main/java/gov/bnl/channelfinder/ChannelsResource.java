@@ -146,32 +146,36 @@ public class ChannelsResource {
         try {
             MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
             BoolQueryBuilder qb = boolQuery();
-            DisMaxQueryBuilder nameQuery = disMaxQuery();
-            
             
             for (Entry<String, List<String>> parameter : parameters.entrySet()) {
                 switch (parameter.getKey()) {
                 case "~name":
-                    for (String pattern : parameter.getValue()) {
-                        nameQuery.add(wildcardQuery("name", pattern));
+                    for (String value : parameter.getValue()) {
+                        DisMaxQueryBuilder nameQuery = disMaxQuery();
+                        for (String pattern : value.split(",")) {
+                            nameQuery.add(wildcardQuery("name", pattern.trim()));                            
+                        }
+                        qb.must(nameQuery);
                     }
-                    qb.must(nameQuery);
                     break;
                 case "~tag":
-                    DisMaxQueryBuilder tagQuery = disMaxQuery();
-                    for (String pattern : parameter.getValue()) {
-                        tagQuery.add(wildcardQuery("xmlTags.tags.name", pattern));
+                    for (String value : parameter.getValue()) {
+                        DisMaxQueryBuilder tagQuery = disMaxQuery();
+                        for (String pattern : value.split(",")) {
+                            tagQuery.add(wildcardQuery("xmlTags.tags.name", pattern.trim()));
+                        }
+                        qb.must(nestedQuery("xmlTags.tags", tagQuery));
                     }
-                    qb.must(nestedQuery("xmlTags.tags", tagQuery));
                     break;
                 default:
                     DisMaxQueryBuilder propertyQuery = disMaxQuery();
-                    for (String pattern : parameter.getValue()) {
-                        propertyQuery
-                                .add(nestedQuery("xmlProperties.properties",
-                                        boolQuery()
-                                                .must(matchQuery("xmlProperties.properties.name", parameter.getKey()))
-                                                .must(wildcardQuery("xmlProperties.properties.value", pattern))));
+                    for (String value : parameter.getValue()) {
+                        for (String pattern : value.split(",")) {
+                            propertyQuery.add(nestedQuery("xmlProperties.properties",
+                                    boolQuery()
+                                            .must(matchQuery("xmlProperties.properties.name", parameter.getKey().trim()))
+                                            .must(wildcardQuery("xmlProperties.properties.value", pattern.trim()))));
+                        }
                     }
                     qb.must(propertyQuery);
                     break;
@@ -228,6 +232,7 @@ public class ChannelsResource {
             }
             String prepare = "|Prepare: " + (System.currentTimeMillis()-start) + "|";
             start = System.currentTimeMillis();
+            bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             String execute = "|Execute: " + (System.currentTimeMillis()-start)+"|";
             start = System.currentTimeMillis();
@@ -354,7 +359,6 @@ public class ChannelsResource {
             channel.setOwner(data.getOwner());
             channel.getXmlProperties().getProperties().addAll(data.getXmlProperties().getProperties());
             channel.getXmlTags().getTags().addAll(data.getXmlTags().getTags());
-
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
                     .doc(mapper.writeValueAsBytes(channel)).refresh(true);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
