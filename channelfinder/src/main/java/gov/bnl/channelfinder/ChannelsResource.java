@@ -18,6 +18,7 @@ import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -85,6 +86,8 @@ public class ChannelsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public Response query() {
+        StringBuffer performance = new StringBuffer();
+        long start = System.currentTimeMillis();
         Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
 /**
  * Current Mapping for the channel 
@@ -142,6 +145,8 @@ public class ChannelsResource {
   }
 }
  */
+        performance.append("|intialize:" + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         try {
             MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
@@ -182,10 +187,11 @@ public class ChannelsResource {
                 }
             }
             
-            long start = System.currentTimeMillis();
+            performance.append("|prepare:" + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
             SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(10000).execute().actionGet();
-            audit.info("Query: " + (System.currentTimeMillis() - start));
-            audit.info("Query Size : " + qbResult.getHits().getTotalHits());
+            performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
             ObjectMapper mapper = new ObjectMapper();
             XmlChannels result = new XmlChannels();
             start = System.currentTimeMillis();
@@ -194,7 +200,7 @@ public class ChannelsResource {
                     result.addXmlChannel(mapper.readValue(hit.source(), XmlChannel.class));
                 }
             }
-            audit.info("Parse: " + (System.currentTimeMillis() - start));
+            performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(result).build();
             log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
                     + "|returns " + result.getChannels().size() + " channels");
@@ -431,11 +437,11 @@ public class ChannelsResource {
         List<String> propertyNames = new ArrayList<String>();
         ObjectMapper mapper = new ObjectMapper();
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
-                .setQuery(new MatchAllQueryBuilder()).execute().actionGet();
+                .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
         for (SearchHit hit : response.getHits()) {
             propertyNames.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class).getName());
         }
-        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).execute()
+        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
                 .actionGet();
         for (SearchHit hit : response.getHits()) {
             tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
@@ -444,7 +450,19 @@ public class ChannelsResource {
                 && propertyNames.containsAll(ChannelUtil.getPropertyNames(channels.getChannels()))) {
             return true;
         }else{
-            throw new IllegalArgumentException("One or more of the Tags and/or Properties on the channels don't exist");
+            StringBuffer errorMsg = new StringBuffer();
+            Collection<String> missingTags = ChannelUtil.getTagNames(channels.getChannels());
+            missingTags.removeAll(tagsNames);
+            for (String tag : missingTags) {
+                errorMsg.append(tag+"|");
+            }
+            Collection<String> missingProps = ChannelUtil.getPropertyNames(channels.getChannels());
+            missingProps.removeAll(propertyNames);
+            for (String prop : missingProps) {
+                errorMsg.append(prop+"|");
+            }
+            throw new IllegalArgumentException("The following Tags and/or Properties on the channel don't exist -- " + errorMsg.toString());
+        
         }
     }
     
@@ -471,11 +489,11 @@ public class ChannelsResource {
         List<String> propertyNames = new ArrayList<String>();
         ObjectMapper mapper = new ObjectMapper();
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
-                .setQuery(new MatchAllQueryBuilder()).execute().actionGet();
+                .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
         for (SearchHit hit : response.getHits()) {
             propertyNames.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class).getName());
         }
-        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).execute()
+        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
                 .actionGet();
         for (SearchHit hit : response.getHits()) {
             tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
@@ -484,7 +502,18 @@ public class ChannelsResource {
                 && propertyNames.containsAll(ChannelUtil.getPropertyNames(channel))) {
             return true;
         } else {
-            throw new IllegalArgumentException("One or more of the Tags and/or Properties on the channel don't exist");
+            StringBuffer errorMsg = new StringBuffer();
+            Collection<String> missingTags = ChannelUtil.getTagNames(channel);
+            missingTags.removeAll(tagsNames);
+            for (String tag : missingTags) {
+                errorMsg.append(tag+"|");
+            }
+            Collection<String> missingProps = ChannelUtil.getPropertyNames(channel);
+            missingProps.removeAll(propertyNames);
+            for (String prop : missingProps) {
+                errorMsg.append(prop+"|");
+            }
+            throw new IllegalArgumentException("The following Tags and/or Properties on the channel don't exist -- " + errorMsg.toString());
         }
     }
 }
