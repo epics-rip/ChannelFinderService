@@ -88,7 +88,8 @@ public class ChannelsResource {
     public Response query() {
         StringBuffer performance = new StringBuffer();
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        long totalStart = System.currentTimeMillis();
+        Client client = ElasticSearchClient.getClient();
 /**
  * Current Mapping for the channel 
  * PUT /channelfinder/_mapping/channel
@@ -145,7 +146,7 @@ public class ChannelsResource {
   }
 }
  */
-        performance.append("|intialize:" + (System.currentTimeMillis() - start));
+        
         start = System.currentTimeMillis();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         try {
@@ -157,8 +158,8 @@ public class ChannelsResource {
                 case "~name":
                     for (String value : parameter.getValue()) {
                         DisMaxQueryBuilder nameQuery = disMaxQuery();
-                        for (String pattern : value.split(",")) {
-                            nameQuery.add(wildcardQuery("name", pattern.trim()));                            
+                        for (String pattern : value.split("\\|")) {
+                            nameQuery.add(wildcardQuery("name", pattern.trim()));
                         }
                         qb.must(nameQuery);
                     }
@@ -166,7 +167,7 @@ public class ChannelsResource {
                 case "~tag":
                     for (String value : parameter.getValue()) {
                         DisMaxQueryBuilder tagQuery = disMaxQuery();
-                        for (String pattern : value.split(",")) {
+                        for (String pattern : value.split("\\|")) {
                             tagQuery.add(wildcardQuery("xmlTags.tags.name", pattern.trim()));
                         }
                         qb.must(nestedQuery("xmlTags.tags", tagQuery));
@@ -202,13 +203,13 @@ public class ChannelsResource {
             }
             performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(result).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
+            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
+                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
                     + "|returns " + result.getChannels().size() + " channels");
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -272,7 +273,7 @@ public class ChannelsResource {
     public Response read(@PathParam("chName") String chan) {
         audit.info("getting ch:" + chan);
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = ElasticSearchClient.getClient();
         System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlChannel result = null;
@@ -291,7 +292,7 @@ public class ChannelsResource {
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
+            
         }
     }
 
