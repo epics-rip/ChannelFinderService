@@ -17,6 +17,7 @@ import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,12 +32,16 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -190,22 +195,38 @@ public class ChannelsResource {
             
             performance.append("|prepare:" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
-            SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(10000).execute().actionGet();
+            final SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(10000).execute().actionGet();
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
-            ObjectMapper mapper = new ObjectMapper();
-            XmlChannels result = new XmlChannels();
+            final ObjectMapper mapper = new ObjectMapper();
             start = System.currentTimeMillis();
-            if(qbResult != null){
-                for (SearchHit hit : qbResult.getHits()) {
-                    result.addXmlChannel(mapper.readValue(hit.source(), XmlChannel.class));
+            
+            StreamingOutput stream = new StreamingOutput() {
+                
+                @Override
+                public void write(OutputStream os) throws IOException, WebApplicationException {
+                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+//                    jg.writeStartArray();
+//                    jg.writeFieldName("");
+                    XmlChannels result = new XmlChannels();
+                    if(qbResult != null){
+                        for (SearchHit hit : qbResult.getHits()) {
+                            result.addXmlChannel(mapper.readValue(hit.source(), XmlChannel.class));                            
+                        }
+                    }
+                    jg.writeObject(result);
+//                    jg.writeEndArray();
+                    jg.flush();
+                    jg.close();
                 }
-            }
+            };
+            
+            
             performance.append("|parse:" + (System.currentTimeMillis() - start));
-            Response r = Response.ok(result).build();
+            Response r = Response.ok(stream).build();
             log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
                     + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
-                    + "|returns " + result.getChannels().size() + " channels");
+                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
