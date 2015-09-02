@@ -10,6 +10,7 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
+import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.disMaxQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -94,7 +95,7 @@ public class ChannelsResource {
         StringBuffer performance = new StringBuffer();
         long start = System.currentTimeMillis();
         long totalStart = System.currentTimeMillis();
-        Client client = ElasticSearchClient.getClient();
+        Client client = ElasticSearchClient.getSearchClient();
 /**
  * Current Mapping for the channel 
  * PUT /channelfinder/_mapping/channel
@@ -224,9 +225,10 @@ public class ChannelsResource {
             
             performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(stream).build();
-            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
-                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
-                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
+//            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
+//                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
+//                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
+            log.info( qbResult.getHits().getTotalHits() + " " +(System.currentTimeMillis() - totalStart));
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -244,7 +246,7 @@ public class ChannelsResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public Response add(XmlChannels data) throws IOException {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -294,8 +296,7 @@ public class ChannelsResource {
     public Response read(@PathParam("chName") String chan) {
         audit.info("getting ch:" + chan);
         long start = System.currentTimeMillis();
-        Client client = ElasticSearchClient.getClient();
-        System.out.println("client initialization: "+ (System.currentTimeMillis() - start));
+        Client client = ElasticSearchClient.getSearchClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlChannel result = null;
         try {
@@ -331,8 +332,7 @@ public class ChannelsResource {
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -370,8 +370,7 @@ public class ChannelsResource {
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("chName") String chan, XmlChannel data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
-        audit.info("client initialization: "+ (System.currentTimeMillis() - start));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -417,7 +416,7 @@ public class ChannelsResource {
     @Path("{chName: "+chNameRegex+"}")
     public Response remove(@PathParam("chName") String chan) {
         audit.info("deleting ch:" + chan);
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {

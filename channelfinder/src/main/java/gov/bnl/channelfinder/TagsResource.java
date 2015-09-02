@@ -11,13 +11,11 @@ package gov.bnl.channelfinder;
  */
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -42,22 +40,18 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
 /**
@@ -91,7 +85,7 @@ public class TagsResource {
     @GET
     @Produces({"application/xml", "application/json"})
     public Response list() {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlTags result = new XmlTags();
         ObjectMapper mapper = new ObjectMapper();
@@ -121,7 +115,7 @@ public class TagsResource {
     @POST
     @Consumes({"application/xml", "application/json"})
     public Response add(XmlTags data) throws IOException {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -160,7 +154,7 @@ public class TagsResource {
     @Produces({"application/xml", "application/json"})
     public Response read(@PathParam("tagName") String tag) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlTag result = null;        
@@ -204,7 +198,7 @@ public class TagsResource {
     @Consumes({"application/xml", "application/json"})
     public Response create(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -302,7 +296,7 @@ public class TagsResource {
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -364,7 +358,7 @@ public class TagsResource {
     @DELETE
     @Path("{tagName: "+tagNameRegex+"}")
     public Response remove(@PathParam("tagName") String tag) {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -420,7 +414,7 @@ public class TagsResource {
     @Path("{tagName}/{chName}")
     @Consumes({"application/xml", "application/json"})
     public Response addSingle(@PathParam("tagName") String tag, @PathParam("chName") String chan, XmlTag data) {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlTag result = null;
@@ -466,7 +460,7 @@ public class TagsResource {
     @DELETE
     @Path("{tagName}/{chName}")
     public Response removeSingle(@PathParam("tagName") final String tag, @PathParam("chName") String chan) {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlChannel result = null;

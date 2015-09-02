@@ -10,12 +10,13 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
+import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,15 +27,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -42,13 +42,9 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 
 import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
 
@@ -85,8 +81,7 @@ public class PropertiesResource {
     @Produces({ "application/xml", "application/json" })
     public Response list() {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient()
-                .addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         System.out.println("client initialization: " + (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlProperties result = new XmlProperties();
@@ -119,8 +114,7 @@ public class PropertiesResource {
     @POST
     @Consumes({ "application/xml", "application/json" })
     public Response add(XmlProperties data) throws IOException {
-        Client client = new TransportClient()
-                .addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -163,8 +157,7 @@ public class PropertiesResource {
     @Produces({ "application/xml", "application/json" })
     public Response read(@PathParam("propName") String prop) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient()
-                .addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         System.out.println("client initialization: " + (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlProperty result = null;
@@ -205,8 +198,7 @@ public class PropertiesResource {
     @Consumes({ "application/xml", "application/json" })
     public Response create(@PathParam("propName") String prop, XmlProperty data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient()
-                .addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         System.out.println("client initialization: " + (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -286,7 +278,7 @@ public class PropertiesResource {
     @Consumes({ "application/xml", "application/json" })
     public Response update(@PathParam("propName") String prop, XmlProperty data) {
         long start = System.currentTimeMillis();
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         audit.info("client initialization: " + (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -347,7 +339,7 @@ public class PropertiesResource {
     @DELETE
     @Path("{propName : " + propertyNameRegex + "}")
     public Response remove(@PathParam("propName") String prop) {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -397,7 +389,7 @@ public class PropertiesResource {
     @Path("{tagName}/{chName}")
     @Consumes({ "application/xml", "application/json" })
     public Response addSingle(@PathParam("tagName") String prop, @PathParam("chName") String chan, XmlProperty data) {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlProperty result = null;
@@ -446,7 +438,7 @@ public class PropertiesResource {
     @DELETE
     @Path("{propName}/{chName}")
     public Response removeSingle(@PathParam("propName") String prop, @PathParam("chName") String chan) {
-        Client client = new TransportClient().addTransportAddress(new InetSocketTransportAddress("130.199.219.147", 9300));
+        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlChannel result = null;
