@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# The mapping definition for the Indexes associated with the channelfinder v2
+
+curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
+{
+      "tag" : {
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "owner" : {
+            "type" : "string"
+          }
+        }
+      }
+}
+
+
+curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
+{
+      "property" : {
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "owner" : {
+            "type" : "string"
+          }
+        }
+      }
+}'
+
+curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
+{
+      "channel" : {
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "analyzer" : "whitespace"
+          },
+          "owner" : {
+            "type" : "string",
+            "analyzer" : "whitespace"
+          },
+          "script" : {
+            "type" : "string"
+          },
+          "xmlProperties" : {
+            "properties" : {
+              "properties" : {
+                "type" : "nested",
+                "include_in_parent" : true,
+                "properties" : {
+                  "name" : {
+                    "type" : "string",
+                    "analyzer" : "whitespace"
+                  },
+                  "owner" : {
+                    "type" : "string"
+                  },
+                  "value" : {
+                    "type" : "string",
+                    "analyzer" : "whitespace"
+                  }
+                }
+              }
+            }
+          },
+          "xmlTags" : {
+            "properties" : {
+              "tags" : {
+                "type" : "nested",
+                "include_in_parent" : true,
+                "properties" : {
+                  "name" : {
+                    "type" : "string",
+                    "analyzer" : "whitespace"
+                  },
+                  "owner" : {
+                    "type" : "string",
+                    "analyzer" : "whitespace"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+}
