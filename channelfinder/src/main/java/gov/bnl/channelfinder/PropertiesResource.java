@@ -14,7 +14,9 @@ import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
@@ -26,6 +28,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
@@ -78,23 +81,23 @@ public class PropertiesResource {
      */
 
     @GET
-    @Produces({ "application/xml", "application/json" })
+    @Produces({ MediaType.APPLICATION_JSON })
     public Response list() {
-        long start = System.currentTimeMillis();
         Client client = getNewClient();
-        System.out.println("client initialization: " + (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlProperties result = new XmlProperties();
+        List<XmlProperty> result = new ArrayList<XmlProperty>();
         ObjectMapper mapper = new ObjectMapper();
         try {
-            SearchResponse response = client.prepareSearch("properties").setTypes("property")
-                    .setQuery(new MatchAllQueryBuilder()).execute().actionGet();
+            SearchResponse response = client.prepareSearch("properties")
+                                            .setTypes("property")
+                                            .setQuery(new MatchAllQueryBuilder())
+                                            .setSize(10000)
+                                            .execute().actionGet();
             for (SearchHit hit : response.getHits()) {
-                result.addXmlProperty(mapper.readValue(hit.getSourceAsString(), XmlProperty.class));
+                result.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class));
             }
-            Response r = Response.ok(result).build();
-            audit.info(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns "
-                    + result.getProperties().size() + " properties");
+            Response r = Response.ok(result.toArray(new XmlProperty[result.size()])).build();
+            audit.info(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + result.size() + " properties");
             return r;
         } catch (Exception e) {
             return handleException(user, Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -113,18 +116,20 @@ public class PropertiesResource {
      */
     @POST
     @Consumes({ "application/xml", "application/json" })
-    public Response add(XmlProperties data) throws IOException {
+    public Response add(List<XmlProperty> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
         try {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (XmlProperty property : data.getProperties()) {
+            for (XmlProperty property : data) {
                 bulkRequest.add(client.prepareUpdate("properties", "property", property.getName())
-                        .setDoc(mapper.writeValueAsBytes(property))
-                        .setUpsert(new IndexRequest("properties", "property", property.getName())
-                                .source(mapper.writeValueAsBytes(property))));
+                                      .setDoc(mapper.writeValueAsBytes(property))
+                                      .setUpsert(
+                                              new IndexRequest("properties", "property", property.getName())
+                                              .source(mapper.writeValueAsBytes(property)))
+                                );
             }
             bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
@@ -134,7 +139,7 @@ public class PropertiesResource {
             } else {
                 Response r = Response.noContent().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
-                        + XmlProperties.toLog(data));
+                        + data);
                 return r;
             }
         } catch (Exception e) {
@@ -156,23 +161,25 @@ public class PropertiesResource {
     @Path("{propName : " + propertyNameRegex + "}")
     @Produces({ "application/xml", "application/json" })
     public Response read(@PathParam("propName") String prop) {
-        long start = System.currentTimeMillis();
         Client client = getNewClient();
-        System.out.println("client initialization: " + (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlProperty result = null;
         try {
             GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
-            ObjectMapper mapper = new ObjectMapper();
-            result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
-            Response r;
-            if (result == null) {
-                r = Response.status(Response.Status.NOT_FOUND).build();
+            if (response.isExists()) {
+                ObjectMapper mapper = new ObjectMapper();
+                result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
+                Response r;
+                if (result == null) {
+                    r = Response.status(Response.Status.NOT_FOUND).build();
+                } else {
+                    r = Response.ok(result).build();
+                }
+                log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
+                return r;
             } else {
-                r = Response.ok(result).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
-            return r;
         } catch (Exception e) {
             return handleException(user, Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -277,9 +284,7 @@ public class PropertiesResource {
     @Path("{propName : " + propertyNameRegex + "}")
     @Consumes({ "application/xml", "application/json" })
     public Response update(@PathParam("propName") String prop, XmlProperty data) {
-        long start = System.currentTimeMillis();
         Client client = getNewClient();
-        audit.info("client initialization: " + (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {

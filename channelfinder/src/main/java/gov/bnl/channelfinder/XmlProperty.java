@@ -10,18 +10,17 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.
  *
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
-@XmlType(propOrder = {"name","value","owner","xmlChannels"})
-@XmlRootElement(name = "property")
+@XmlRootElement(name="property")
+@JsonPropertyOrder({"name","value","owner","xmlChannels"})
 public class XmlProperty {
     private String name = null;
     private String value = null;
@@ -64,7 +63,6 @@ public class XmlProperty {
      *
      * @return property name
      */
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -83,7 +81,6 @@ public class XmlProperty {
      *
      * @return property value
      */
-    @XmlAttribute
     public String getValue() {
         return value;
     }
@@ -102,7 +99,6 @@ public class XmlProperty {
      *
      * @return property owner
      */
-    @XmlAttribute
     public String getOwner() {
         return owner;
     }
@@ -121,7 +117,6 @@ public class XmlProperty {
      *
      * @return XmlChannels object
      */
-    @XmlElement(name = "channels")
     public XmlChannels getXmlChannels() {
         return channels;
     }
