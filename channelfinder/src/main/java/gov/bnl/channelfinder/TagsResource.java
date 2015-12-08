@@ -14,8 +14,10 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -28,6 +30,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
@@ -83,20 +86,19 @@ public class TagsResource {
      */
 
     @GET
-    @Produces({"application/xml", "application/json"})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response list() {
         Client client = getNewClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlTags result = new XmlTags();
+        List<XmlTag> result = new ArrayList<XmlTag>();
         ObjectMapper mapper = new ObjectMapper();
         try {
-            SearchResponse response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).execute().actionGet();
+            SearchResponse response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(10000).execute().actionGet();
             for (SearchHit hit : response.getHits()) {
-                result.addXmlTag(mapper.readValue(hit.getSourceAsString(), XmlTag.class));
+                result.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class));
             }
-            Response r = Response.ok(result).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus()
-                    + "|returns " + result.getTags().size() + " tags");
+            Response r = Response.ok(result.toArray(new XmlTag[result.size()])).build();
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + result.size() + " tags");
             return r;
         } catch (Exception e) {
             return handleException(user,Response.Status.INTERNAL_SERVER_ERROR , e);
@@ -113,15 +115,15 @@ public class TagsResource {
      * @throws IOException when audit or log fail
      */
     @POST
-    @Consumes({"application/xml", "application/json"})
-    public Response add(XmlTags data) throws IOException {
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response add(List<XmlTag> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
         try {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (XmlTag tag : data.getTags()) {
+            for (XmlTag tag : data) {
                 bulkRequest.add(client.prepareUpdate("tags", "tag", tag.getName()).setDoc(mapper.writeValueAsBytes(tag))
                         .setUpsert(new IndexRequest("tags", "tag", tag.getName()).source(mapper.writeValueAsBytes(tag))));
             }
@@ -132,7 +134,7 @@ public class TagsResource {
             } else {
                 Response r = Response.noContent().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
-                        + XmlTags.toLog(data));
+                        + (data));
                 return r;
             }
         } catch (Exception e) {
@@ -151,7 +153,7 @@ public class TagsResource {
      */
     @GET
     @Path("{tagName: "+tagNameRegex+"}")
-    @Produces({"application/xml", "application/json"})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response read(@PathParam("tagName") String tag) {
         long start = System.currentTimeMillis();
         Client client = getNewClient();
@@ -160,16 +162,20 @@ public class TagsResource {
         XmlTag result = null;        
         try {
             GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
-            ObjectMapper mapper = new ObjectMapper();
-            result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
-            Response r;
-            if (result == null) {
-                r = Response.status(Response.Status.NOT_FOUND).build();
+            if (response.isExists()) {
+                ObjectMapper mapper = new ObjectMapper();
+                result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
+                Response r;
+                if (result == null) {
+                    r = Response.status(Response.Status.NOT_FOUND).build();
+                } else {
+                    r = Response.ok(result).build();
+                }
+                log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
+                return r;
             } else {
-                r = Response.ok(result).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
-            return r;
         } catch (JsonParseException e) {
             return handleException(user, Response.Status.INTERNAL_SERVER_ERROR , e);
         } catch (JsonMappingException e) {
@@ -195,7 +201,7 @@ public class TagsResource {
      */
     @PUT
     @Path("{tagName: "+tagNameRegex+"}")
-    @Consumes({"application/xml", "application/json"})
+    @Consumes({MediaType.APPLICATION_JSON})
     public Response create(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
         Client client = getNewClient();
@@ -370,7 +376,8 @@ public class TagsResource {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.field("name").getValue().toString();
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).refresh(true)
-                            .script("removeTag = new Object();" + "for (xmltag in ctx._source.xmlTags.tags) "
+                            .script("removeTag = new Object();" 
+                                    + "for (xmltag in ctx._source.xmlTags.tags) "
                                     + "{ if (xmltag.name == tag) { removeTag = xmltag} }; "
                                     + "ctx._source.xmlTags.tags.remove(removeTag);")
                             .addScriptParam("tag", tag));
