@@ -10,9 +10,10 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.
@@ -20,12 +21,11 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 @XmlRootElement(name="property")
-@JsonPropertyOrder({"name","value","owner","xmlChannels"})
 public class XmlProperty {
     private String name = null;
-    private String value = null;
     private String owner = null;
-    private XmlChannels channels = null;
+    private String value = null;
+    private List<XmlChannel> channels = new ArrayList<XmlChannel>();
 
     /**
      * Creates a new instance of XmlProperty.
@@ -117,7 +117,7 @@ public class XmlProperty {
      *
      * @return XmlChannels object
      */
-    public XmlChannels getXmlChannels() {
+    public List<XmlChannel> getXmlChannels() {
         return channels;
     }
 
@@ -126,7 +126,7 @@ public class XmlProperty {
      *
      * @param channels XmlChannels object
      */
-    public void setXmlChannels(XmlChannels channels) {
+    public void setXmlChannels(List<XmlChannel> channels) {
         this.channels = channels;
     }
 
@@ -141,7 +141,7 @@ public class XmlProperty {
             return data.getName() + "(" + data.getOwner() + ")";
         } else {
             return data.getName() + "(" + data.getOwner() + ")"
-                    + XmlChannels.toLog(data.channels);
+                    + (data.channels);
         }
     }
 }

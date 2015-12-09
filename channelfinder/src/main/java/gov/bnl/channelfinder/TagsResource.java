@@ -225,9 +225,9 @@ public class TagsResource {
             }
 
             Set<String> newChannels = new HashSet<String>();
-            if (data.getXmlChannels() != null) {
+            if (data.getChannels() != null) {
                 newChannels.addAll(
-                        Collections2.transform(data.getXmlChannels().getChannels(), new Function<XmlChannel, String>() {
+                        Collections2.transform(data.getChannels(), new Function<XmlChannel, String>() {
                             @Override
                             public String apply(XmlChannel channel) {
                                 return channel.getName();
@@ -311,13 +311,13 @@ public class TagsResource {
             UpdateRequest updateRequest = new UpdateRequest("tags", "tag", tag).doc(jsonBuilder().startObject()
                     .field("name", data.getName()).field("owner", data.getOwner()).endObject());
             bulkRequest.add(updateRequest);
-            if (data.getXmlChannels() != null) {
+            if (data.getChannels() != null) {
 //                ObjectMapper mapper = new ObjectMapper();
 //                mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
                 HashMap<String, String> param = new HashMap<String, String>(); 
                 param.put("name", data.getName());
                 param.put("owner", data.getOwner());
-                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                for (XmlChannel channel : data.getChannels()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .refresh(true)
                             .script("removeTag = new Object();"
@@ -428,7 +428,7 @@ public class TagsResource {
         try {
             GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
             ObjectMapper mapper = new ObjectMapper();
-            mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
+            mapper.getSerializationConfig().addMixInAnnotations(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
             
             if (result != null) {

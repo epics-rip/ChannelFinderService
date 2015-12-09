@@ -3,6 +3,18 @@
  */
 package gov.bnl.channelfinder;
 
+/*
+ * #%L
+ * ChannelFinder Directory Service
+ * %%
+ * Copyright (C) 2010 - 2015 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * %%
+ * Copyright (C) 2010 - 2012 Brookhaven National Laboratory
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
+
+
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;

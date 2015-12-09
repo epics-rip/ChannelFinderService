@@ -35,6 +35,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -209,10 +210,10 @@ public class ChannelsResource {
                     JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
 //                    jg.writeStartArray();
 //                    jg.writeFieldName("");
-                    XmlChannels result = new XmlChannels();
+                    List<XmlChannel> result = new ArrayList<XmlChannel>();
                     if(qbResult != null){
                         for (SearchHit hit : qbResult.getHits()) {
-                            result.addXmlChannel(mapper.readValue(hit.source(), XmlChannel.class));                            
+                            result.add(mapper.readValue(hit.source(), XmlChannel.class));
                         }
                     }
                     jg.writeObject(result);
@@ -225,10 +226,10 @@ public class ChannelsResource {
             
             performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(stream).build();
-//            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
-//                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
-//                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
-            log.info( qbResult.getHits().getTotalHits() + " " +(System.currentTimeMillis() - totalStart));
+            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
+                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
+                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
+//            log.info( qbResult.getHits().getTotalHits() + " " +(System.currentTimeMillis() - totalStart));
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -245,7 +246,7 @@ public class ChannelsResource {
      */
     @POST
     @Consumes({"application/xml", "application/json"})
-    public Response add(XmlChannels data) throws IOException {
+    public Response add(List<XmlChannel> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -256,7 +257,7 @@ public class ChannelsResource {
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (XmlChannel channel : data.getChannels()) {
+            for (XmlChannel channel : data) {
                 bulkRequest.add(client.prepareUpdate("channelfinder", "channel", channel.getName()).setDoc(mapper.writeValueAsBytes(channel))
                         .setUpsert(new IndexRequest("channelfinder", "channel", channel.getName()).source(mapper.writeValueAsBytes(channel))));
             }
@@ -272,7 +273,7 @@ public class ChannelsResource {
             } else {
                 Response r = Response.noContent().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + prepare + execute + "|data="
-                        + XmlChannels.toLog(data));
+                        + (data));
                 return r;
             }
         } catch (IllegalArgumentException e) {
@@ -329,8 +330,9 @@ public class ChannelsResource {
      */
     @PUT
     @Path("{chName: "+chNameRegex+"}")
-    @Consumes({"application/xml", "application/json"})
+    @Consumes("application/json")
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
+        audit.severe("PUT:"+XmlChannel.toLog(data));
         long start = System.currentTimeMillis();
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
@@ -384,8 +386,8 @@ public class ChannelsResource {
             XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
             channel.setName(data.getName());
             channel.setOwner(data.getOwner());
-            channel.getXmlProperties().getProperties().addAll(data.getXmlProperties().getProperties());
-            channel.getXmlTags().getTags().addAll(data.getXmlTags().getTags());
+            channel.getXmlProperties().addAll(data.getXmlProperties());
+            channel.getXmlTags().addAll(data.getXmlTags());
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
                     .doc(mapper.writeValueAsBytes(channel)).refresh(true);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
@@ -443,12 +445,12 @@ public class ChannelsResource {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    private boolean validateChannels(XmlChannels channels, Client client) throws JsonParseException, JsonMappingException, IOException{
-        for (XmlChannel channel : channels.getChannels()) {
+    private boolean validateChannels(List<XmlChannel> channels, Client client) throws JsonParseException, JsonMappingException, IOException{
+        for (XmlChannel channel : channels) {
             if (channel.getName() == null || channel.getName().isEmpty()) {
                 throw new IllegalArgumentException("Invalid channel name ");
             }
-            for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
+            for (XmlProperty xmlProperty : channel.getXmlProperties()) {
                 if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
                     throw new IllegalArgumentException("Invalid property value (missing or null or empty string) for '"+xmlProperty.getName()+"'");
                 }
@@ -467,17 +469,17 @@ public class ChannelsResource {
         for (SearchHit hit : response.getHits()) {
             tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
         }
-        if (tagsNames.containsAll(ChannelUtil.getTagNames(channels.getChannels()))
-                && propertyNames.containsAll(ChannelUtil.getPropertyNames(channels.getChannels()))) {
+        if (tagsNames.containsAll(ChannelUtil.getTagNames(channels))
+                && propertyNames.containsAll(ChannelUtil.getPropertyNames(channels))) {
             return true;
         }else{
             StringBuffer errorMsg = new StringBuffer();
-            Collection<String> missingTags = ChannelUtil.getTagNames(channels.getChannels());
+            Collection<String> missingTags = ChannelUtil.getTagNames(channels);
             missingTags.removeAll(tagsNames);
             for (String tag : missingTags) {
                 errorMsg.append(tag+"|");
             }
-            Collection<String> missingProps = ChannelUtil.getPropertyNames(channels.getChannels());
+            Collection<String> missingProps = ChannelUtil.getPropertyNames(channels);
             missingProps.removeAll(propertyNames);
             for (String prop : missingProps) {
                 errorMsg.append(prop+"|");
@@ -500,7 +502,7 @@ public class ChannelsResource {
             throw new IllegalArgumentException("Invalid channel name ");
         }
 
-        for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
+        for (XmlProperty xmlProperty : channel.getXmlProperties()) {
             if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
                 throw new IllegalArgumentException(
                         "Invalid property value (missing or null or empty string) for '" + xmlProperty.getName() + "'");

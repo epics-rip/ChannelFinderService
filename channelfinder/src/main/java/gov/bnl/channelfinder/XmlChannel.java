@@ -10,9 +10,13 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 /**
  * Channel object that can be represented as XML/JSON in payload data.
@@ -24,8 +28,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class XmlChannel {
     private String name;
     private String owner;
-    private XmlProperties properties = new XmlProperties();
-    private XmlTags tags = new XmlTags();
+    private List<XmlProperty> properties = new ArrayList<XmlProperty>();
+    private List<XmlTag> tags = new ArrayList<XmlTag>();
   
     /** Creates a new instance of XmlChannel */
     public XmlChannel() {
@@ -52,6 +56,20 @@ public class XmlChannel {
     }
 
     /**
+     * 
+     * @param name
+     * @param owner
+     * @param properties
+     * @param tags
+     */
+    public XmlChannel(String name, String owner, List<XmlProperty> properties, List<XmlTag> tags) {
+        this.name = name;
+        this.owner = owner;
+        this.properties = properties;
+        this.tags = tags;
+    }
+
+    /**
      * Getter for channel name.
      *
      * @return name
@@ -68,6 +86,22 @@ public class XmlChannel {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<XmlProperty> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(List<XmlProperty> properties) {
+        this.properties = properties;
+    }
+
+    public List<XmlTag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<XmlTag> tags) {
+        this.tags = tags;
     }
 
     /**
@@ -94,8 +128,7 @@ public class XmlChannel {
      *
      * @return XmlProperties
      */
-    @XmlElement(name = "properties")
-    public XmlProperties getXmlProperties() {
+    public List<XmlProperty> getXmlProperties() {
         return properties;
     }
 
@@ -104,7 +137,7 @@ public class XmlChannel {
      *
      * @param properties XmlProperties
      */
-    public void setXmlProperties(XmlProperties properties) {
+    public void setXmlProperties(ArrayList<XmlProperty> properties) {
         this.properties = properties;
     }
 
@@ -114,7 +147,7 @@ public class XmlChannel {
      * @param property single XmlProperty
      */
     public void addXmlProperty(XmlProperty property) {
-        this.properties.addXmlProperty(property);
+        this.properties.add(property);
     }
 
     /**
@@ -122,8 +155,7 @@ public class XmlChannel {
      *
      * @return XmlTags for this channel
      */
-    @XmlElement(name = "tags")
-    public XmlTags getXmlTags() {
+    public List<XmlTag> getXmlTags() {
         return tags;
     }
 
@@ -132,7 +164,7 @@ public class XmlChannel {
      *
      * @param tags XmlTags
      */
-    public void setXmlTags(XmlTags tags) {
+    public void setXmlTags(ArrayList<XmlTag> tags) {
         this.tags = tags;
     }
 
@@ -142,7 +174,7 @@ public class XmlChannel {
      * @param tag
      */
     public void addXmlTag(XmlTag tag) {
-        this.tags.addXmlTag(tag);
+        this.tags.add(tag);
     }
 
     /**
@@ -153,8 +185,8 @@ public class XmlChannel {
      */
     public static String toLog(XmlChannel data) {
         return data.getName() + "(" + data.getOwner() + "):["
-                + XmlProperties.toLog(data.properties)
-                + XmlTags.toLog(data.tags)
+                + (data.properties)
+                + (data.tags)
                 + "]";
     }
 }

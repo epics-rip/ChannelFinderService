@@ -10,6 +10,10 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -20,13 +24,11 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
  *
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
-@XmlType(propOrder = {"name","owner","xmlChannels"})
 @XmlRootElement(name = "tag")
-@JsonPropertyOrder({"name","owner","xmlChannels"})
 public class XmlTag {
     private String name = null;
     private String owner = null;
-    private XmlChannels channels = null;
+    private List<XmlChannel> channels = new ArrayList<XmlChannel>();
 
     /**
      * Creates a new instance of XmlTag.
@@ -96,7 +98,7 @@ public class XmlTag {
      *
      * @return XmlChannels object
      */
-    public XmlChannels getXmlChannels() {
+    public List<XmlChannel> getChannels() {
         return channels;
     }
 
@@ -105,7 +107,7 @@ public class XmlTag {
      *
      * @param channels XmlChannels object
      */
-    public void setXmlChannels(XmlChannels channels) {
+    public void setChannels(List<XmlChannel> channels) {
         this.channels = channels;
     }
 
@@ -119,8 +121,7 @@ public class XmlTag {
         if (data.channels == null) {
             return data.getName() + "(" + data.getOwner() + ")";
         } else {
-            return data.getName() + "(" + data.getOwner() + ")"
-                    + XmlChannels.toLog(data.channels);
+            return data.getName() + "(" + data.getOwner() + ")" + (data.channels);
         }
     }
 }

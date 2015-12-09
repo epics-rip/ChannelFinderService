@@ -233,7 +233,7 @@ public class PropertiesResource {
             }
             
             if (data.getXmlChannels() != null) {
-                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                for (XmlChannel channel : data.getXmlChannels()) {
                     HashMap<String, String> param = new HashMap<String, String>(); 
                     param.put("name", data.getName());
                     param.put("owner", data.getOwner());
@@ -282,7 +282,7 @@ public class PropertiesResource {
      */
     @POST
     @Path("{propName : " + propertyNameRegex + "}")
-    @Consumes({ "application/xml", "application/json" })
+    @Consumes("application/json")
     public Response update(@PathParam("propName") String prop, XmlProperty data) {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
@@ -293,7 +293,7 @@ public class PropertiesResource {
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
             bulkRequest.add(updateRequest);
             if (data.getXmlChannels() != null) {
-                for (XmlChannel channel : data.getXmlChannels().getChannels()) {
+                for (XmlChannel channel : data.getXmlChannels()) {
                     HashMap<String, String> param = new HashMap<String, String>(); 
                     param.put("name", data.getName());
                     param.put("owner", data.getOwner());
@@ -401,7 +401,7 @@ public class PropertiesResource {
         try {
             GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
             ObjectMapper mapper = new ObjectMapper();
-            mapper.getSerializationConfig().addMixInAnnotations(XmlChannels.class, MyMixInForXmlChannels.class);
+            mapper.getSerializationConfig().addMixInAnnotations(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
             if (result != null) {
                 String str = mapper.writeValueAsString(result);
@@ -434,10 +434,8 @@ public class PropertiesResource {
      * DELETE method for deleting the property identified by <tt>prop</tt> from
      * the channel <tt>chan</tt> (both path parameters).
      *
-     * @param prop
-     *            URI path parameter: property name to remove
-     * @param chan
-     *            URI path parameter: channel to remove <tt>property</tt> from
+     * @param prop URI path parameter: property name to remove
+     * @param chan URI path parameter: channel to remove <tt>property</tt> from
      * @return HTTP Response
      */
     @DELETE
