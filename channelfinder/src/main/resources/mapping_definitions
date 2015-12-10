@@ -4,36 +4,68 @@
 
 curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
 {
-      "tag" : {
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "owner" : {
-            "type" : "string"
-          }
-        }
+  "tag" : {
+    "properties" : {
+      "name" : {
+        "type" : "string"
+      },
+      "owner" : {
+        "type" : "string"
       }
-}
+    }
+  }
+}'
 
 
 curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
 {
-      "property" : {
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "owner" : {
-            "type" : "string"
-          }
-        }
+  "property" : {
+    "properties" : {
+      "name" : {
+        "type" : "string"
+      },
+      "owner" : {
+        "type" : "string"
       }
+    }
+  }
 }'
 
 curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
 {
-      "channel" : {
+  "channel" : {
+    "properties" : {
+      "name" : {
+        "type" : "string",
+        "analyzer" : "whitespace"
+      },
+      "owner" : {
+        "type" : "string",
+        "analyzer" : "whitespace"
+      },
+      "script" : {
+        "type" : "string"
+      },
+      "xmlProperties" : {
+        "type" : "nested",
+        "include_in_parent" : true,
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "analyzer" : "whitespace"
+          },
+          "owner" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string",
+            "analyzer" : "whitespace"
+          }
+        }
+      },
+      "xmlTags" : {
+        "type" : "nested",
+        "include_in_parent" : true,
         "properties" : {
           "name" : {
             "type" : "string",
@@ -42,49 +74,9 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
           "owner" : {
             "type" : "string",
             "analyzer" : "whitespace"
-          },
-          "script" : {
-            "type" : "string"
-          },
-          "xmlProperties" : {
-            "properties" : {
-              "properties" : {
-                "type" : "nested",
-                "include_in_parent" : true,
-                "properties" : {
-                  "name" : {
-                    "type" : "string",
-                    "analyzer" : "whitespace"
-                  },
-                  "owner" : {
-                    "type" : "string"
-                  },
-                  "value" : {
-                    "type" : "string",
-                    "analyzer" : "whitespace"
-                  }
-                }
-              }
-            }
-          },
-          "xmlTags" : {
-            "properties" : {
-              "tags" : {
-                "type" : "nested",
-                "include_in_parent" : true,
-                "properties" : {
-                  "name" : {
-                    "type" : "string",
-                    "analyzer" : "whitespace"
-                  },
-                  "owner" : {
-                    "type" : "string",
-                    "analyzer" : "whitespace"
-                  }
-                }
-              }
-            }
           }
         }
       }
-}
+    }
+  }
+}'
