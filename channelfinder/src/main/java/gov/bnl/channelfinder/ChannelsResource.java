@@ -175,19 +175,19 @@ public class ChannelsResource {
                     for (String value : parameter.getValue()) {
                         DisMaxQueryBuilder tagQuery = disMaxQuery();
                         for (String pattern : value.split("\\|")) {
-                            tagQuery.add(wildcardQuery("xmlTags.tags.name", pattern.trim()));
+                            tagQuery.add(wildcardQuery("tags.name", pattern.trim()));
                         }
-                        qb.must(nestedQuery("xmlTags.tags", tagQuery));
+                        qb.must(nestedQuery("tags", tagQuery));
                     }
                     break;
                 default:
                     DisMaxQueryBuilder propertyQuery = disMaxQuery();
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split(",")) {
-                            propertyQuery.add(nestedQuery("xmlProperties.properties",
+                            propertyQuery.add(nestedQuery("properties",
                                     boolQuery()
-                                            .must(matchQuery("xmlProperties.properties.name", parameter.getKey().trim()))
-                                            .must(wildcardQuery("xmlProperties.properties.value", pattern.trim()))));
+                                            .must(matchQuery("properties.name", parameter.getKey().trim()))
+                                            .must(wildcardQuery("properties.value", pattern.trim()))));
                         }
                     }
                     qb.must(propertyQuery);
@@ -386,8 +386,8 @@ public class ChannelsResource {
             XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
             channel.setName(data.getName());
             channel.setOwner(data.getOwner());
-            channel.getXmlProperties().addAll(data.getXmlProperties());
-            channel.getXmlTags().addAll(data.getXmlTags());
+            channel.getProperties().addAll(data.getProperties());
+            channel.getTags().addAll(data.getTags());
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
                     .doc(mapper.writeValueAsBytes(channel)).refresh(true);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
@@ -450,7 +450,7 @@ public class ChannelsResource {
             if (channel.getName() == null || channel.getName().isEmpty()) {
                 throw new IllegalArgumentException("Invalid channel name ");
             }
-            for (XmlProperty xmlProperty : channel.getXmlProperties()) {
+            for (XmlProperty xmlProperty : channel.getProperties()) {
                 if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
                     throw new IllegalArgumentException("Invalid property value (missing or null or empty string) for '"+xmlProperty.getName()+"'");
                 }
@@ -502,7 +502,7 @@ public class ChannelsResource {
             throw new IllegalArgumentException("Invalid channel name ");
         }
 
-        for (XmlProperty xmlProperty : channel.getXmlProperties()) {
+        for (XmlProperty xmlProperty : channel.getProperties()) {
             if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
                 throw new IllegalArgumentException(
                         "Invalid property value (missing or null or empty string) for '" + xmlProperty.getName() + "'");

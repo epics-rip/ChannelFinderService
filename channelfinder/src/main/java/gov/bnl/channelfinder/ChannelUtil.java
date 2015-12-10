@@ -45,7 +45,7 @@ public class ChannelUtil {
      * @return Collection of names of tags
      */
     public static Collection<String> getTagNames(XmlChannel channel) {       
-        return Collections2.transform(channel.getXmlTags(), new Function<XmlTag, String>() {
+        return Collections2.transform(channel.getTags(), new Function<XmlTag, String>() {
             @Override
             public String apply(XmlTag tag) {
                 return tag.getName();
@@ -75,7 +75,7 @@ public class ChannelUtil {
      * @return Collection of names of properties
      */
     public static Collection<String> getPropertyNames(XmlChannel channel) {
-        return Collections2.transform(channel.getXmlProperties(), new Function<XmlProperty, String>() {
+        return Collections2.transform(channel.getProperties(), new Function<XmlProperty, String>() {
             @Override
             public String apply(XmlProperty property) {
                 return property.getName();
@@ -123,7 +123,7 @@ public class ChannelUtil {
      * @return Property
      */
     public static XmlProperty getProperty(XmlChannel channel, String propertyName) {
-        Collection<XmlProperty> property = Collections2.filter(channel.getXmlProperties(),
+        Collection<XmlProperty> property = Collections2.filter(channel.getProperties(),
                 new PropertyNamePredicate(propertyName));
         if (property.size() == 1)
             return property.iterator().next();

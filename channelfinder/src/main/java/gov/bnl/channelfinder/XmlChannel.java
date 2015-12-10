@@ -74,7 +74,6 @@ public class XmlChannel {
      *
      * @return name
      */
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -86,6 +85,24 @@ public class XmlChannel {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Getter for channel owner.
+     *
+     * @return owner
+     */
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Setter for channel owner.
+     *
+     * @param owner
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<XmlProperty> getProperties() {
@@ -102,79 +119,6 @@ public class XmlChannel {
 
     public void setTags(List<XmlTag> tags) {
         this.tags = tags;
-    }
-
-    /**
-     * Getter for channel owner.
-     *
-     * @return owner
-     */
-    @XmlAttribute
-    public String getOwner() {
-        return owner;
-    }
-
-    /**
-     * Setter for channel owner.
-     *
-     * @param owner
-     */
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    /**
-     * Getter for channel's XmlProperties.
-     *
-     * @return XmlProperties
-     */
-    public List<XmlProperty> getXmlProperties() {
-        return properties;
-    }
-
-    /**
-     * Setter for channel's XmlProperties.
-     *
-     * @param properties XmlProperties
-     */
-    public void setXmlProperties(ArrayList<XmlProperty> properties) {
-        this.properties = properties;
-    }
-
-    /**
-     * Adds an XmlProperty to the channel.
-     *
-     * @param property single XmlProperty
-     */
-    public void addXmlProperty(XmlProperty property) {
-        this.properties.add(property);
-    }
-
-    /**
-     * Getter for the channel's XmlTags.
-     *
-     * @return XmlTags for this channel
-     */
-    public List<XmlTag> getXmlTags() {
-        return tags;
-    }
-
-    /**
-     * Setter for the channel's XmlTags.
-     *
-     * @param tags XmlTags
-     */
-    public void setXmlTags(ArrayList<XmlTag> tags) {
-        this.tags = tags;
-    }
-
-    /**
-     * Adds an XmlTag to the collection.
-     *
-     * @param tag
-     */
-    public void addXmlTag(XmlTag tag) {
-        this.tags.add(tag);
     }
 
     /**

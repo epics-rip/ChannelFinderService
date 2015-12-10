@@ -371,15 +371,15 @@ public class TagsResource {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             bulkRequest.add(new DeleteRequest("tags", "tag", tag));
             SearchResponse qbResult = client.prepareSearch("channelfinder")
-                    .setQuery(QueryBuilders.matchQuery("xmlTags.tags.name", tag)).addField("name").setSize(10000).execute().actionGet();
+                    .setQuery(QueryBuilders.matchQuery("xmlTags.name", tag)).addField("name").setSize(10000).execute().actionGet();
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.field("name").getValue().toString();
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).refresh(true)
                             .script("removeTag = new Object();" 
-                                    + "for (xmltag in ctx._source.xmlTags.tags) "
+                                    + "for (xmltag in ctx._source.xmlTags) "
                                     + "{ if (xmltag.name == tag) { removeTag = xmltag} }; "
-                                    + "ctx._source.xmlTags.tags.remove(removeTag);")
+                                    + "ctx._source.xmlTags.remove(removeTag);")
                             .addScriptParam("tag", tag));
                 }
             }
@@ -439,10 +439,10 @@ public class TagsResource {
                 UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
                         .refresh(true)
                         .script("removeTags = new java.util.ArrayList();"
-                            + "for (tag in ctx._source.xmlTags.tags) "
+                            + "for (tag in ctx._source.xmlTags) "
                             + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
-                            + "for (removeTag in removeTags) {ctx._source.xmlTags.tags.remove(removeTag)};"
-                            + "ctx._source.xmlTags.tags.add(tag)")
+                            + "for (removeTag in removeTags) {ctx._source.xmlTags.remove(removeTag)};"
+                            + "ctx._source.xmlTags.add(tag)")
                         .addScriptParam("tag", param)).actionGet();
                 Response r = Response.ok().build();
                 return r;
@@ -475,9 +475,9 @@ public class TagsResource {
             UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
                     .refresh(true)
                     .script(" removeTags = new java.util.ArrayList();"
-                            + "for (tag in ctx._source.xmlTags.tags) "
+                            + "for (tag in ctx._source.xmlTags) "
                             + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
-                            + "for (removeTag in removeTags) {ctx._source.xmlTags.tags.remove(removeTag)}")
+                            + "for (removeTag in removeTags) {ctx._source.xmlTags.remove(removeTag)}")
                     .addScriptParam("tagName", tag)).actionGet();
             Response r = Response.ok().build();
             return r;
