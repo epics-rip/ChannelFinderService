@@ -85,6 +85,12 @@
             <url>http://download.java.net/maven/2</url>
         </repository>
         <repository>
+            <id>snapshot-repository.java.net</id>
+            <name>Java.net Snapshot Repository for Maven</name>
+            <url>https://maven.java.net/content/repositories/snapshots/</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
             <id>epics</id>
             <name>EPICS Repository</name>
             <url>http://epics.sourceforge.net/maven2/</url>
@@ -136,6 +142,11 @@
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>1.19</version>
         </dependency>
     </dependencies>
 

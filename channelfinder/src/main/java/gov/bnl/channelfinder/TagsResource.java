@@ -481,7 +481,7 @@ public class TagsResource {
                     String channelName = hit.field("name").getValue().toString();
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).refresh(true)
                             .script("removeTag = new Object();" 
-                                    + "for (xmltag in ctx._source.xmlTags) "
+                                    + "for (xmltag in ctx._source.tags) "
                                     + "{ if (xmltag.name == tag) { removeTag = xmltag} }; "
                                     + "ctx._source.tags.remove(removeTag);")
                             .addScriptParam("tag", tag));
@@ -544,8 +544,8 @@ public class TagsResource {
                         .script("removeTags = new java.util.ArrayList();"
                             + "for (tag in ctx._source.xmlTags) "
                             + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
-                            + "for (removeTag in removeTags) {ctx._source.xmlTags.remove(removeTag)};"
-                            + "ctx._source.xmlTags.add(tag)")
+                            + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)};"
+                            + "ctx._source.tags.add(tag)")
                         .addScriptParam("tag", param)).actionGet();
                 Response r = Response.ok().build();
                 return r;

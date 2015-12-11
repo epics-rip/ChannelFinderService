@@ -113,20 +113,19 @@ public class XmlProperty {
     }
 
     /**
-     * Getter for property's XmlChannels.
-     *
-     * @return XmlChannels object
+     * Get the list of channels associated with this property
+     * @return {@link List} of channels
      */
-    public List<XmlChannel> getXmlChannels() {
+    public List<XmlChannel> getChannels() {
         return channels;
     }
 
     /**
-     * Setter for property's XmlChannels.
-     *
-     * @param channels XmlChannels object
+     * set the channels associated with this property
+     * 
+     * @param channels
      */
-    public void setXmlChannels(List<XmlChannel> channels) {
+    public void setChannels(List<XmlChannel> channels) {
         this.channels = channels;
     }
 
