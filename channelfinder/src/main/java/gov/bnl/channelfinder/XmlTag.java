@@ -24,7 +24,8 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
  *
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
-@XmlRootElement(name = "tag")
+@XmlRootElement(name="tag")
+@XmlType (propOrder={"name","owner","channels"})
 public class XmlTag {
     private String name = null;
     private String owner = null;

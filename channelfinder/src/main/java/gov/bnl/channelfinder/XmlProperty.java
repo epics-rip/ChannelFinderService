@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.
@@ -21,6 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 @XmlRootElement(name="property")
+@XmlType (propOrder={"name","owner","value","channels"})
 public class XmlProperty {
     private String name = null;
     private String owner = null;

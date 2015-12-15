@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
@@ -24,7 +25,8 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
 
-@XmlRootElement(name = "channel")
+@XmlRootElement(name="channel")
+@XmlType (propOrder={"name","owner","properties","tags"})
 public class XmlChannel {
     private String name;
     private String owner;
