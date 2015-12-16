@@ -97,63 +97,6 @@ public class ChannelsResource {
         long start = System.currentTimeMillis();
         long totalStart = System.currentTimeMillis();
         Client client = ElasticSearchClient.getSearchClient();
-/**
- * Current Mapping for the channel 
- * PUT /channelfinder/_mapping/channel
-{
-  "channel": {
-    "properties": {
-      "name": {
-        "type": "string",
-        "analyzer": "whitespace"
-      },
-      "owner": {
-        "type": "string",
-        "analyzer": "whitespace"
-      },
-      "xmlProperties": {
-        "properties": {
-          "properties": {
-            "type": "nested",
-            "include_in_parent": true,
-            "properties": {
-              "name": {
-                "type": "string",
-                "analyzer": "whitespace"
-              },
-              "owner": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string",
-                "analyzer": "whitespace"
-              }
-            }
-          }
-        }
-      },
-      "xmlTags": {
-        "properties": {
-          "tags": {
-            "type": "nested",
-            "properties": {
-              "name": {
-                "type": "string",
-                "analyzer": "whitespace"
-              },
-              "owner": {
-                "type": "string",
-                "analyzer": "whitespace"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
- */
-        
         start = System.currentTimeMillis();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         try {
@@ -500,6 +443,10 @@ public class ChannelsResource {
 
         if (channel.getName() == null || channel.getName().isEmpty()) {
             throw new IllegalArgumentException("Invalid channel name ");
+        }
+
+        if (channel.getOwner() == null || channel.getOwner().isEmpty()) {
+            throw new IllegalArgumentException("Invalid channel owner ");
         }
 
         for (XmlProperty xmlProperty : channel.getProperties()) {
