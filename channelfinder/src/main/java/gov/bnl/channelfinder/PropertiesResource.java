@@ -12,6 +12,7 @@ package gov.bnl.channelfinder;
 
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
@@ -46,6 +48,7 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
@@ -107,14 +110,14 @@ public class PropertiesResource {
     }
 
     /**
-     * POST method for creating multiple properties.
+     * PUT method for creating multiple properties.
      *
      * @param data XmlProperties data (from payload)
      * @return HTTP Response
      * @throws IOException
      *             when audit or log fail
      */
-    @POST
+    @PUT
     @Consumes({ "application/xml", "application/json" })
     public Response add(List<XmlProperty> data) throws IOException {
         Client client = getNewClient();
@@ -138,7 +141,7 @@ public class PropertiesResource {
                 return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, null);
             } else {
                 Response r = Response.noContent().build();
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
                         + data);
                 return r;
             }
@@ -151,7 +154,9 @@ public class PropertiesResource {
 
     /**
      * GET method for retrieving the property with the path parameter
-     * <tt>propName</tt> and its channels.
+     * <tt>propName</tt> 
+     * 
+     * To get all its channels use the parameter "withChannels"
      *
      * @param prop
      *            URI path parameter: property name to search for
@@ -161,6 +166,7 @@ public class PropertiesResource {
     @Path("{propName : " + propertyNameRegex + "}")
     @Produces({ "application/xml", "application/json" })
     public Response read(@PathParam("propName") String prop) {
+        MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
         Client client = getNewClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlProperty result = null;
@@ -173,6 +179,19 @@ public class PropertiesResource {
                 if (result == null) {
                     r = Response.status(Response.Status.NOT_FOUND).build();
                 } else {
+                    //TODO iterator or scrolling needed
+                    if (parameters.containsKey("withChannels")) {
+                        final SearchResponse channelResult = client.prepareSearch("channelfinder")
+                                .setQuery(matchQuery("properties.name", prop.trim())).setSize(10000).execute()
+                                .actionGet();
+                        List<XmlChannel> channels = new ArrayList<XmlChannel>();
+                        if (channelResult != null) {
+                            for (SearchHit hit : channelResult.getHits()) {
+                                channels.add(mapper.readValue(hit.source(), XmlChannel.class));
+                            }
+                        }
+                        result.setChannels(channels);
+                    }
                     r = Response.ok(result).build();
                 }
                 log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
@@ -264,7 +283,7 @@ public class PropertiesResource {
                 } else {
                     r = Response.ok(result).build();
                 }
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data=" + XmlProperty.toLog(data));
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + XmlProperty.toLog(data));
                 return r;
             }
         } catch (Exception e) {

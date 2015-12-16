@@ -11,6 +11,7 @@ package gov.bnl.channelfinder;
  */
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
@@ -109,7 +111,9 @@ public class TagsResource {
 
     /**
      * GET method for retrieving the tag with the
-     * path parameter <tt>tagName</tt> and its channels.
+     * path parameter <tt>tagName</tt> 
+     * 
+     * To get all its channels use the parameter "withChannels"
      *
      * @param tag URI path parameter: tag name to search for
      * @return list of channels with their properties and tags that match
@@ -118,6 +122,7 @@ public class TagsResource {
     @Path("{tagName: "+tagNameRegex+"}")
     @Produces({MediaType.APPLICATION_JSON})
     public Response read(@PathParam("tagName") String tag) {
+        MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
         long start = System.currentTimeMillis();
         Client client = getNewClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
@@ -132,9 +137,20 @@ public class TagsResource {
                 if (result == null) {
                     r = Response.status(Response.Status.NOT_FOUND).build();
                 } else {
+                    if (parameters.containsKey("withChannels")) {
+                        // TODO iterator or scrolling needed
+                        final SearchResponse channelResult = client.prepareSearch("channelfinder")
+                                .setQuery(matchQuery("tags.name", tag.trim())).setSize(10000).execute().actionGet();
+                        List<XmlChannel> channels = new ArrayList<XmlChannel>();
+                        if (channelResult != null) {
+                            for (SearchHit hit : channelResult.getHits()) {
+                                channels.add(mapper.readValue(hit.source(), XmlChannel.class));
+                            }
+                        }
+                    }
                     r = Response.ok(result).build();
                 }
-                log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
+                log.fine(user + "|" + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus());
                 return r;
             } else {
                 return Response.status(Response.Status.NOT_FOUND).build();
