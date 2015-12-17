@@ -48,26 +48,26 @@ in the web container.
 
 * Installation Process
 
-1 Install Glassfish v3
+1. Install Glassfish v3
 
   Download and install Glassfish v3 from
   {{{https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
   following the instructions for your platform.
 
-2 Install elastic search
+2. Install elastic search
 
   * Download and install elasticsearch from {{{https://www.elastic.co/downloads/elasticsearch}elastic.com}}
     following the instructions for your platform.\
     <Alternatively:> Install the elastic server from your distribution using a package manager.
 
-3 Create the elastic indexes and set up their mapping
+3. Create the elastic indexes and set up their mapping
 
   * The Mapping_definitions script (which is avaiable under /channelfinder/src/main/resources) contains the curl commands to setup the 3 elastic indexes associated with channelfinder.
   
   * For more information of how Index and mappings can be setup using any rest client as described here {{{https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html}create elastic index}}
   
 
-4 Authentication/Authorization using PAM
+4. Authentication/Authorization using PAM
 
 *** Create the PAM Realm for Service Authentication/Authorization
 
@@ -145,7 +145,7 @@ in the web container.
 
   * Add an additional property with name "Value" and with "gov.bnl.channelfinder.LDAPUserManager" as value.
 
-5 Deploy the ChannelFinder Application
+5. Deploy the ChannelFinder Application
 
   * Temporary step
     Currently the v2 of channelfinder is under active development and requires installation from the source
@@ -166,7 +166,7 @@ in the web container.
 
 * Checking the Installation
 
-6 Using a Browser
+6. Using a Browser
 
   Once deployed, ChannelFinder should be listening for requests.
 
@@ -177,7 +177,7 @@ SourceForge project site, and Build information.
   For a list of all channels in your database, try pointing your browser to
 "http://localhost:8080/ChannelFinder/resources/channels".
 
-7 Using a Generic Client
+7. Using a Generic Client
 
   For in-depth testing of the service, I recommend using the
 {{{http://code.google.com/p/rest-client/}rest-client}} application, that allows a complete
