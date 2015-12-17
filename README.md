@@ -69,7 +69,7 @@ in the web container.
 
 4. Authentication/Authorization
 
-..1. Authentication/Authorization using PAM
+  1. Authentication/Authorization using PAM
 
 *** Create the PAM Realm for Service Authentication/Authorization
 
@@ -94,7 +94,7 @@ in the web container.
 
     * Add an additional property with name "Value" and with the script name as value (e.g. "id.bat").
 
-..2. Authentication/Authorization using LDAP
+  2. Authentication/Authorization using LDAP
 
 *** Install an LDAP Server
 
