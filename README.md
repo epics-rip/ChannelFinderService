@@ -94,6 +94,23 @@ in the web container.
     
         * Add an additional property with name "Value" and with the script name as value (e.g. "id.bat").
 
+  1. Authentication/Authorization using Files (For development and testing)
+
+    *** Create the File Realm for Service Authentication/Authorization
+    
+      * Login to the Glassfish admin console.
+    
+      * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
+    
+      * Create a new realm called "channelfinder", setting the "Class Name" to
+        "com.sun.enterprise.security.auth.realm.file.FileRealm", the "JAAS Context" to "fileRealm" , and ther "Key File" to "${com.sun.aas.instanceRoot}/config/keyfile"
+    
+    *** Manage Users for Determining Group Membership
+    
+      * New users can be added to the Key File using the server-config/Realms/channelfinder manage users page. 
+      
+      * The userid, password, and group can be assigned via the manage users config page.
+
   2. Authentication/Authorization using LDAP
 
     *** Install an LDAP Server
