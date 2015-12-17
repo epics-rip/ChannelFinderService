@@ -136,7 +136,10 @@ in the web container.
     git clone -b ElasticSearch https://github.com/ChannelFinder/ChannelFinderService.git
     change the configuration in the elasticsearch.yml to match the installation details of your elastic search index.
     build the war 
-    mvn clean install -DSkipTests=True
+    mvn clean install
+    
+    If you do not wish to run the Integration tests add the following
+    -DSkipTests=True -DskipCargoAndRun=True -DskipNoseTests=True
 
   * Drop the ChannelFinder WAR file <<<war/ChannelFinder.war>>> into
     <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.
