@@ -71,81 +71,81 @@ in the web container.
 
   1. Authentication/Authorization using PAM
 
-*** Create the PAM Realm for Service Authentication/Authorization
-
-  * Login to the Glassfish admin console.
-
-  * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
-
-  * Create a new realm called "channelfinder", setting the "Class Name" to
-    "com.sun.enterprise.security.auth.realm.pam.PamRealm", and the "JAAS Context" to "pamRealm".
-
-*** Setup Script for Determining Group Membership
-
-  * By default, the "id" command is used. If you are using the same user you have
-    from your (Linux) OS, no setting is needed.
-
-  * If you want to change the command (for Windows use or different user database):
+    *** Create the PAM Realm for Service Authentication/Authorization
     
-    * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
-
-    * Create a new resource called "channelfinder/idManagerCommand", setting the "Resource Type" to
-      "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
-
-    * Add an additional property with name "Value" and with the script name as value (e.g. "id.bat").
+      * Login to the Glassfish admin console.
+    
+      * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
+    
+      * Create a new realm called "channelfinder", setting the "Class Name" to
+        "com.sun.enterprise.security.auth.realm.pam.PamRealm", and the "JAAS Context" to "pamRealm".
+    
+    *** Setup Script for Determining Group Membership
+    
+      * By default, the "id" command is used. If you are using the same user you have
+        from your (Linux) OS, no setting is needed.
+    
+      * If you want to change the command (for Windows use or different user database):
+        
+        * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
+    
+        * Create a new resource called "channelfinder/idManagerCommand", setting the "Resource Type" to
+          "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
+    
+        * Add an additional property with name "Value" and with the script name as value (e.g. "id.bat").
 
   2. Authentication/Authorization using LDAP
 
-*** Install an LDAP Server
-
-  * If your site is running an LDAP server, you can skip the next step, and have
-    the LDAP manager show you the structure and how to query it.
-
-  * Download and install slapd from {{{http://www.openldap.org/}OpenLDAP.org}}
-    following the instructions for your platform.\
-    <Alternatively:> Install the slapd daemon from your distribution using a package manager.
-
-  * Set up users and groups. The <<<ldif/cftest.ldif>>> file in the distribution shows
-    the LDAP entries I create to run the integration tests. That should give you an idea
-    about the structures that ChannelFinder expects.
-
-*** Create the LDAP Realm for Service Authentication/Authorization
-
-  * Login to the Glassfish admin console.
-
-  * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
-
-  * Create a new realm called "channelfinder", setting the "Class Name" to
-    "com.sun.enterprise.security.auth.realm.ldap.LDAPRealm", and the "JAAS Context" to "ldapRealm".
-    "Directory" and "Base DN" should reflect your LDAP configuration. (My integration tests use
-    "ldap://localhost:389" as "Directory" and "dc=cf-test,dc=local" as "Base DN" which connects
-    to a slapd on localhost that has loaded the definitions from <<<cftest.ldif>>>.
-
-  * Add a property called "group-search-filter" with the value "memberUid=%s" to make
-    authentication work using the usual posixGroup definitions in the LDAP server.
-
-*** Create the LDAP Connection for Determining Group Membership
-
-  * Login to the Glassfish admin console.
-
-  * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
-
-  * Create a new resource called "channelfinder/ldapManagerConnection",
-    setting the "Resource Type" to "javax.naming.directory.Directory",
-    and the "Factory Class" to "com.sun.jndi.ldap.LdapCtxFactory".
-
-  * Add the additional properties "URL" to specify the LDAP connection,
-    "javax.naming.security.principal" and
-    "javax.naming.security.credentials" to specify the name and password used
-    to bind to LDAP.
-    (My integration test setup uses "URL" = "ldap://localhost/dc=cf-test,dc=local",
-    "javax.naming.security.principal" = "cn=channelfinder,dc=cf-test,dc=local", and
-    and "javax.naming.security.credentials" = "1234".)
-
-  * Create a new resource called "channelfinder/userManager", setting the "Resource Type" to
-    "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
-
-  * Add an additional property with name "Value" and with "gov.bnl.channelfinder.LDAPUserManager" as value.
+    *** Install an LDAP Server
+    
+      * If your site is running an LDAP server, you can skip the next step, and have
+        the LDAP manager show you the structure and how to query it.
+    
+      * Download and install slapd from {{{http://www.openldap.org/}OpenLDAP.org}}
+        following the instructions for your platform.\
+        <Alternatively:> Install the slapd daemon from your distribution using a package manager.
+    
+      * Set up users and groups. The <<<ldif/cftest.ldif>>> file in the distribution shows
+        the LDAP entries I create to run the integration tests. That should give you an idea
+        about the structures that ChannelFinder expects.
+    
+    *** Create the LDAP Realm for Service Authentication/Authorization
+    
+      * Login to the Glassfish admin console.
+    
+      * Open "Common Tasks" / "Configuration" / "server-config" / "Security" / "Realms".
+    
+      * Create a new realm called "channelfinder", setting the "Class Name" to
+        "com.sun.enterprise.security.auth.realm.ldap.LDAPRealm", and the "JAAS Context" to "ldapRealm".
+        "Directory" and "Base DN" should reflect your LDAP configuration. (My integration tests use
+        "ldap://localhost:389" as "Directory" and "dc=cf-test,dc=local" as "Base DN" which connects
+        to a slapd on localhost that has loaded the definitions from <<<cftest.ldif>>>.
+    
+      * Add a property called "group-search-filter" with the value "memberUid=%s" to make
+        authentication work using the usual posixGroup definitions in the LDAP server.
+    
+    *** Create the LDAP Connection for Determining Group Membership
+    
+      * Login to the Glassfish admin console.
+    
+      * Open "Common Tasks" / "Resources" / "JNDI" / "Custom Resources".
+    
+      * Create a new resource called "channelfinder/ldapManagerConnection",
+        setting the "Resource Type" to "javax.naming.directory.Directory",
+        and the "Factory Class" to "com.sun.jndi.ldap.LdapCtxFactory".
+    
+      * Add the additional properties "URL" to specify the LDAP connection,
+        "javax.naming.security.principal" and
+        "javax.naming.security.credentials" to specify the name and password used
+        to bind to LDAP.
+        (My integration test setup uses "URL" = "ldap://localhost/dc=cf-test,dc=local",
+        "javax.naming.security.principal" = "cn=channelfinder,dc=cf-test,dc=local", and
+        and "javax.naming.security.credentials" = "1234".)
+    
+      * Create a new resource called "channelfinder/userManager", setting the "Resource Type" to
+        "java.lang.String", and the "Factory Class" to "org.glassfish.resources.custom.factory.PrimitivesAndStringFactory".
+    
+      * Add an additional property with name "Value" and with "gov.bnl.channelfinder.LDAPUserManager" as value.
 
 5. Deploy the ChannelFinder Application
 
@@ -166,7 +166,7 @@ in the web container.
     <Alternatively:> Call <<<asadmin deploy <WAR-file>>>> (<<<asadmin.bat>>> on Windows)
     inside <<<GLASSFISH_HOME/bin>>>.
 
-* Checking the Installation
+######Checking the Installation
 
 6. Using a Browser
 
@@ -190,7 +190,7 @@ which then can be configured in rest-client.
 {{{http://xcitestudios.com/blog/2011/03/04/using-ssl-in-restclient/}These instructions}} will give
 you a general idea.
 
-8 Using the Integration Tests
+###### Using the Integration Tests
 
   If you have set up the necessary users and groups, you can try running the python
 integration tests in <<<test/cftest.py>>> against your server.
