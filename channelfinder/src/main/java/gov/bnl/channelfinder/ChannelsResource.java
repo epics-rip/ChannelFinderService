@@ -45,6 +45,7 @@ import javax.ws.rs.core.UriInfo;
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -144,6 +145,8 @@ public class ChannelsResource {
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             final ObjectMapper mapper = new ObjectMapper();
+            mapper.getSerializationConfig().addMixInAnnotations(XmlProperty.class, OnlyXmlProperty.class);
+            mapper.getSerializationConfig().addMixInAnnotations(XmlTag.class, OnlyXmlTag.class);
             start = System.currentTimeMillis();
             
             StreamingOutput stream = new StreamingOutput() {
@@ -446,7 +449,7 @@ public class ChannelsResource {
         }
 
         if (channel.getOwner() == null || channel.getOwner().isEmpty()) {
-            throw new IllegalArgumentException("Invalid channel owner ");
+            throw new IllegalArgumentException("Invalid channel owner (null or empty string) for '"+channel.getName()+"'");
         }
 
         for (XmlProperty xmlProperty : channel.getProperties()) {
@@ -485,5 +488,15 @@ public class ChannelsResource {
             }
             throw new IllegalArgumentException("The following Tags and/or Properties on the channel don't exist -- " + errorMsg.toString());
         }
+    }
+
+    abstract class OnlyXmlProperty {
+        @JsonIgnore
+        private List<XmlChannel> channels;
+    }
+
+    abstract class OnlyXmlTag {
+        @JsonIgnore
+        private List<XmlChannel> channels;
     }
 }

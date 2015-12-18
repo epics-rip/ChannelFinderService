@@ -52,6 +52,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -147,6 +148,7 @@ public class TagsResource {
                                 channels.add(mapper.readValue(hit.source(), XmlChannel.class));
                             }
                         }
+                        result.setChannels(channels);
                     }
                     r = Response.ok(result).build();
                 }
@@ -558,7 +560,7 @@ public class TagsResource {
                 UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
                         .refresh(true)
                         .script("removeTags = new java.util.ArrayList();"
-                            + "for (tag in ctx._source.xmlTags) "
+                            + "for (tag in ctx._source.tags) "
                             + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
                             + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)};"
                             + "ctx._source.tags.add(tag)")
@@ -568,7 +570,9 @@ public class TagsResource {
             }else{
                 return Response.status(Status.BAD_REQUEST).build();
             }
-        } catch (Exception e) {
+        } catch (DocumentMissingException e) {
+            return Response.status(Status.BAD_REQUEST).entity("Channels specified in tag update do not exist"+e.getDetailedMessage()).build();
+        }  catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();

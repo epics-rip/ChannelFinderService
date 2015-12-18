@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -46,9 +47,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
@@ -118,7 +118,7 @@ public class PropertiesResource {
      *             when audit or log fail
      */
     @PUT
-    @Consumes({ "application/xml", "application/json" })
+    @Consumes("application/json")
     public Response add(List<XmlProperty> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
@@ -164,7 +164,7 @@ public class PropertiesResource {
      */
     @GET
     @Path("{propName : " + propertyNameRegex + "}")
-    @Produces({ "application/xml", "application/json" })
+    @Produces("application/json")
     public Response read(@PathParam("propName") String prop) {
         MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
         Client client = getNewClient();
@@ -221,8 +221,12 @@ public class PropertiesResource {
      */
     @PUT
     @Path("{propName : " + propertyNameRegex + "}")
-    @Consumes({ "application/xml", "application/json" })
+    @Consumes("application/json" )
     public Response create(@PathParam("propName") String prop, XmlProperty data) {
+        if (!prop.equals(data.getName())){
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Specified property name '"+prop+"' and payload property name '"+data.getName()+"' do not match").build();
+        }
         long start = System.currentTimeMillis();
         Client client = getNewClient();
         System.out.println("client initialization: " + (System.currentTimeMillis() - start));
@@ -257,7 +261,7 @@ public class PropertiesResource {
                     param.put("name", data.getName());
                     param.put("owner", data.getOwner());
                     String value = ChannelUtil.getProperty(channel, data.getName()).getValue();
-                    if(value != null){
+                    if(value != null && !value.isEmpty()){
                         param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
                     }else{
                         return Response.status(Response.Status.BAD_REQUEST).build();
@@ -420,6 +424,14 @@ public class PropertiesResource {
     public Response addSingle(@PathParam("propName") String prop, @PathParam("chName") String chan, XmlProperty data) {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
+        if (data.getValue() == null || data.getValue().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Invalid property value (missing or null or empty string) for '" + prop + "'").build();
+        }
+        if (!prop.equals(data.getName())){
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Specified property name '"+prop+"' and payload property name '"+data.getName()+"' do not match").build();
+        }
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlProperty result = null;
         try {
@@ -447,6 +459,8 @@ public class PropertiesResource {
             }else{
                 return Response.status(Status.BAD_REQUEST).build();
             }
+        } catch (DocumentMissingException e) {
+            return Response.status(Status.BAD_REQUEST).entity("Channels specified in property update do not exist"+e.getDetailedMessage()).build();
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
