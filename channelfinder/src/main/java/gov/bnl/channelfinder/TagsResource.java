@@ -553,20 +553,27 @@ public class TagsResource {
             result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
             
             if (result != null) {
-                String str = mapper.writeValueAsString(result);
-                HashMap<String, String> param = new HashMap<String, String>(); 
-                param.put("name", result.getName());
-                param.put("owner", result.getOwner());
-                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .refresh(true)
-                        .script("removeTags = new java.util.ArrayList();"
-                            + "for (tag in ctx._source.tags) "
-                            + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
-                            + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)};"
-                            + "ctx._source.tags.add(tag)")
-                        .addScriptParam("tag", param)).actionGet();
-                Response r = Response.ok().build();
-                return r;
+                if(um.userHasAdminRole() || um.userIsInGroup(result.getOwner())){
+                    String str = mapper.writeValueAsString(result);
+                    HashMap<String, String> param = new HashMap<String, String>(); 
+                    param.put("name", result.getName());
+                    param.put("owner", result.getOwner());
+                    UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                            .refresh(true)
+                            .script("removeTags = new java.util.ArrayList();"
+                                + "for (tag in ctx._source.tags) "
+                                + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
+                                + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)};"
+                                + "ctx._source.tags.add(tag)")
+                            .addScriptParam("tag", param)).actionGet();
+                    Response r = Response.ok().build();
+                    return r;
+                }else{
+                    return Response.status(Status.FORBIDDEN)
+                            .entity("User '" + um.getUserName() + "' does not belong to owner group '"
+                                    + result.getOwner() + "' of tag '" + result.getName() + "'")
+                            .build();
+                }
             }else{
                 return Response.status(Status.BAD_REQUEST).build();
             }
