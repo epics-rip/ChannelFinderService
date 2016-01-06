@@ -83,20 +83,20 @@ Cs12_1nn_empty = '[' + C1nn_empty + ', ' + C2_empty + ']'
 Cs12_1no_empty = '[' + C1no_empty + ', ' + C2_empty + ']'
 Cs12_1en_empty = '[' + C1en_empty + ', ' + C2_empty + ']'
 Cs12_1eo_empty = '[' + C1eo_empty + ', ' + C2_empty + ']'
-C1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'channels': [], u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'channels': [], u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'channels': [], u'name': u'T1'}, {u'owner': testt, u'channels': [], u'name': u'T2'}]}
-C2_full_r = {u'owner': testc, u'name': u'C2', u'properties':[{u'owner': testp, u'channels': [], u'name': u'P3', u'value': u'prop3'}, {u'owner': testp, u'channels': [], u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': testt, u'channels': [], u'name': u'T33'}, {u'owner': testt, u'channels': [], u'name': u'T44'}]}
-C3_full_r = {u'owner': testc, u'name': u'C3', u'properties':[{u'owner': testp, u'channels': [], u'name': u'P2', u'value': u'prop2'}, {u'owner': testp, u'channels': [], u'name': u'P3', u'value': u'prop1'}], u'tags': [{u'owner': testt, u'channels': [], u'name': u'T2'}, {u'owner': testt, u'channels': [], u'name': u'T33'}]}
-C4_full_r = {u'owner': testc, u'name': u'C4', u'properties':[{u'owner': testp, u'channels': [], u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'channels': [], u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': testt, u'channels': [], u'name': u'T1'}, {u'owner': testt, u'channels': [], u'name': u'T44'}]}
-C1eP1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'channels': [], u'name': u'P2', u'value': u'prop2'}], u'tags': {u'tag': [{u'owner': testt, u'channels': [], u'name': u'T1'}, {u'owner': testt, u'channels': [], u'name': u'T2'}]}}
+C1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': None, u'name': u'P1', u'value': u'prop1'}, {u'owner': None, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T2'}]}
+C2_full_r = {u'owner': testc, u'name': u'C2', u'properties':[{u'owner': None, u'name': u'P3', u'value': u'prop3'}, {u'owner': None, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': None, u'name': u'T33'}, {u'owner': None, u'name': u'T44'}]}
+C3_full_r = {u'owner': testc, u'name': u'C3', u'properties':[{u'owner': None, u'name': u'P2', u'value': u'prop2'}, {u'owner': None, u'name': u'P3', u'value': u'prop1'}], u'tags': [{u'owner': None, u'name': u'T2'}, {u'owner': None, u'name': u'T33'}]}
+C4_full_r = {u'owner': testc, u'name': u'C4', u'properties':[{u'owner': None, u'name': u'P1', u'value': u'prop1'}, {u'owner': None, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T44'}]}
+C1eP1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': None, u'name': u'P2', u'value': u'prop2'}], u'tags': {u'tag': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T2'}]}}
 Cs1234_full_r = {u'channels': [C1_full_r, C2_full_r, C3_full_r, C4_full_r]}
 Cs12_1t_2_empty = '[' + C1t_empty + ', ' + C2_empty + ']'
 Cs12_full = '[' + C1_full + ', ' + C2_full + ']'
-Cs12_full_r = {u'channels': [C1_full_r, C2_full_r]}
-Cs13_full_r = {u'channels': [C1_full_r, C3_full_r]}
-Cs23_full_r = {u'channels': [C2_full_r, C3_full_r]}
-Cs1_full_r = {u'channels': [C1_full_r]}
-Cs3_full_r = {u'channels': [C3_full_r]}
-Cs4_full_r = {u'channels': [C4_full_r]}
+Cs12_full_r = [C1_full_r, C2_full_r]
+Cs13_full_r = [C1_full_r, C3_full_r]
+Cs23_full_r = [C2_full_r, C3_full_r]
+Cs1_full_r = [C1_full_r]
+Cs3_full_r = [C3_full_r]
+Cs4_full_r = [C4_full_r]
 None_r = []
 
 # tests with empty, null and no value for property
@@ -122,7 +122,7 @@ Cs12_1p1_2p1P2_r = [{u'owner': testc, u'name': u'C1', u'properties':[{u'owner': 
 Cs123_1P1_2P12_3P2_r = [{u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}], u'tags': []}, {u'owner': testc, u'name': u'C2', u'properties': [{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': []}, {u'owner': testc, u'name': u'C3', u'properties':[{u'owner': testp, u'name': u'P2', u'value': u'prop3'}], u'tags': []}]
 Cs123_1P12v_2P12_3e_r = [{u'owner': testc, u'name': u'C1', u'properties': [{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'propv'}], u'tags': []}, {u'owner': testc, u'name': u'C2', u'properties': [{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': []}, {u'owner': testc, u'name': u'C3', u'properties': [], u'tags': []}]
 Cs12_1T1_r = [{u'owner': testc, u'name': u'C1', u'properties': [], u'tags': [{u'owner': testt, u'name': u'T1'}]}, {u'owner': testc, u'name': u'C2', u'tags': [], u'properties': []}]
-Cs12_1e2T1_r = [{u'owner': testc, u'name': u'C1', u'properties': [], u'tags': []}, {u'owner': testc, u'name': u'C2', u'properties': [], u'tags': {u'tag': {u'owner': testt, u'name': u'T1'}}}]
+Cs12_1e2T1_r = [{u'owner': testc, u'name': u'C1', u'properties': [], u'tags': []}, {u'owner': testc, u'name': u'C2', u'properties': [], u'tags': [{u'owner': testt, u'name': u'T1'}]}]
 Cs12_1P1_r = [{u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}], u'tags': []}, {u'owner': testc, u'name': u'C2', u'tags': [], u'properties': []}]
 Cs12_1e2P1_r = [{u'owner': testc, u'name': u'C1', u'properties': [], u'tags': []}, {u'owner': testc, u'name': u'C2', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}], u'tags': []}]
 Cs2_P12_r = [{u'owner': testc, u'name': u'C2', u'properties': [{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': []}]
@@ -150,11 +150,11 @@ Ps1234_empty = '[' + P1_empty + ', ' + P2_empty + ', ' + P3_empty+ ', ' + P4_emp
 
 P1_C1 = '{"name": "P1", "owner": "' + testp + '", "value": "prop1", "channels": [{"name": "C1", "owner": "' + testc + '", "properties": [{"name": "P1", "value": "prop1"}]}]}}'
 P1_C1_r = {u'channels': [{u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1', u'channels': []}], u'tags': []}], u'owner': testp, u'name': u'P1', u'value':None}
-P1_C1_P1nv = '{"name": "P1", "owner": "' + testp + '", "channels":[{"name": "C1", "owner": "' + testc + '", "properties": [{"name": "P1"}]}}'
+P1_C1_P1nv = '{"name": "P1", "owner": "' + testp + '", "channels":[{"name": "C1", "owner": "' + testc + '", "properties": [{"name": "P1"}]}]}'
 P1_C1_P1ev = '{"name": "P1", "owner": "' + testp + '", "channels":[{"name": "C1", "owner": "' + testc + '", "properties": [{"name": "P1", "value": ""}]}]}'
 p1_C1 = '{"name": "p1", "owner": "' + testp + '", "channels":[{"name": "C1", "owner": "' + testc + '", "properties": [{"name": "p1", "value": "prop1"}]}}}'
 P1_C2 = '{"name": "P1", "owner": "' + testp + '", "value": "prop1", "channels":[{"name": "C2", "owner": "' + testc + '", "properties": [{"name": "P1", "value": "prop1"}, {"name": "P2", "value": "prop2"}]}]}'
-P1_C2_r = {u'channels': [{u'owner': testc, u'name': u'C2', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}], u'tags': []}], u'owner': testp, u'name': u'P1'}
+P1_C2_r = {u'channels': [{u'owner': testc, u'name': u'C2', u'properties':[{u'owner': testp, u'channels': [], u'name': u'P1', u'value': u'prop1'}], u'tags': []}], u'owner': testp, u'name': u'P1', u'value':None}
 P1_C12 = '{"name": "P1", "owner": "' + testp + '", "channels":[{"name": "C1", "owner": "' + testc + '", "properties": [{"name": "P1", "value": "prop1"}]}, {"name": "C2", "owner": "' + testc + '", "properties": [{"name": "P1", "value": "prop1"}]}]}'
 P1_C3 = '{"name": "P1", "owner": "' + testp + '", "channels":[{"name": "C3", "owner": "' + testc + '", "properties": [{"name": "P1", "value": "prop1"}]}]}'
 P2_C2 = '{"name": "P2", "owner": "' + testp + '", "channels":[{"name": "C2", "owner": "' + testc + '", "properties": [{"name": "P2", "value": "prop2"}]}]}'
@@ -355,7 +355,7 @@ class QueryChannels(unittest.TestCase):
         doGetJSON(self, conn_none, self.c + "?~name=C?", Cs1234_full_r, 200)
 
     def test_TwoNameValues(self):
-        doGetJSON(self, conn_none, self.c + "?~name=C1&~name=C2", Cs12_full_r, 200)
+        doGetJSON(self, conn_none, self.c + "?~name=C1|C2", Cs12_full_r, 200)
 
     def test_OnePropValue(self):
         doGetJSON(self, conn_none, self.c + "?P3=prop1", Cs3_full_r, 200)
@@ -379,7 +379,7 @@ class QueryChannels(unittest.TestCase):
         doGetJSON(self, conn_none, self.c + "?~tag=p3", Cs23_full_r, 200)
 
     def test_TwoTags(self):
-        doGetJSON(self, conn_none, self.c + "?~tag=t2&~tag=T1", Cs1_full_r, 200)
+        doGetJSON(self, conn_none, self.c + "?~tag=T2&~tag=T1", Cs1_full_r, 200)
 
     def test_TwoTagValuesNoResult(self):
         doGetJSON(self, conn_none, self.c + "?~tag=T2&~tag=t5", None_r, 200)
