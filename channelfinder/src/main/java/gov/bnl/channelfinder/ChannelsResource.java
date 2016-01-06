@@ -35,7 +35,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -57,8 +56,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.DisMaxQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
@@ -190,7 +187,7 @@ public class ChannelsResource {
      * @return HTTP Response
      * @throws IOException when audit or log fail
      */
-    @POST
+    @PUT
     @Consumes({"application/xml", "application/json"})
     public Response add(List<XmlChannel> data) throws IOException {
         Client client = getNewClient();
@@ -239,20 +236,29 @@ public class ChannelsResource {
      */
     @GET
     @Path("{chName: "+chNameRegex+"}")
-    @Produces({"application/xml", "application/json"})
+    @Produces({"application/json"})
     public Response read(@PathParam("chName") String chan) {
         audit.info("getting ch:" + chan);
-        long start = System.currentTimeMillis();
         Client client = ElasticSearchClient.getSearchClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlChannel result = null;
         try {
-            GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
-            ObjectMapper mapper = new ObjectMapper();
+            final GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
             Response r;
             if (response.isExists()) {
-                result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
-                r = Response.ok(result).build();
+                final ObjectMapper mapper = new ObjectMapper();
+                mapper.getSerializationConfig().addMixInAnnotations(XmlProperty.class, OnlyXmlProperty.class);
+                mapper.getSerializationConfig().addMixInAnnotations(XmlTag.class, OnlyXmlTag.class);
+                StreamingOutput stream = new StreamingOutput() {
+                    
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                        jg.writeObject(mapper.readValue(response.getSourceAsBytes(), XmlChannel.class));
+                        jg.flush();
+                        jg.close();
+                    }
+                };
+                r = Response.ok(stream).build();
             } else {
                 r = Response.status(Response.Status.NOT_FOUND).build();
             }
