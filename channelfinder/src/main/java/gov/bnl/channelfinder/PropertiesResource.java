@@ -38,9 +38,11 @@ import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -137,12 +139,11 @@ public class PropertiesResource {
             bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
-                // TODO remove the null
-                return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, null);
+                return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                        bulkResponse.buildFailureMessage());
             } else {
                 Response r = Response.noContent().build();
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data="
-                        + data);
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + data);
                 return r;
             }
         } catch (Exception e) {
@@ -229,7 +230,6 @@ public class PropertiesResource {
         }
         long start = System.currentTimeMillis();
         Client client = getNewClient();
-        System.out.println("client initialization: " + (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -398,9 +398,15 @@ public class PropertiesResource {
                 audit.severe(bulkResponse.buildFailureMessage());
                 throw new Exception();
             } else {
-                Response r = Response.ok().build();
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
-                return r;
+                DeleteResponse deleteResponse = bulkResponse.getItems()[0].getResponse();
+                if (deleteResponse.isFound()) {
+                    Response r = Response.ok().build();
+                    audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+                    return r;
+                } else {
+                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                            new Exception("Property " + prop + " does not exist."));
+                }
             }
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -440,7 +446,6 @@ public class PropertiesResource {
             mapper.getSerializationConfig().addMixInAnnotations(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
             if (result != null) {
-                String str = mapper.writeValueAsString(result);
                 HashMap<String, String> param = new HashMap<String, String>(); 
                 param.put("name", data.getName());
                 param.put("value", data.getValue());
@@ -457,10 +462,12 @@ public class PropertiesResource {
                 Response r = Response.ok().build();
                 return r;
             }else{
-                return Response.status(Status.BAD_REQUEST).build();
+                return handleException(um.getUserName(), Status.BAD_REQUEST,
+                        "Property " +prop+ " does not exist ");
             }
         } catch (DocumentMissingException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Channels specified in property update do not exist"+e.getDetailedMessage()).build();
+            return handleException(um.getUserName(), Response.Status.BAD_REQUEST,
+                    "Channels specified in property update do not exist" + e.getDetailedMessage());
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -482,17 +489,20 @@ public class PropertiesResource {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-        XmlChannel result = null;
         try {
-            UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                    .script(" removeProps = new java.util.ArrayList();"
-                            + "for (property in ctx._source.xmlProperties)"
-                            + "{ if (property.name == prop) { removeProps.add(property)} };"
-                            + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp)}")
-                    .addScriptParam("prop", prop)
-                    .refresh(true)).actionGet();
-            Response r = Response.ok().build();
-            return r;
+            if(client.prepareGet("properties", "property", prop).get().isExists()){
+                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                        .script(" removeProps = new java.util.ArrayList();" + "for (property in ctx._source.properties)"
+                                + "{ if (property.name == prop) { removeProps.add(property)} };"
+                                + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp)}")
+                        .addScriptParam("prop", prop).refresh(true)).actionGet();
+                Response r = Response.ok().build();
+                return r;
+            } else {
+                return handleException(um.getUserName(), Status.NOT_FOUND, "Property " +prop+ " does not exist ");
+            }
+        } catch (DocumentMissingException e) {
+            return handleException(um.getUserName(), Status.NOT_FOUND, "Channel does not exist " + e.getDetailedMessage());
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -501,7 +511,11 @@ public class PropertiesResource {
     }
 
     private Response handleException(String user, Response.Status status, Exception e) {
-        log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status + "|cause=" + e);
-        return new CFException(status, e.getMessage()).toResponse();
+        return handleException(user, status, e.getMessage());
+    }
+
+    private Response handleException(String user, Response.Status status, String message) {
+        log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status + "|cause=" + message);
+        return new CFException(status, message).toResponse();
     }
 }

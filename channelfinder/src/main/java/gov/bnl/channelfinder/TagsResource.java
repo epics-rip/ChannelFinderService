@@ -45,6 +45,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -399,7 +400,13 @@ public class TagsResource {
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
-                throw new Exception();
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
             } else {
                 GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
                 ObjectMapper mapper = new ObjectMapper();
@@ -462,7 +469,14 @@ public class TagsResource {
             bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
-                return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, null);
+                audit.severe(bulkResponse.buildFailureMessage());
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
             } else {
                 Response r = Response.noContent().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
@@ -509,11 +523,18 @@ public class TagsResource {
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
-                throw new Exception();
+                return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                        bulkResponse.buildFailureMessage());
             } else {
-                Response r = Response.ok().build();
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
-                return r;
+                DeleteResponse deleteResponse = bulkResponse.getItems()[0].getResponse();
+                if (deleteResponse.isFound()) {
+                    Response r = Response.ok().build();
+                    audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+                    return r;
+                } else {
+                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                            new Exception("tag " + tag + " does not exist."));
+                }
             }
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -554,7 +575,6 @@ public class TagsResource {
             
             if (result != null) {
                 if(um.userHasAdminRole() || um.userIsInGroup(result.getOwner())){
-                    String str = mapper.writeValueAsString(result);
                     HashMap<String, String> param = new HashMap<String, String>(); 
                     param.put("name", result.getName());
                     param.put("owner", result.getOwner());
@@ -601,15 +621,20 @@ public class TagsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                    .refresh(true)
-                    .script(" removeTags = new java.util.ArrayList();"
-                            + "for (tag in ctx._source.tags) "
-                            + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
-                            + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)}")
-                    .addScriptParam("tagName", tag)).actionGet();
-            Response r = Response.ok().build();
-            return r;
+            if (client.prepareGet("tags", "tag", tag).get().isExists()) {
+                UpdateResponse updateResponse = client
+                        .update(new UpdateRequest("channelfinder", "channel", chan).refresh(true)
+                                .script(" removeTags = new java.util.ArrayList();" + "for (tag in ctx._source.tags) "
+                                        + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
+                                        + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)}")
+                        .addScriptParam("tagName", tag)).actionGet();
+                Response r = Response.ok().build();
+                return r;
+            } else {
+                return handleException(um.getUserName(), Status.NOT_FOUND, "Tag " +tag+ " does not exist ");
+            }
+        } catch (DocumentMissingException e) {
+            return Response.status(Status.NOT_FOUND).entity("Channel does not exist "+e.getDetailedMessage()).build();
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -617,11 +642,14 @@ public class TagsResource {
         }
     }
 
-    private Response handleException(String user, Response.Status status, Exception e){
-        log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status +  "|cause=" + e);
-        return new CFException(status, e.getMessage()).toResponse();
+    private Response handleException(String user, Response.Status status, Exception e) {
+        return handleException(user, status, e.getMessage());
     }
-    
+
+    private Response handleException(String user, Response.Status status, String message) {
+        log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status + "|cause=" + message);
+        return new CFException(status, message).toResponse();
+    }
     /**
      * A filter to be used with the jackson mapper to ignore the embedded
      * xmlchannels in the tag object
