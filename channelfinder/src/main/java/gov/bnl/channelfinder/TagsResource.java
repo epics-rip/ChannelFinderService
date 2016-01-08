@@ -15,6 +15,7 @@ import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,14 +31,18 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonIgnoreType;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -60,6 +65,8 @@ import org.elasticsearch.search.SearchHit;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+
+import gov.bnl.channelfinder.ChannelsResource.OnlyXmlTag;
 
 /**
  * Top level Jersey HTTP methods for the .../tags URL
@@ -94,15 +101,31 @@ public class TagsResource {
     public Response list() {
         Client client = getNewClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        List<XmlTag> result = new ArrayList<XmlTag>();
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(XmlTag.class, OnlyXmlTag.class);
         try {
-            SearchResponse response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(10000).execute().actionGet();
-            for (SearchHit hit : response.getHits()) {
-                result.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class));
-            }
-            Response r = Response.ok(result.toArray(new XmlTag[result.size()])).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + result.size() + " tags");
+            final SearchResponse response = client.prepareSearch("tags")
+                                                  .setTypes("tag")
+                                                  .setQuery(new MatchAllQueryBuilder())
+                                                  .setSize(10000)
+                                                  .execute().actionGet();
+            StreamingOutput stream = new StreamingOutput(){
+                @Override
+                public void write(OutputStream os) throws IOException, WebApplicationException {
+                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                    jg.writeStartArray();
+                    if(response != null){
+                        for (SearchHit hit : response.getHits()) {
+                            jg.writeObject(mapper.readValue(hit.source(), XmlTag.class));
+                        }
+                    }
+                    jg.writeEndArray();
+                    jg.flush();
+                    jg.close();
+                }
+            };
+            Response r = Response.ok(stream).build();
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + response.getHits().getTotalHits() + " tags");
             return r;
         } catch (Exception e) {
             return handleException(user,Response.Status.INTERNAL_SERVER_ERROR , e);

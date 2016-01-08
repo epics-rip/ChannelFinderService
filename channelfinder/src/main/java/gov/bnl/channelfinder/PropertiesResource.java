@@ -15,6 +15,7 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,14 +29,18 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.ActionFuture;
@@ -54,6 +59,7 @@ import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
+import gov.bnl.channelfinder.ChannelsResource.OnlyXmlProperty;
 import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
 
 /**
@@ -89,20 +95,32 @@ public class PropertiesResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response list() {
         Client client = getNewClient();
-        String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        List<XmlProperty> result = new ArrayList<XmlProperty>();
-        ObjectMapper mapper = new ObjectMapper();
+        final String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(XmlProperty.class, OnlyXmlProperty.class);
         try {
-            SearchResponse response = client.prepareSearch("properties")
+            final SearchResponse response = client.prepareSearch("properties")
                                             .setTypes("property")
                                             .setQuery(new MatchAllQueryBuilder())
                                             .setSize(10000)
                                             .execute().actionGet();
-            for (SearchHit hit : response.getHits()) {
-                result.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class));
-            }
-            Response r = Response.ok(result.toArray(new XmlProperty[result.size()])).build();
-            audit.info(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + result.size() + " properties");
+            StreamingOutput stream = new StreamingOutput() {
+                @Override
+                public void write(OutputStream os) throws IOException, WebApplicationException {
+                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                    jg.writeStartArray();
+                    if(response != null){
+                        for (SearchHit hit : response.getHits()) {
+                            jg.writeObject(mapper.readValue(hit.source(), XmlProperty.class));
+                        }
+                    }
+                    jg.writeEndArray();
+                    jg.flush();
+                    jg.close();
+                }
+            };
+            Response r = Response.ok(stream).build();
+            audit.info(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + response.getHits().getTotalHits()+ " properties");
             return r;
         } catch (Exception e) {
             return handleException(user, Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -121,7 +139,7 @@ public class PropertiesResource {
      */
     @PUT
     @Consumes("application/json")
-    public Response add(List<XmlProperty> data) throws IOException {
+    public Response create(List<XmlProperty> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -153,6 +171,71 @@ public class PropertiesResource {
         }
     }
 
+    /**
+     * POST method for creating multiple properties.
+     *
+     * If the channels don't exist it will fail
+     *
+     * @param data XmlProperties data (from payload)
+     * @return HTTP Response
+     * @throws IOException
+     *             when audit or log fail
+     */
+    @POST
+    @Consumes("application/json")
+    public Response update(List<XmlProperty> data) throws IOException {
+        Client client = getNewClient();
+        UserManager um = UserManager.getInstance();
+        um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            for (XmlProperty property : data) {
+                bulkRequest.add(client.prepareUpdate("properties", "property", property.getName())
+                                      .setDoc(mapper.writeValueAsBytes(property))
+                                      .setUpsert(
+                                              new IndexRequest("properties", "property", property.getName())
+                                              .source(mapper.writeValueAsBytes(property)))
+                                );
+                if (property.getChannels() != null) {
+                    HashMap<String, String> param = new HashMap<String, String>(); 
+                    param.put("name", property.getName());
+                    param.put("owner", property.getOwner());
+                    param.put("value", property.getValue());
+                    for (XmlChannel channel : property.getChannels()) {
+                        bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
+                                .refresh(true)
+                                .script("removeProperty = new Object();"
+                                        + "for (xmlProp in ctx._source.properties) "
+                                        + "{ if (xmlProp.name == property.name) { removeProperty = xmlProp} }; "
+                                        + "ctx._source.tags.remove(removeProperty);"
+                                        + "ctx._source.tags.add(property)")
+                                .addScriptParam("property", param));
+                    }
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
+            } else {
+                Response r = Response.noContent().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + data);
+                return r;
+            }
+        } catch (Exception e) {
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+        } finally {
+            client.close();
+        }
+    }
     /**
      * GET method for retrieving the property with the path parameter
      * <tt>propName</tt> 

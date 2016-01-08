@@ -15,8 +15,8 @@ password=MyPassword
 def __loadConfig():
     import os.path
     import ConfigParser
-    dflt={'BaseURL':'http://localhost:8080/ChannelFinder',
-          'SecureURL':'https://localhost:8181/ChannelFinder',
+    dflt={'BaseURL':'http://localhost:9090/ChannelFinder',
+          'SecureURL':'https://localhost:9191/ChannelFinder',
           'username' : 'admin',
           'password' : '1234',
           

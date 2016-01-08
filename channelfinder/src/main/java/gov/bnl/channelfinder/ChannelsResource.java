@@ -152,16 +152,14 @@ public class ChannelsResource {
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
                     JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
-//                    jg.writeStartArray();
-//                    jg.writeFieldName("");
-                    List<XmlChannel> result = new ArrayList<XmlChannel>();
+                    jg.writeStartArray();
                     if(qbResult != null){
                         for (SearchHit hit : qbResult.getHits()) {
-                            result.add(mapper.readValue(hit.source(), XmlChannel.class));
+                            jg.writeObject(mapper.readValue(hit.source(), XmlChannel.class));
+                            jg.flush();
                         }
                     }
-                    jg.writeObject(result);
-//                    jg.writeEndArray();
+                    jg.writeEndArray();
                     jg.flush();
                     jg.close();
                 }
@@ -182,7 +180,7 @@ public class ChannelsResource {
     }
 
     /**
-     * POST method for creating multiple channel instances.
+     * PUT method for creating multiple channel instances.
      *
      * @param data XmlChannels data (from payload)
      * @return HTTP Response
@@ -198,7 +196,7 @@ public class ChannelsResource {
         try {
             long start = System.currentTimeMillis();
             validateChannels(data, client);
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|validation : "+ (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (XmlChannel channel : data) {
@@ -221,9 +219,9 @@ public class ChannelsResource {
                 return r;
             }
         } catch (IllegalArgumentException e) {
-            return handleException(um.getUserName(), "POST", Response.Status.BAD_REQUEST, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
