@@ -90,7 +90,7 @@ public class ChannelsResource {
      * @return HTTP Response
      */
     @GET
-    @Produces({"application/xml", "application/json"})
+    @Produces({"application/json"})
     public Response query() {
         StringBuffer performance = new StringBuffer();
         long start = System.currentTimeMillis();
@@ -125,7 +125,7 @@ public class ChannelsResource {
                 default:
                     DisMaxQueryBuilder propertyQuery = disMaxQuery();
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split(",")) {
+                        for (String pattern : value.split("\\|")) {
                             propertyQuery.add(nestedQuery("properties",
                                     boolQuery()
                                             .must(matchQuery("properties.name", parameter.getKey().trim()))
@@ -187,8 +187,8 @@ public class ChannelsResource {
      * @throws IOException when audit or log fail
      */
     @PUT
-    @Consumes({"application/xml", "application/json"})
-    public Response add(List<XmlChannel> data) throws IOException {
+    @Consumes({"application/json"})
+    public Response create(List<XmlChannel> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -214,8 +214,7 @@ public class ChannelsResource {
                 throw new Exception();
             } else {
                 Response r = Response.noContent().build();
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + prepare + execute + "|data="
-                        + (data));
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + prepare + execute + "|data=" + (data));
                 return r;
             }
         } catch (IllegalArgumentException e) {
@@ -284,10 +283,14 @@ public class ChannelsResource {
     @Consumes("application/json")
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
         audit.severe("PUT:"+XmlChannel.toLog(data));
-        long start = System.currentTimeMillis();
-        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        if(!validateChannelName(chan, data)){
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
+                    + chan + "' and payload channel name '" + data.getName() + "' do not match");
+        }
+        long start = System.currentTimeMillis();
+        Client client = getNewClient();
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
@@ -323,9 +326,13 @@ public class ChannelsResource {
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("chName") String chan, XmlChannel data) {
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        if(!validateChannelName(chan, data)){
+            return handleException(um.getUserName(), "POST", Response.Status.BAD_REQUEST, "Specified channel name '"
+                    + chan + "' and payload channel name '" + data.getName() + "' do not match");
+        }
+        Client client = getNewClient();
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
@@ -334,21 +341,24 @@ public class ChannelsResource {
 
             start = System.currentTimeMillis();
             GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
-            XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
-            channel.setName(data.getName());
-            channel.setOwner(data.getOwner());
-            channel.getProperties().addAll(data.getProperties());
-            channel.getTags().addAll(data.getTags());
-            UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(channel)).refresh(true);
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
-
-            start = System.currentTimeMillis();
-            UpdateResponse result = client.update(updateRequest).actionGet();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
-                    + "|data=" + XmlChannel.toLog(data));
-            return r;
+            if(response.isExists()){
+                XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
+                channel.setName(data.getName());
+                channel.setOwner(data.getOwner());
+                channel.getProperties().addAll(data.getProperties());
+                channel.getTags().addAll(data.getTags());
+                UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
+                        .doc(mapper.writeValueAsBytes(channel)).refresh(true);
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
+                start = System.currentTimeMillis();
+                UpdateResponse result = client.update(updateRequest).actionGet();
+                Response r = Response.noContent().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
+                        + "|data=" + XmlChannel.toLog(data));
+                return r;
+            }else{
+                return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "Specified channel '"+chan+"' does not exist");
+            }
         } catch (IllegalArgumentException e) {
             return handleException(um.getUserName(), "POST", Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
@@ -356,6 +366,10 @@ public class ChannelsResource {
         } finally {
             client.close();
         }
+    }
+
+    private boolean validateChannelName(String chan, XmlChannel data) {
+        return chan.equals(data.getName());
     }
 
     /**
@@ -379,7 +393,7 @@ public class ChannelsResource {
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
                 return r;
             } else {
-                return Response.status(Status.NOT_FOUND).build();
+                return Response.status(Status.NOT_FOUND).entity("Specified channel '"+chan+"' does not exist").build();
             }
         } catch (Exception e) {
             return handleException(um.getUserName(), "DELETE", Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -388,11 +402,6 @@ public class ChannelsResource {
         }
     }
 
-    private Response handleException(String user, String requestType, Response.Status status, Exception e){
-        log.warning(user + "|" + uriInfo.getPath() + "|"+requestType+"|ERROR|" + status +  "|cause=" + e);
-        return new CFException(status, e.getMessage()).toResponse();
-    }
-    
     /**
      * Check is all the tags and properties already exist
      * @return
@@ -404,6 +413,9 @@ public class ChannelsResource {
         for (XmlChannel channel : channels) {
             if (channel.getName() == null || channel.getName().isEmpty()) {
                 throw new IllegalArgumentException("Invalid channel name ");
+            }
+            if (channel.getOwner() == null || channel.getOwner().isEmpty()) {
+                throw new IllegalArgumentException("Invalid channel owner (null or empty string) for '"+channel.getName()+"'");
             }
             for (XmlProperty xmlProperty : channel.getProperties()) {
                 if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
@@ -499,6 +511,15 @@ public class ChannelsResource {
         }
     }
 
+    private Response handleException(String user, String requestType, Response.Status status, Exception e) {
+        return handleException(user, requestType, status, e.getMessage());
+    }
+
+    private Response handleException(String user, String requestType, Response.Status status, String message) {
+        log.warning(user + "|" + uriInfo.getPath() + "|" +requestType+ "|ERROR|" + status + "|cause=" + message);
+        return new CFException(status, message).toResponse();
+    }
+    
     abstract class OnlyXmlProperty {
         @JsonIgnore
         private List<XmlChannel> channels;

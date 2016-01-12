@@ -123,7 +123,7 @@ public class PropertiesResource {
             audit.info(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + response.getHits().getTotalHits()+ " properties");
             return r;
         } catch (Exception e) {
-            return handleException(user, Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -157,7 +157,7 @@ public class PropertiesResource {
             bulkRequest.setRefresh(true);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
-                return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR,
                         bulkResponse.buildFailureMessage());
             } else {
                 Response r = Response.noContent().build();
@@ -165,7 +165,7 @@ public class PropertiesResource {
                 return r;
             }
         } catch (Exception e) {
-            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -219,10 +219,10 @@ public class PropertiesResource {
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
-                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                    return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND,
                             bulkResponse.buildFailureMessage());
                 } else {
-                    return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                    return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR,
                             bulkResponse.buildFailureMessage());
                 }
             } else {
@@ -231,7 +231,7 @@ public class PropertiesResource {
                 return r;
             }
         } catch (Exception e) {
-            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -284,7 +284,7 @@ public class PropertiesResource {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
         } catch (Exception e) {
-            return handleException(user, Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -344,11 +344,11 @@ public class PropertiesResource {
                     param.put("name", data.getName());
                     param.put("owner", data.getOwner());
                     String value = ChannelUtil.getProperty(channel, data.getName()).getValue();
-                    if(value != null && !value.isEmpty()){
-                        param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
-                    }else{
-                        return Response.status(Response.Status.BAD_REQUEST).build();
+                    if(value == null || value.isEmpty()){
+                        return handleException(um.getUserName(), "POST", Status.BAD_REQUEST,
+                                "Invalid property value (missing or null or empty string) for '"+data.getName()+"'");
                     }
+                    param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .refresh(true)
                             .script("ctx._source.properties.add(prop)")
@@ -359,7 +359,13 @@ public class PropertiesResource {
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
-                throw new Exception();
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), "PUT", Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
             } else {
                 GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
                 ObjectMapper mapper = new ObjectMapper();
@@ -374,7 +380,7 @@ public class PropertiesResource {
                 return r;
             }
         } catch (Exception e) {
-            return handleException("todo", Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -398,17 +404,38 @@ public class PropertiesResource {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        if(data.getName() == null || data.getName().isEmpty() || !prop.equals(data.getName())){
+            handleException(um.getUserName(), "POST", Status.BAD_REQUEST, "payload data has invalid/incorrect property name " + data.getName());
+        }
         try {
+            GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+            if(!response.isExists()){
+                return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, prop + "Does not Exist");
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            XmlProperty original = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
+            
+            String propOwner = data.getOwner() != null && !data.getOwner().isEmpty()? data.getOwner() : original.getOwner();
+            
             BulkRequestBuilder bulkRequest = client.prepareBulk();
-            UpdateRequest updateRequest = new UpdateRequest("properties", "property", prop).doc(jsonBuilder()
-                    .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
+            UpdateRequest updateRequest = new UpdateRequest("properties", "property", prop)
+                                                            .doc(jsonBuilder()
+                                                                    .startObject()
+                                                                    .field("name", data.getName())
+                                                                    .field("owner", propOwner)
+                                                                    .endObject());
             bulkRequest.add(updateRequest);
             if (data.getChannels() != null) {
                 for (XmlChannel channel : data.getChannels()) {
                     HashMap<String, String> param = new HashMap<String, String>(); 
                     param.put("name", data.getName());
-                    param.put("owner", data.getOwner());
-                    param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
+                    param.put("owner", propOwner);
+                    String value = ChannelUtil.getProperty(channel, data.getName()).getValue();
+                    if(value == null || value.isEmpty()){
+                        return handleException(um.getUserName(), "POST", Status.BAD_REQUEST,
+                                "Invalid property value (missing or null or empty string) for '"+data.getName()+"'");
+                    }
+                    param.put("value", value);
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .refresh(true)
                             .script("removeProp = new Object();"
@@ -423,22 +450,20 @@ public class PropertiesResource {
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
-                throw new Exception();
-            } else {
-                GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
-                ObjectMapper mapper = new ObjectMapper();
-                XmlProperty result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
-                Response r;
-                if (result == null) {
-                    r = Response.status(Response.Status.NOT_FOUND).build();
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
                 } else {
-                    r = Response.ok(result).build();
+                    return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
                 }
+            } else {
+                Response r = Response.ok(bulkResponse.getItems()[0].getResponse()).build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data=" + XmlProperty.toLog(data));
                 return r;
             }
         } catch (Exception e) {
-            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -487,12 +512,12 @@ public class PropertiesResource {
                     audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
                     return r;
                 } else {
-                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                    return handleException(um.getUserName(), "PUT", Response.Status.NOT_FOUND,
                             new Exception("Property " + prop + " does not exist."));
                 }
             }
         } catch (Exception e) {
-            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -545,14 +570,14 @@ public class PropertiesResource {
                 Response r = Response.ok().build();
                 return r;
             }else{
-                return handleException(um.getUserName(), Status.BAD_REQUEST,
+                return handleException(um.getUserName(), "PUT", Status.BAD_REQUEST,
                         "Property " +prop+ " does not exist ");
             }
         } catch (DocumentMissingException e) {
-            return handleException(um.getUserName(), Response.Status.BAD_REQUEST,
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST,
                     "Channels specified in property update do not exist" + e.getDetailedMessage());
         } catch (Exception e) {
-            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -582,23 +607,23 @@ public class PropertiesResource {
                 Response r = Response.ok().build();
                 return r;
             } else {
-                return handleException(um.getUserName(), Status.NOT_FOUND, "Property " +prop+ " does not exist ");
+                return handleException(um.getUserName(), "DELETE", Status.NOT_FOUND, "Property " +prop+ " does not exist ");
             }
         } catch (DocumentMissingException e) {
-            return handleException(um.getUserName(), Status.NOT_FOUND, "Channel does not exist " + e.getDetailedMessage());
+            return handleException(um.getUserName(), "DELETE", Status.NOT_FOUND, "Channel does not exist " + e.getDetailedMessage());
         } catch (Exception e) {
-            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "DELETE", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
     }
 
-    private Response handleException(String user, Response.Status status, Exception e) {
-        return handleException(user, status, e.getMessage());
+    private Response handleException(String user, String method, Response.Status status, Exception e) {
+        return handleException(user, method, status, e.getMessage());
     }
 
-    private Response handleException(String user, Response.Status status, String message) {
-        log.warning(user + "|" + uriInfo.getPath() + "|GET|ERROR|" + status + "|cause=" + message);
+    private Response handleException(String user, String method, Response.Status status, String message) {
+        log.warning(user + "|" + uriInfo.getPath() + "|"+method+"|ERROR|" + status + "|cause=" + message);
         return new CFException(status, message).toResponse();
     }
 }

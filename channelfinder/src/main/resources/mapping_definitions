@@ -4,7 +4,7 @@
 
 
 #Create the Index
-curl -XPUT 'http://localhost:9200/tags/'
+curl -XPUT 'http://localhost:9200/tags'
 #Set the mapping
 curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
 {
@@ -51,7 +51,7 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
       "script" : {
         "type" : "string"
       },
-      "xmlProperties" : {
+      "properties" : {
         "type" : "nested",
         "include_in_parent" : true,
         "properties" : {
@@ -68,7 +68,7 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
           }
         }
       },
-      "xmlTags" : {
+      "tags" : {
         "type" : "nested",
         "include_in_parent" : true,
         "properties" : {
