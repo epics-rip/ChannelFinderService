@@ -13,6 +13,7 @@ package gov.bnl.channelfinder;
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -404,16 +405,20 @@ public class PropertiesResource {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-        if(data.getName() == null || data.getName().isEmpty() || !prop.equals(data.getName())){
+        if(data.getName() == null || data.getName().isEmpty()){
             handleException(um.getUserName(), "POST", Status.BAD_REQUEST, "payload data has invalid/incorrect property name " + data.getName());
         }
         try {
             GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
             if(!response.isExists()){
-                return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, prop + "Does not Exist");
+                return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "A property named '"+prop+"' does not exist");
             }
             ObjectMapper mapper = new ObjectMapper();
             XmlProperty original = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
+            // rename a property
+            if(!original.getName().equals(data.getName())){
+                return renameProperty(um, client, original, data);
+            }
             
             String propOwner = data.getOwner() != null && !data.getOwner().isEmpty()? data.getOwner() : original.getOwner();
             
@@ -424,6 +429,26 @@ public class PropertiesResource {
                                                                     .field("name", data.getName())
                                                                     .field("owner", propOwner)
                                                                     .endObject());
+
+            if(!original.getOwner().equals(data.getOwner())){
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("owner", propOwner);
+                SearchResponse queryResponse = client.prepareSearch("channelfinder")
+                        .setQuery(wildcardQuery("properties.name", original.getName().trim())).addFields("name").setSize(10000).execute()
+                        .actionGet();
+                for (SearchHit hit : queryResponse.getHits()) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", hit.getId())
+                            .refresh(true)
+                            .script("origProp = new Object();"
+                                    + "for (xmlProp in ctx._source.properties) "
+                                    + "{ if (xmlProp.name == prop.name) { origProp = xmlProp} }; "
+                                    + "ctx._source.properties.remove(origProp);"
+                                    + "origProp.owner = prop.owner;"
+                                    + "ctx._source.properties.add(origProp)")
+                            .addScriptParam("prop", param));
+                }
+            }
             bulkRequest.add(updateRequest);
             if (data.getChannels() != null) {
                 for (XmlChannel channel : data.getChannels()) {
@@ -466,6 +491,63 @@ public class PropertiesResource {
             return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
+        }
+    }
+
+    private Response renameProperty(UserManager um, Client client, XmlProperty original, XmlProperty data) {
+        try {
+            SearchResponse queryResponse = client.prepareSearch("channelfinder")
+                    .setQuery(wildcardQuery("properties.name", original.getName().trim())).addFields("name").setSize(10000).execute()
+                    .actionGet();
+            List<String> channelNames = new ArrayList<String>();
+            for (SearchHit hit : queryResponse.getHits()) {
+                channelNames.add(hit.getId());
+            }
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            bulkRequest.add(new DeleteRequest("properties", "property", original.getName()));
+            IndexRequest indexRequest = new IndexRequest("properties", "property", data.getName()).source(jsonBuilder()
+                    .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
+            UpdateRequest updateRequest;
+            updateRequest = new UpdateRequest("properties", "property", data.getName()).doc(jsonBuilder().startObject()
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject()).upsert(indexRequest);
+            bulkRequest.add(updateRequest);
+            if (!channelNames.isEmpty()) {
+                HashMap<String, String> originalParam = new HashMap<String, String>(); 
+                originalParam.put("name", original.getName());
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                for (String channel : channelNames) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel)
+                            .refresh(true)
+                            .script("origProp = new Object();"
+                                    + "for (xmlProp in ctx._source.properties) "
+                                    + "{ if (xmlProp.name == originalProp.name) { origProp = xmlProp} }; "
+                                    + "ctx._source.properties.remove(origProp);"
+                                    + "origProp.name = newProp.name;"
+                                    + "ctx._source.properties.add(origProp)")
+                            .addScriptParam("originalProp", originalParam)
+                            .addScriptParam("newProp", param));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
+            } else {
+                Response r = Response.ok(bulkResponse).build();
+//                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
+//                        + XmlTag.toLog(data));
+                return r;
+            }
+        } catch (IOException e) {
+            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         }
     }
 

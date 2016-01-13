@@ -12,6 +12,7 @@ package gov.bnl.channelfinder;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 
 import java.io.IOException;
@@ -415,11 +416,14 @@ public class TagsResource {
         try {
             GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
             if(!response.isExists()){
-                return handleException(um.getUserName(), Response.Status.NOT_FOUND, tag + "Does not Exist");
+                return handleException(um.getUserName(), Response.Status.NOT_FOUND, "A tag named '"+tag+"' does not exist");
             }
             ObjectMapper mapper = new ObjectMapper();
             XmlTag original = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
-            
+            // rename a tag
+            if(!original.getName().equals(data.getName())){
+                return renameTag(um, client, original, data);
+            }
             String tagOwner = data.getOwner() != null && !data.getOwner().isEmpty()? data.getOwner() : original.getOwner();
             
             BulkRequestBuilder bulkRequest = client.prepareBulk();
@@ -428,11 +432,27 @@ public class TagsResource {
                                                            .field("name", data.getName())
                                                            .field("owner", tagOwner)
                                                            .endObject());
+            // New owner
+            HashMap<String, String> param = new HashMap<String, String>(); 
+            param.put("name", data.getName());
+            param.put("owner", tagOwner);
+            if(!original.getOwner().equals(data.getOwner())){
+                SearchResponse queryResponse = client.prepareSearch("channelfinder")
+                        .setQuery(wildcardQuery("tags.name", original.getName().trim())).addFields("name").setSize(10000).execute()
+                        .actionGet();
+                for (SearchHit hit : queryResponse.getHits()) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", hit.getId())
+                            .refresh(true)
+                            .script("removeTag = new Object();"
+                                    + "for (xmltag in ctx._source.tags) "
+                                    + "{ if (xmltag.name == tag.name) { removeTag = xmltag} }; "
+                                    + "ctx._source.tags.remove(removeTag);"
+                                    + "ctx._source.tags.add(tag)")
+                            .addScriptParam("tag", param));
+                }
+            }
             bulkRequest.add(updateRequest);
-            if (data.getChannels() != null) {
-                HashMap<String, String> param = new HashMap<String, String>(); 
-                param.put("name", data.getName());
-                param.put("owner", tagOwner);
+            if (data.getChannels() != null) {                
                 for (XmlChannel channel : data.getChannels()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .refresh(true)
@@ -465,6 +485,77 @@ public class TagsResource {
             return handleException(um.getUserName() , Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
+        }
+    }
+
+    /**
+     * Utility method to rename an existing tag
+     * @param data 
+     * @param original 
+     * @param client 
+     * @param um 
+     * @param client
+     * @param original
+     * @param data
+     * @return
+     */
+    private Response renameTag(UserManager um, Client client, XmlTag original, XmlTag data) {
+        try {
+            SearchResponse queryResponse = client.prepareSearch("channelfinder")
+                    .setQuery(wildcardQuery("tags.name", original.getName().trim())).addFields("name").setSize(10000).execute()
+                    .actionGet();
+            List<String> channelNames = new ArrayList<String>();
+            for (SearchHit hit : queryResponse.getHits()) {
+                channelNames.add(hit.getId());
+            }
+            String tagOwner = data.getOwner() != null && !data.getOwner().isEmpty()? data.getOwner() : original.getOwner();
+            
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            bulkRequest.add(new DeleteRequest("tags", "tag", original.getName()));
+            IndexRequest indexRequest = new IndexRequest("tags", "tag", data.getName()).source(jsonBuilder()
+                    .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
+            UpdateRequest updateRequest;
+            updateRequest = new UpdateRequest("tags", "tag", data.getName()).doc(jsonBuilder().startObject()
+                    .field("name", data.getName()).field("owner", data.getOwner()).endObject()).upsert(indexRequest);
+            bulkRequest.add(updateRequest);
+            if (!channelNames.isEmpty()) {
+                HashMap<String, String> originalParam = new HashMap<String, String>(); 
+                originalParam.put("name", original.getName());
+                HashMap<String, String> param = new HashMap<String, String>(); 
+                param.put("name", data.getName());
+                param.put("owner", tagOwner);
+                for (String channel : channelNames) {
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel)
+                            .refresh(true)
+                            .script("removeTag = new Object();"
+                                    + "for (xmltag in ctx._source.tags) "
+                                    + "{ if (xmltag.name == originalTag.name) { removeTag = xmltag} }; "
+                                    + "ctx._source.tags.remove(removeTag);"
+                                    + "ctx._source.tags.add(tag)")
+                            .addScriptParam("originalTag", originalParam)
+                            .addScriptParam("tag", param));
+                }
+            }
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
+            } else {
+                Response r = Response.ok(bulkResponse).build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
+                        + XmlTag.toLog(data));
+                return r;
+            }
+        } catch (IOException e) {
+            return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
+                    e);
         }
     }
 

@@ -11,6 +11,7 @@ package gov.bnl.channelfinder;
  */
 
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.disMaxQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -50,6 +51,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -285,6 +287,10 @@ public class ChannelsResource {
         audit.severe("PUT:"+XmlChannel.toLog(data));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        if(data.getName()==null || data.getName().isEmpty()){
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
+                    + chan + "' and payload channel name '" + data.getName() + "' do not match");
+        }
         if(!validateChannelName(chan, data)){
             return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
                     + chan + "' and payload channel name '" + data.getName() + "' do not match");
@@ -328,17 +334,19 @@ public class ChannelsResource {
         long start = System.currentTimeMillis();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-        if(!validateChannelName(chan, data)){
-            return handleException(um.getUserName(), "POST", Response.Status.BAD_REQUEST, "Specified channel name '"
+        Client client = getNewClient();
+        if(data.getName()==null || data.getName().isEmpty()){
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
                     + chan + "' and payload channel name '" + data.getName() + "' do not match");
         }
-        Client client = getNewClient();
+        if(!validateChannelName(chan, data)){
+            return renameChannel(um, client, chan, data);
+        }
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
             validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
-
             start = System.currentTimeMillis();
             GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
             if(response.isExists()){
@@ -365,6 +373,44 @@ public class ChannelsResource {
             return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
+        }
+    }
+
+    
+    private Response renameChannel(UserManager um, Client client, String chan, XmlChannel data) {
+        GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+        if(!response.isExists()){
+            handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "Specified channel '"+chan+"' does not exist");
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            XmlChannel originalChannel = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
+            originalChannel.setName(data.getName());
+            originalChannel.getProperties().addAll(data.getProperties());
+            originalChannel.getTags().addAll(data.getTags());
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            bulkRequest.add(new DeleteRequest("channelfinder", "channel", chan));
+            IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", originalChannel.getName())
+                    .source(mapper.writeValueAsBytes(originalChannel));
+            bulkRequest.add(indexRequest);
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
+            } else {
+                Response r = Response.ok(originalChannel).build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data=");
+                return r;
+            }
+        } catch (IOException e) {
+            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         }
     }
 
