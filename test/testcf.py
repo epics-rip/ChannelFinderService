@@ -73,7 +73,7 @@ C4_full = '{"name": "C4", "owner": "' + testc + '", "properties": [{"name": "P1"
 C1_full2 = '{"name": "C1", "owner": "' + testc + '", "properties":[{"name": "P1", "value": "prop11"}, {"name": "P2", "value": "prop22"}], "tags":[{"name": "T1"}, {"name": "T44"}]}'
 C1_full2_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop11'}, {u'owner': testp, u'name': u'P2', u'value': u'prop22'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}, {u'owner': testt, u'name': u'T44'}]}
 
-c1_full_r = {u'owner': testc, u'name': u'c1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}
+c1_full_r = {u'owner': testc, u'name': u'c1', u'properties':[{u'owner': None, u'name': u'P1', u'value': u'prop1'}, {u'owner': None, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T2'}]}
 C1t_full_r = {u'owner': testt, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}
 
 Cs1234_full = '[' + C1_full + ', ' + C2_full + ', '+ C3_full + ', '+ C4_full + ']'
@@ -563,17 +563,17 @@ class PutOneChannel(unittest.TestCase):
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
-        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name")
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Specified channel name 'C1' and payload channel name 'null' do not match")
     def test_AuthorizedAsAdminNoName(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Invalid channel name")
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Specified channel name 'C1' and payload channel name 'null' do not match")
     def test_AuthorizedAsChanNoOwner(self):
         doPutAndFailMessageJSON(self, conn_chan, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminNoOwner(self):
         doPutAndFailMessageJSON(self, conn_admin, self.C1, C1no_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsChanEmptyName(self):
-        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Invalid channel name")
+        doPutAndFailMessageJSON(self, conn_chan, self.C1, C1en_empty, 400, "Specified channel name 'C1' and payload channel name '' do not match")
     def test_AuthorizedAsAdminEmptyName(self):
-        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Invalid channel name")
+        doPutAndFailMessageJSON(self, conn_admin, self.C1, C1en_empty, 400, "Specified channel name 'C1' and payload channel name '' do not match")
     def test_AuthorizedAsChanEmptyOwner(self):
         doPutAndFailMessageJSON(self, conn_chan, self.C1, C1eo_empty, 400, "Invalid channel owner (null or empty string) for 'C1'")
     def test_AuthorizedAsAdminEmptyOwner(self):
@@ -605,6 +605,7 @@ class PutOneChannel(unittest.TestCase):
 class PostOneChannel(unittest.TestCase):
     def setUp(self):
         self.C1 = 'resources/channels/C1'
+        self.c1 = 'resources/channels/c1'
         self.C2 = 'resources/channels/C2'
         self.p = 'resources/properties'
         self.t = 'resources/tags'
@@ -630,9 +631,9 @@ class PostOneChannel(unittest.TestCase):
 
 # Set a new channel name
     def test_AuthorizedAsChanNewName(self):
-        doPostAndGetJSON(self, conn_chan, self.C1, c1_empty, 204, self.C1, c1_full_r, 200)
+        doPostAndGetJSON(self, conn_chan, self.C1, c1_empty, 200, self.c1, c1_full_r, 200)
     def test_AuthorizedAsAdminNewName(self):
-        doPostAndGetJSON(self, conn_admin, self.C1, c1_empty, 204, self.C1, c1_full_r, 200)
+        doPostAndGetJSON(self, conn_admin, self.C1, c1_empty, 200, self.C1, c1_full_r, 200)
 
 # Set a new channel owner
     def test_AuthorizedAsChanNewOwner(self):
@@ -659,7 +660,7 @@ class PostOneChannel(unittest.TestCase):
 
 # channel with invalid payload (no name and/or owner)
     def test_AuthorizedAsChanNoName(self):
-        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Invalid channel name ")
+        doPostAndFailMessageJSON(self, conn_chan, self.C1, C1nn_empty, 400, "Specified channel name 'C1' and payload channel name 'null' do not match")
     def test_AuthorizedAsAdminNoName(self):
         doPostAndFailMessageJSON(self, conn_admin, self.C1, C1nn_empty, 400, "Specified channel name 'C1' and payload channel name 'null' do not match")
     def test_AuthorizedAsChanNoOwner(self):
@@ -685,6 +686,7 @@ class PostOneChannel(unittest.TestCase):
 
     def tearDown(self):
         response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        response = conn_admin.request_delete(self.c1, headers=copy(jsonheader))
         response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
         response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
         response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
@@ -953,11 +955,11 @@ class PostOneTag(unittest.TestCase):
 
 # Non-existing tag
     def test_AuthorizedAsTagNonexTag(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "DocumentMissingException[[tags][-1] [tag][T3]")
+        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "A tag named 'T3' does not exist")
 
 # As '" + user_chan2 + "' user that does not belong to group of tag
-    def test_AuthorizedAsChanny2(self):
-        doPostAndFailMessageJSON(self, conn_chan2, self.T1, T1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
+#    def test_AuthorizedAsChanny2(self):
+#        doPostAndFailMessageJSON(self, conn_chan2, self.T1, T1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of tag 'T1'")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
@@ -1007,7 +1009,7 @@ class UpdateTagWithChannels(unittest.TestCase):
 
 # Non-existing tag
     def test_AuthorizedAsTagNonexTag(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "DocumentMissingException[[tags][-1] [tag][T3]")
+        doPostAndFailMessageJSON(self, conn_tag, self.T3, T3_C1, 404, "A tag named 'T3' does not exist")
 
 # Non-existing channel
     def test_AuthorizedAsTagNonexChannel(self):
@@ -1396,8 +1398,8 @@ class PostOneProperty(unittest.TestCase):
         doPostAndFailMessageJSON(self, conn_prop, self.P3, P3_empty, 404, "A property named 'P3' does not exist")
 
 # As '" + user_prop2 + "' user that does not belong to group of property
-    def test_AuthorizedAsProppy2(self):
-        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
+#    def test_AuthorizedAsProppy2(self):
+#        doPostAndFailMessageJSON(self, conn_prop2, self.P1, P1_empty, 403, "User '" + user_prop2 + "' does not belong to owner group '"+testp+"' of property 'P1'")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
