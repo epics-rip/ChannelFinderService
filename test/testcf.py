@@ -73,7 +73,7 @@ C4_full = '{"name": "C4", "owner": "' + testc + '", "properties": [{"name": "P1"
 C1_full2 = '{"name": "C1", "owner": "' + testc + '", "properties":[{"name": "P1", "value": "prop11"}, {"name": "P2", "value": "prop22"}], "tags":[{"name": "T1"}, {"name": "T44"}]}'
 C1_full2_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop11'}, {u'owner': testp, u'name': u'P2', u'value': u'prop22'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}, {u'owner': testt, u'name': u'T44'}]}
 
-c1_full_r = {u'owner': testc, u'name': u'c1', u'properties':[{u'owner': None, u'name': u'P1', u'value': u'prop1'}, {u'owner': None, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T2'}]}
+c1_full_r = {u'owner': testc, u'name': u'c1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}
 C1t_full_r = {u'owner': testt, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}
 
 Cs1234_full = '[' + C1_full + ', ' + C2_full + ', '+ C3_full + ', '+ C4_full + ']'
@@ -83,11 +83,11 @@ Cs12_1nn_empty = '[' + C1nn_empty + ', ' + C2_empty + ']'
 Cs12_1no_empty = '[' + C1no_empty + ', ' + C2_empty + ']'
 Cs12_1en_empty = '[' + C1en_empty + ', ' + C2_empty + ']'
 Cs12_1eo_empty = '[' + C1eo_empty + ', ' + C2_empty + ']'
-C1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': None, u'name': u'P1', u'value': u'prop1'}, {u'owner': None, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T2'}]}
-C2_full_r = {u'owner': testc, u'name': u'C2', u'properties':[{u'owner': None, u'name': u'P3', u'value': u'prop3'}, {u'owner': None, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': None, u'name': u'T33'}, {u'owner': None, u'name': u'T44'}]}
-C3_full_r = {u'owner': testc, u'name': u'C3', u'properties':[{u'owner': None, u'name': u'P2', u'value': u'prop2'}, {u'owner': None, u'name': u'P3', u'value': u'prop1'}], u'tags': [{u'owner': None, u'name': u'T2'}, {u'owner': None, u'name': u'T33'}]}
-C4_full_r = {u'owner': testc, u'name': u'C4', u'properties':[{u'owner': None, u'name': u'P1', u'value': u'prop1'}, {u'owner': None, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T44'}]}
-C1eP1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': None, u'name': u'P2', u'value': u'prop2'}], u'tags': {u'tag': [{u'owner': None, u'name': u'T1'}, {u'owner': None, u'name': u'T2'}]}}
+C1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}
+C2_full_r = {u'owner': testc, u'name': u'C2', u'properties':[{u'owner': testp, u'name': u'P3', u'value': u'prop3'}, {u'owner': testp, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': testt, u'name': u'T33'}, {u'owner': testt, u'name': u'T44'}]}
+C3_full_r = {u'owner': testc, u'name': u'C3', u'properties':[{u'owner': testp, u'name': u'P2', u'value': u'prop2'}, {u'owner': testp, u'name': u'P3', u'value': u'prop1'}], u'tags': [{u'owner': testt, u'name': u'T2'}, {u'owner': testt, u'name': u'T33'}]}
+C4_full_r = {u'owner': testc, u'name': u'C4', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T44'}]}
+C1eP1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': {u'tag': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}}
 Cs1234_full_r = [C1_full_r, C2_full_r, C3_full_r, C4_full_r]
 Cs12_1t_2_empty = '[' + C1t_empty + ', ' + C2_empty + ']'
 Cs12_full = '[' + C1_full + ', ' + C2_full + ']'
@@ -212,25 +212,14 @@ def ordered(obj):
     else:
         return obj
 
-def sortDictAndParse(data):
-    return sorted(data.items(), key=lambda t: t[0])
-
-def sortListAndParse(data):
-    l = []
-    for item in data:
-        l.append(sortDictAndParse(item))
-    return sorted(l)
-
 def doGetJSON(self, conn, g_url, g_result, g_resp):
     response = conn_none.request_get(g_url, headers=copy(jsonheader))
     self.assertEqual(`g_resp`, response[u'headers']['status'],
     'unexpected return code for get operation - expected ' + `g_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     if (response[u'headers']['status'] != '404'):
         j = JSONDecoder().decode(response[u'body'])
-        print ordered(j) == ordered(g_result)
         parsed_j = ordered(j)
         r = ordered(g_result)
-        print parsed_j == r
         self.assertEqual(parsed_j, r,
         'unexpected result of get operation - expected:\n' + `r` + '\nreceived:\n' + `parsed_j`)
 

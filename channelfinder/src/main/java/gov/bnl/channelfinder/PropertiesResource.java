@@ -40,10 +40,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -59,6 +55,10 @@ import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.bnl.channelfinder.ChannelsResource.OnlyXmlProperty;
 import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
@@ -98,7 +98,7 @@ public class PropertiesResource {
         Client client = getNewClient();
         final String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(XmlProperty.class, OnlyXmlProperty.class);
+        mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
         try {
             final SearchResponse response = client.prepareSearch("properties")
                                             .setTypes("property")
@@ -108,7 +108,7 @@ public class PropertiesResource {
             StreamingOutput stream = new StreamingOutput() {
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
-                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                    JsonGenerator jg = mapper.getFactory().createGenerator(os, JsonEncoding.UTF8);
                     jg.writeStartArray();
                     if(response != null){
                         for (SearchHit hit : response.getHits()) {
@@ -633,7 +633,7 @@ public class PropertiesResource {
         try {
             GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
             ObjectMapper mapper = new ObjectMapper();
-            mapper.getSerializationConfig().addMixInAnnotations(XmlChannel.class, MyMixInForXmlChannels.class);
+            mapper.addMixIn(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
             if (result != null) {
                 HashMap<String, String> param = new HashMap<String, String>(); 

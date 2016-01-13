@@ -11,7 +11,6 @@ package gov.bnl.channelfinder;
  */
 
 import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.disMaxQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -22,7 +21,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -43,12 +44,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -63,6 +58,14 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.DisMaxQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Top level Jersey HTTP methods for the .../channels URL
  * 
@@ -145,15 +148,15 @@ public class ChannelsResource {
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             final ObjectMapper mapper = new ObjectMapper();
-            mapper.getSerializationConfig().addMixInAnnotations(XmlProperty.class, OnlyXmlProperty.class);
-            mapper.getSerializationConfig().addMixInAnnotations(XmlTag.class, OnlyXmlTag.class);
+            mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+            mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
             start = System.currentTimeMillis();
             
             StreamingOutput stream = new StreamingOutput() {
                 
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
-                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                    JsonGenerator jg = mapper.getFactory().createGenerator(os, JsonEncoding.UTF8);
                     jg.writeStartArray();
                     if(qbResult != null){
                         for (SearchHit hit : qbResult.getHits()) {
@@ -197,7 +200,7 @@ public class ChannelsResource {
         ObjectMapper mapper = new ObjectMapper();
         try {
             long start = System.currentTimeMillis();
-            validateChannels(data, client);
+            data = validateChannels(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|validation : "+ (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             BulkRequestBuilder bulkRequest = client.prepareBulk();
@@ -246,13 +249,13 @@ public class ChannelsResource {
             Response r;
             if (response.isExists()) {
                 final ObjectMapper mapper = new ObjectMapper();
-                mapper.getSerializationConfig().addMixInAnnotations(XmlProperty.class, OnlyXmlProperty.class);
-                mapper.getSerializationConfig().addMixInAnnotations(XmlTag.class, OnlyXmlTag.class);
+                mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+                mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
                 StreamingOutput stream = new StreamingOutput() {
                     
                     @Override
                     public void write(OutputStream os) throws IOException, WebApplicationException {
-                        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                        JsonGenerator jg = mapper.getFactory().createGenerator(os, JsonEncoding.UTF8);
                         jg.writeObject(mapper.readValue(response.getSourceAsBytes(), XmlChannel.class));
                         jg.flush();
                         jg.close();
@@ -300,7 +303,7 @@ public class ChannelsResource {
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
-            validateChannel(data, client);
+            data = validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|validation : "+ (System.currentTimeMillis() - start));
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", chan)
                     .source(mapper.writeValueAsBytes(data));
@@ -345,7 +348,7 @@ public class ChannelsResource {
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
-            validateChannel(data, client);
+            data = validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
@@ -455,7 +458,7 @@ public class ChannelsResource {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    private boolean validateChannels(List<XmlChannel> channels, Client client) throws JsonParseException, JsonMappingException, IOException{
+    private List<XmlChannel> validateChannels(List<XmlChannel> channels, Client client) throws JsonParseException, JsonMappingException, IOException{
         for (XmlChannel channel : channels) {
             if (channel.getName() == null || channel.getName().isEmpty()) {
                 throw new IllegalArgumentException("Invalid channel name ");
@@ -469,31 +472,45 @@ public class ChannelsResource {
                 }
             }
         }
-        List<String> tagsNames = new ArrayList<String>();
-        List<String> propertyNames = new ArrayList<String>();
+        final Map<String, XmlTag> tags = new HashMap<String, XmlTag>();
+        final Map<String, XmlProperty> properties = new HashMap<String, XmlProperty>();
+        
         ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+        mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
+        
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
                 .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
         for (SearchHit hit : response.getHits()) {
-            propertyNames.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class).getName());
+            XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
+            properties.put(prop.getName(), prop);
         }
         response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
                 .actionGet();
         for (SearchHit hit : response.getHits()) {
-            tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
+            XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
+            tags.put(tag.getName(), tag);
         }
-        if (tagsNames.containsAll(ChannelUtil.getTagNames(channels))
-                && propertyNames.containsAll(ChannelUtil.getPropertyNames(channels))) {
-            return true;
+        if (tags.keySet().containsAll(ChannelUtil.getTagNames(channels))
+                && properties.keySet().containsAll(ChannelUtil.getPropertyNames(channels))) {
+            for (XmlChannel channel : channels) {
+                channel.getTags().parallelStream().forEach((tag) -> {
+                    tag.setOwner(tags.get(tag.getName()).getOwner());
+                });
+                channel.getProperties().parallelStream().forEach((prop) -> {
+                    prop.setOwner(properties.get(prop.getName()).getOwner());
+                });
+            }
+            return channels;
         }else{
             StringBuffer errorMsg = new StringBuffer();
             Collection<String> missingTags = ChannelUtil.getTagNames(channels);
-            missingTags.removeAll(tagsNames);
+            missingTags.removeAll(tags.keySet());
             for (String tag : missingTags) {
                 errorMsg.append(tag+"|");
             }
             Collection<String> missingProps = ChannelUtil.getPropertyNames(channels);
-            missingProps.removeAll(propertyNames);
+            missingProps.removeAll(properties.keySet());
             for (String prop : missingProps) {
                 errorMsg.append(prop+"|");
             }
@@ -509,7 +526,7 @@ public class ChannelsResource {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    private boolean validateChannel(XmlChannel channel, Client client) throws JsonParseException, JsonMappingException, IOException {
+    private XmlChannel validateChannel(XmlChannel channel, Client client) throws JsonParseException, JsonMappingException, IOException {
 
         if (channel.getName() == null || channel.getName().isEmpty()) {
             throw new IllegalArgumentException("Invalid channel name ");
@@ -525,31 +542,43 @@ public class ChannelsResource {
                         "Invalid property value (missing or null or empty string) for '" + xmlProperty.getName() + "'");
             }
         }
-        List<String> tagsNames = new ArrayList<String>();
-        List<String> propertyNames = new ArrayList<String>();
+        final Map<String, XmlTag> tags = new HashMap<String, XmlTag>();
+        final Map<String, XmlProperty> properties = new HashMap<String, XmlProperty>();
+        
         ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+        mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
+        
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
                 .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
         for (SearchHit hit : response.getHits()) {
-            propertyNames.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class).getName());
+            XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
+            properties.put(prop.getName(), prop);
         }
         response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
                 .actionGet();
         for (SearchHit hit : response.getHits()) {
-            tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
+            XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
+            tags.put(tag.getName(), tag);
         }
-        if (tagsNames.containsAll(ChannelUtil.getTagNames(channel))
-                && propertyNames.containsAll(ChannelUtil.getPropertyNames(channel))) {
-            return true;
+        if (tags.keySet().containsAll(ChannelUtil.getTagNames(channel))
+                && properties.keySet().containsAll(ChannelUtil.getPropertyNames(channel))) {
+            channel.getTags().parallelStream().forEach((tag) -> {
+                tag.setOwner(tags.get(tag.getName()).getOwner());
+            });
+            channel.getProperties().parallelStream().forEach((prop) -> {
+                prop.setOwner(properties.get(prop.getName()).getOwner());
+            });
+            return channel;
         } else {
             StringBuffer errorMsg = new StringBuffer();
             Collection<String> missingTags = ChannelUtil.getTagNames(channel);
-            missingTags.removeAll(tagsNames);
+            missingTags.removeAll(tags.keySet());
             for (String tag : missingTags) {
                 errorMsg.append(tag+"|");
             }
             Collection<String> missingProps = ChannelUtil.getPropertyNames(channel);
-            missingProps.removeAll(propertyNames);
+            missingProps.removeAll(properties.keySet());
             for (String prop : missingProps) {
                 errorMsg.append(prop+"|");
             }

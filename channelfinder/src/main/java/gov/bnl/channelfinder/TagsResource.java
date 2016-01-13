@@ -42,12 +42,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.annotate.JsonIgnoreType;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -64,6 +58,12 @@ import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 
@@ -103,7 +103,7 @@ public class TagsResource {
         Client client = getNewClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(XmlTag.class, OnlyXmlTag.class);
+        mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
         try {
             final SearchResponse response = client.prepareSearch("tags")
                                                   .setTypes("tag")
@@ -113,7 +113,7 @@ public class TagsResource {
             StreamingOutput stream = new StreamingOutput(){
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
-                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                    JsonGenerator jg = mapper.getFactory().createGenerator(os, JsonEncoding.UTF8);
                     jg.writeStartArray();
                     if(response != null){
                         for (SearchHit hit : response.getHits()) {
@@ -701,7 +701,7 @@ public class TagsResource {
         try {
             GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
             ObjectMapper mapper = new ObjectMapper();
-            mapper.getSerializationConfig().addMixInAnnotations(XmlChannel.class, MyMixInForXmlChannels.class);
+            mapper.addMixIn(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
             
             if (result != null) {

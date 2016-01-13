@@ -16,23 +16,41 @@ import java.util.Arrays;
 
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
 
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.api.json.JSONJAXBContext;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
 @Provider
-public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {
+public class MyJAXBContextResolver implements ContextResolver<ObjectMapper> {
 
-    private JAXBContext context;
+    final ObjectMapper defaultObjectMapper;
+    
     @SuppressWarnings("rawtypes")
     private Class[] types = { XmlTag.class, XmlProperty.class, XmlChannel.class };
 
     public MyJAXBContextResolver() throws Exception {
-        this.context = new JSONJAXBContext(JSONConfiguration.natural().build(), types);
+        defaultObjectMapper = createDefaultMapper();
     }
 
-    public JAXBContext getContext(Class<?> objectType) {
-        return Arrays.asList(types).contains(objectType) ? context:null;
+    public ObjectMapper getContext(Class<?> objectType) {
+        return Arrays.asList(types).contains(objectType) ? defaultObjectMapper:null;
+    }
+    
+    private static ObjectMapper createDefaultMapper() {
+        final ObjectMapper result = new ObjectMapper();
+        result.enable(SerializationFeature.INDENT_OUTPUT);
+        result.setAnnotationIntrospector(createJaxbJacksonAnnotationIntrospector());
+        return result;
+    }
+
+
+    private static AnnotationIntrospector createJaxbJacksonAnnotationIntrospector() {
+        final AnnotationIntrospector jaxbIntrospector = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        final AnnotationIntrospector jacksonIntrospector = new JacksonAnnotationIntrospector();
+        return AnnotationIntrospector.pair(jacksonIntrospector, jaxbIntrospector);
     }
 }
