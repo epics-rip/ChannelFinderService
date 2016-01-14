@@ -292,12 +292,14 @@
                         </zipUrlInstaller>
                     </container>
                     <configuration>
+                    <!--
                         <properties>
                             <cargo.servlet.port>${servlet.port}</cargo.servlet.port>
                             <cargo.glassfish.admin.port>5858</cargo.glassfish.admin.port>
                             <cargo.glassfish.jms.port>8686</cargo.glassfish.jms.port>
                             <cargo.hostname>localhost</cargo.hostname>
                         </properties>
+                        -->
                         <configfiles>
                             <configfile>
                                 <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
