@@ -62,7 +62,14 @@
       <application-ref ref="__admingui" virtual-servers="__asadmin"></application-ref>
       <application-ref ref="ChannelFinder" virtual-servers="server"></application-ref>
       <application-ref ref="cargocpc" virtual-servers="server"></application-ref>
-     <resource-ref ref="channelfinder/idManagerCommand"></resource-ref>
+      <resource-ref ref="jdbc/__TimerPool"></resource-ref>
+      <resource-ref ref="jdbc/__default"></resource-ref>
+      <resource-ref ref="jms/__defaultConnectionFactory"></resource-ref>
+      <resource-ref ref="concurrent/__defaultContextService"></resource-ref>
+      <resource-ref ref="concurrent/__defaultManagedExecutorService"></resource-ref>
+      <resource-ref ref="concurrent/__defaultManagedScheduledExecutorService"></resource-ref>
+      <resource-ref ref="concurrent/__defaultManagedThreadFactory"></resource-ref>
+      <resource-ref ref="channelfinder/idManagerCommand"></resource-ref>
     </server>
   </servers>
   <nodes>
