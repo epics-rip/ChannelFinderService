@@ -25,16 +25,16 @@ in the web container.
 
 * Prerequisites
 
-  * Glassfish v3.1.2.2 application server
+  * Glassfish v4.1.1 application server
 
   * <For authN/authZ using LDAP:> LDAP server, e.g. OpenLDAP
 
 * Installation Process
 
-** Install Glassfish v3
+** Install Glassfish v4.1.1
 
-  Download and install Glassfish v3 from
-  {{{https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
+  Download and install Glassfish v4.1.1 from
+  {{{https://glassfish.java.net/download.html}java.net}}
   following the instructions for your platform.
 
 ** Install elastic search
