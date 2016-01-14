@@ -9,6 +9,28 @@
   #L%
   -->
 <domain log-root="${com.sun.aas.instanceRoot}/logs" application-root="${com.sun.aas.instanceRoot}/applications" version="5">
+  <security-configurations>
+    <authentication-service default="true" name="adminAuth" use-password-credential="true">
+      <security-provider provider-name="adminSpc" name="spcrealm" type="LoginModule">
+        <login-module-config control-flag="sufficient" module-class="com.sun.enterprise.admin.util.AdminLoginModule" name="adminSpecialLM">
+          <property name="config" value="server-config"></property>
+          <property name="auth-realm" value="admin-realm"></property>
+        </login-module-config>
+      </security-provider>
+      <security-provider provider-name="adminFile" name="filerealm" type="LoginModule">
+        <login-module-config control-flag="sufficient" module-class="com.sun.enterprise.security.auth.login.FileLoginModule" name="adminFileLM">
+          <property name="config" value="server-config"></property>
+          <property name="auth-realm" value="admin-realm"></property>
+        </login-module-config>
+      </security-provider>
+    </authentication-service>
+    <authorization-service default="true" name="authorizationService">
+      <security-provider provider-name="simpleAuthorizationProvider" name="simpleAuthorization" type="Simple">
+        <authorization-provider-config name="simpleAuthorizationProviderConfig" support-policy-deploy="false"></authorization-provider-config>
+      </security-provider>
+    </authorization-service>
+  </security-configurations>
+  <managed-job-config></managed-job-config>
   <system-applications>
     <application context-root="" location="${com.sun.aas.installRootURI}/lib/install/applications/__admingui" name="__admingui" directory-deployed="true" object-type="system-admin">
       <module name="__admingui">
