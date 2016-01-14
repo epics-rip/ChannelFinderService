@@ -5,11 +5,9 @@ rm -rf dist
 rm -rf build
 
 mkdir dist
-mkdir -p ${build}/{war,sql,ldif}
+mkdir -p ${build}/{war,ldif}
 
 cp target/ChannelFinder.war ${build}/war
-cp sql/*.sql ${build}/sql
-#cp sql/upgrade/*.sql ${build}/sql/upgrade
 cp ldif/*.ldif ${build}/ldif
 
 cd build

@@ -23,13 +23,6 @@
     </files>
     <fileSets>
         <fileSet>
-            <directory>sql</directory>
-            <includes>
-                <include>*</include>
-            </includes>
-            <outputDirectory>sql</outputDirectory>
-        </fileSet>
-        <fileSet>
             <directory>ldif</directory>
             <includes>
                 <include>*</include>

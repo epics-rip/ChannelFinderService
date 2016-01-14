@@ -35,40 +35,12 @@
       </module>
     </application>
   </applications>
-  <resources>
-    <jdbc-resource pool-name="__TimerPool" jndi-name="jdbc/__TimerPool" object-type="system-admin"></jdbc-resource>
-    <jdbc-resource pool-name="DerbyPool" jndi-name="jdbc/__default"></jdbc-resource>
-    <jdbc-connection-pool datasource-classname="org.apache.derby.jdbc.EmbeddedXADataSource" res-type="javax.sql.XADataSource" name="__TimerPool">
-      <property name="databaseName" value="${com.sun.aas.instanceRoot}/lib/databases/ejbtimer"></property>
-      <property name="connectionAttributes" value=";create=true"></property>
-    </jdbc-connection-pool>
-    <jdbc-connection-pool is-isolation-level-guaranteed="false" datasource-classname="org.apache.derby.jdbc.ClientDataSource" res-type="javax.sql.DataSource" name="DerbyPool">
-      <property name="PortNumber" value="1527"></property>
-      <property name="Password" value="APP"></property>
-      <property name="User" value="APP"></property>
-      <property name="serverName" value="localhost"></property>
-      <property name="DatabaseName" value="sun-appserv-samples"></property>
-      <property name="connectionAttributes" value=";create=true"></property>
-    </jdbc-connection-pool>
-    <jdbc-connection-pool driver-classname="com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource" res-type="java.sql.Driver" name="cargo-datasource-channelfinder">
-      <property name="user" value="channelfinder"></property>
-      <property name="url" value="jdbc:mysql://localhost:3306/channelfinder"></property>
-      <property name="password" value="channelfinder"></property>
-    </jdbc-connection-pool>
-    <jdbc-resource pool-name="cargo-datasource-channelfinder" jndi-name="jdbc/channelfinder"></jdbc-resource>
-    <custom-resource res-type="java.lang.String" jndi-name="channelfinder/idManagerCommand" factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory">
-      <property name="Value" value="${project.build.directory}/ChannelFinder-cargo-inject/bin/cftest-id"></property>
-    </custom-resource>
-  </resources>
   <servers>
     <server name="server" config-ref="server-config">
       <application-ref ref="__admingui" virtual-servers="__asadmin"></application-ref>
       <application-ref ref="ChannelFinder" virtual-servers="server"></application-ref>
       <application-ref ref="cargocpc" virtual-servers="server"></application-ref>
-      <resource-ref ref="jdbc/__TimerPool"></resource-ref>
-      <resource-ref ref="jdbc/__default"></resource-ref>
-      <resource-ref ref="jdbc/channelfinder"></resource-ref>
-      <resource-ref ref="channelfinder/idManagerCommand"></resource-ref>
+     <resource-ref ref="channelfinder/idManagerCommand"></resource-ref>
     </server>
   </servers>
   <nodes>
