@@ -16,7 +16,7 @@
 
 Installation
 
-  ChannelFinder is a Java EE5 REST-style web service. The directory data is held in
+  ChannelFinder is a Java EE6 REST-style web service. The directory data is held in
 a ElasticSearch index. Service authentication/authorization is done using the
 methods provided by the web container (connecting to e.g. LDAP or PAM).
 Application authorization, i.e. determining user/group relations, is either available
@@ -25,6 +25,8 @@ in the web container.
 
 * Prerequisites
 
+  * JDK 1.8
+  
   * Glassfish v4.1.1 application server
 
   * <For authN/authZ using LDAP:> LDAP server, e.g. OpenLDAP
