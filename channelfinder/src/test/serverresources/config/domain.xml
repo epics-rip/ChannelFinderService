@@ -466,10 +466,8 @@
   </secure-admin>
   <clusters></clusters>
   <applications>
-    <application context-root="/ChannelFinder" object-type="user" name="ChannelFinder" directory-deployed="true" location="${com.sun.aas.instanceRootURI}/eclipseApps/ChannelFinder/">
-      <property name="archiveType" value="war"></property>
-      <property name="keepstate" value="true"></property>
-      <property name="appLocation" value="${com.sun.aas.instanceRootURI}/eclipseApps/ChannelFinder/"></property>
+    <application context-root="/ChannelFinder" location="${com.sun.aas.instanceRootURI}/applications/ChannelFinder/" name="ChannelFinder" object-type="user">
+      <property name="appLocation" value="${com.sun.aas.instanceRootURI}/applications/__internal/ChannelFinder/ChannelFinder.war"></property>
       <property name="defaultAppName" value="ChannelFinder"></property>
       <module name="ChannelFinder">
         <engine sniffer="security"></engine>
