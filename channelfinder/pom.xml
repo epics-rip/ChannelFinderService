@@ -280,7 +280,7 @@
                 <configuration>
                     <skip>${skipCargoAndRun}</skip>
                     <container>
-                        <containerId>glassfish4.1.1</containerId>
+                        <containerId>glassfish4.x</containerId>
                         <zipUrlInstaller>
                             <url>http://download.java.net/glassfish/4.1.1/release/glassfish-4.1.1.zip</url>
                         </zipUrlInstaller>
