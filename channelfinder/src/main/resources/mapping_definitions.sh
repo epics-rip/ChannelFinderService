@@ -1,5 +1,16 @@
 #!/bin/bash
 
+###
+# #%L
+# ChannelFinder Directory Service
+# %%
+# Copyright (C) 2010 - 2016 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+# %%
+# Copyright (C) 2010 - 2012 Brookhaven National Laboratory
+# All rights reserved. Use is subject to license terms.
+# #L%
+###
+
 # The mapping definition for the Indexes associated with the channelfinder v2
 
 
