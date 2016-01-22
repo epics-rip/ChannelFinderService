@@ -474,13 +474,5 @@
         <engine sniffer="web"></engine>
       </module>
     </application>
-    <application context-root="/cargocpc" location="${com.sun.aas.instanceRootURI}/applications/cargocpc/" name="cargocpc" object-type="user">
-      <property name="appLocation" value="${com.sun.aas.instanceRootURI}/applications/__internal/cargocpc/cargocpc.war"></property>
-      <property name="defaultAppName" value="cargocpc"></property>
-      <module name="cargocpc">
-        <engine sniffer="security"></engine>
-        <engine sniffer="web"></engine>
-      </module>
-    </application>
   </applications>
 </domain>
