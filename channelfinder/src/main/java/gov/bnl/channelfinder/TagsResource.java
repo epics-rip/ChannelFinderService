@@ -712,12 +712,13 @@ public class TagsResource {
                     param.put("owner", result.getOwner());
                     UpdateResponse updateResponse = client
                             .update(new UpdateRequest("channelfinder", "channel", chan).refresh(true)
+                                    .refresh(true)
                                     .script("removeTags = new java.util.ArrayList();" + "for (tag in ctx._source.tags) "
                                             + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
                                             + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)};"
                                             + "ctx._source.tags.add(tag)")
                                     .addScriptParam("tag", param))
-                            .actionGet();
+                                    .actionGet();
                     Response r = Response.ok().build();
                     return r;
                 } else {

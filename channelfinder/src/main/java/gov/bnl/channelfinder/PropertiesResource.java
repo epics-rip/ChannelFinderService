@@ -643,12 +643,14 @@ public class PropertiesResource {
                 param.put("owner", result.getOwner());
 
                 UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
+                        .refresh(true)
                         .script("removeProps = new java.util.ArrayList(); "
                                 + "for (property in ctx._source.properties) "
                                 + "{ if (property.name == prop.name) { removeProps.add(property)} }; "
                                 + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp)}; "
                                 + "ctx._source.properties.add(prop)")
-                        .addScriptParam("prop", param)).actionGet();
+                        .addScriptParam("prop", param))
+                        .actionGet();
                 Response r = Response.ok().build();
                 return r;
             }else{
