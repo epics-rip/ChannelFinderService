@@ -213,25 +213,14 @@ def ordered(obj):
     else:
         return obj
 
-def sortDictAndParse(data):
-    return sorted(data.items(), key=lambda t: t[0])
-
-def sortListAndParse(data):
-    l = []
-    for item in data:
-        l.append(sortDictAndParse(item))
-    return sorted(l)
-
 def doGetJSON(self, conn, g_url, g_result, g_resp):
     response = conn_none.request_get(g_url, headers=copy(jsonheader))
     self.assertEqual(`g_resp`, response[u'headers']['status'],
     'unexpected return code for get operation - expected ' + `g_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])
     if (response[u'headers']['status'] != '404'):
         j = JSONDecoder().decode(response[u'body'])
-        print ordered(j) == ordered(g_result)
         parsed_j = ordered(j)
         r = ordered(g_result)
-        print parsed_j == r
         self.assertEqual(parsed_j, r,
         'unexpected result of get operation - expected:\n' + `r` + '\nreceived:\n' + `parsed_j`)
 
