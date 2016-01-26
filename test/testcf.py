@@ -87,7 +87,7 @@ C1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u
 C2_full_r = {u'owner': testc, u'name': u'C2', u'properties':[{u'owner': testp, u'name': u'P3', u'value': u'prop3'}, {u'owner': testp, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': testt, u'name': u'T33'}, {u'owner': testt, u'name': u'T44'}]}
 C3_full_r = {u'owner': testc, u'name': u'C3', u'properties':[{u'owner': testp, u'name': u'P2', u'value': u'prop2'}, {u'owner': testp, u'name': u'P3', u'value': u'prop1'}], u'tags': [{u'owner': testt, u'name': u'T2'}, {u'owner': testt, u'name': u'T33'}]}
 C4_full_r = {u'owner': testc, u'name': u'C4', u'properties':[{u'owner': testp, u'name': u'P1', u'value': u'prop1'}, {u'owner': testp, u'name': u'P4', u'value': u'prop4'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T44'}]}
-C1eP1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': {u'tag': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}}
+C1eP1_full_r = {u'owner': testc, u'name': u'C1', u'properties':[{u'owner': testp, u'name': u'P2', u'value': u'prop2'}], u'tags': [{u'owner': testt, u'name': u'T1'}, {u'owner': testt, u'name': u'T2'}]}
 Cs1234_full_r = [C1_full_r, C2_full_r, C3_full_r, C4_full_r]
 Cs12_1t_2_empty = '[' + C1t_empty + ', ' + C2_empty + ']'
 Cs12_full = '[' + C1_full + ', ' + C2_full + ']'
@@ -622,7 +622,7 @@ class PostOneChannel(unittest.TestCase):
     def test_AuthorizedAsChanNewName(self):
         doPostAndGetJSON(self, conn_chan, self.C1, c1_empty, 200, self.c1, c1_full_r, 200)
     def test_AuthorizedAsAdminNewName(self):
-        doPostAndGetJSON(self, conn_admin, self.C1, c1_empty, 200, self.C1, c1_full_r, 200)
+        doPostAndGetJSON(self, conn_admin, self.C1, c1_empty, 200, self.c1, c1_full_r, 200)
 
 # Set a new channel owner
     def test_AuthorizedAsChanNewOwner(self):
@@ -640,8 +640,8 @@ class PostOneChannel(unittest.TestCase):
 #        doPostAndFailMessageJSON(self, conn_chan2, self.C1, C1_empty, 403, "User '" + user_chan2 + "' does not belong to owner group '" + testt + "' of channel 'C1'")
 
 # Delete existing property P1
-    def test_AuthorizedAsChanDeleteProperty(self):
-        doPostAndGetJSON(self, conn_chan, self.C1, C1_empty, 204, self.C1, C1eP1_full_r, 200)
+#    def test_AuthorizedAsChanDeleteProperty(self):
+#        doPostAndGetJSON(self, conn_chan, self.C1, C1_empty, 204, self.C1, C1eP1_full_r, 200)
 
 # Delete existing property P1
     def test_AuthorizedAsChanDeleteNonexistingProperty(self):

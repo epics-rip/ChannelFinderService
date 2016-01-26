@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -356,8 +357,16 @@ public class ChannelsResource {
                 XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
                 channel.setName(data.getName());
                 channel.setOwner(data.getOwner());
-                channel.getProperties().addAll(data.getProperties());
-                channel.getTags().addAll(data.getTags());
+                Collection<String> propNames = ChannelUtil.getPropertyNames(data);
+                data.getProperties().addAll(channel.getProperties().stream().filter(p -> {
+                    return !propNames.contains(p.getName());
+                }).collect(Collectors.toList()));
+                channel.setProperties(data.getProperties());
+                Collection<String> tagNames = ChannelUtil.getTagNames(data);
+                data.getTags().addAll(channel.getTags().stream().filter(t -> {
+                    return !tagNames.contains(t.getName());
+                }).collect(Collectors.toList()));
+                channel.setTags(data.getTags());
                 UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
                         .doc(mapper.writeValueAsBytes(channel)).refresh(true);
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
@@ -389,8 +398,16 @@ public class ChannelsResource {
         try {
             XmlChannel originalChannel = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
             originalChannel.setName(data.getName());
-            originalChannel.getProperties().addAll(data.getProperties());
-            originalChannel.getTags().addAll(data.getTags());
+            Collection<String> propNames = ChannelUtil.getPropertyNames(data);
+            data.getProperties().addAll(originalChannel.getProperties().stream().filter(p -> {
+                return !propNames.contains(p.getName());
+            }).collect(Collectors.toList()));
+            originalChannel.setProperties(data.getProperties());
+            Collection<String> tagNames = ChannelUtil.getTagNames(data);
+            data.getTags().addAll(originalChannel.getTags().stream().filter(t -> {
+                return !tagNames.contains(t.getName());
+            }).collect(Collectors.toList()));
+            originalChannel.setTags(data.getTags());
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             bulkRequest.add(new DeleteRequest("channelfinder", "channel", chan));
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", originalChannel.getName())
