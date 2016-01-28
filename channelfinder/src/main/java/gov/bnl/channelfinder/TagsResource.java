@@ -126,7 +126,7 @@ public class TagsResource {
                 }
             };
             Response r = Response.ok(stream).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + response.getHits().getTotalHits() + " tags");
+            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + response.getTook() + "|returns " + response.getHits().getTotalHits() + " tags");
             return r;
         } catch (Exception e) {
             return handleException(user,Response.Status.INTERNAL_SERVER_ERROR , e);
@@ -476,7 +476,7 @@ public class TagsResource {
                             bulkResponse.buildFailureMessage());
                 }
             } else {
-                Response r = Response.ok(bulkResponse).build();
+                Response r = Response.ok().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
                         + XmlTag.toLog(data));
                 return r;
@@ -548,7 +548,7 @@ public class TagsResource {
                             bulkResponse.buildFailureMessage());
                 }
             } else {
-                Response r = Response.ok(bulkResponse).build();
+                Response r = Response.ok().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
                         + XmlTag.toLog(data));
                 return r;
