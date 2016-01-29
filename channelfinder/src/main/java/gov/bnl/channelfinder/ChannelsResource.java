@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -107,7 +108,7 @@ public class ChannelsResource {
         try {
             MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
             BoolQueryBuilder qb = boolQuery();
-            
+            int size = 10000;
             for (Entry<String, List<String>> parameter : parameters.entrySet()) {
                 switch (parameter.getKey()) {
                 case "~name":
@@ -128,6 +129,13 @@ public class ChannelsResource {
                         qb.must(nestedQuery("tags", tagQuery));
                     }
                     break;
+                case "~size":
+            		Optional<String> maxSize = parameter.getValue().stream().max((o1, o2) -> {
+            				return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
+            		});
+            		if (maxSize.isPresent()) {
+            			size = Integer.valueOf(maxSize.get());
+            		}
                 default:
                     DisMaxQueryBuilder propertyQuery = disMaxQuery();
                     for (String value : parameter.getValue()) {
@@ -145,7 +153,7 @@ public class ChannelsResource {
             
             performance.append("|prepare:" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
-            final SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(10000).execute().actionGet();
+            final SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(size).execute().actionGet();
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             final ObjectMapper mapper = new ObjectMapper();

@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
@@ -100,10 +101,21 @@ public class PropertiesResource {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
         try {
+        	MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+        	int size = 10000;
+			if (parameters.containsKey("~size")) {
+				Optional<String> maxSize = parameters. get("~size").stream().max((o1, o2) -> {
+					return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
+				});
+				if (maxSize.isPresent()) {
+					size = Integer.valueOf(maxSize.get());
+				}
+
+			}
             final SearchResponse response = client.prepareSearch("properties")
                                             .setTypes("property")
                                             .setQuery(new MatchAllQueryBuilder())
-                                            .setSize(10000)
+                                            .setSize(size)
                                             .execute().actionGet();
             StreamingOutput stream = new StreamingOutput() {
                 @Override
@@ -542,8 +554,8 @@ public class PropertiesResource {
                 }
             } else {
                 Response r = Response.ok(bulkResponse).build();
-//                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
-//                        + XmlTag.toLog(data));
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data="
+                        + XmlProperty.toLog(data));
                 return r;
             }
         } catch (IOException e) {
