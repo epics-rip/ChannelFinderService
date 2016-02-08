@@ -99,7 +99,7 @@ public class XmlChannel {
     /**
      * Setter for channel owner.
      *
-     * @param owner owner to set
+     * @param owner
      */
     public void setOwner(String owner) {
         this.owner = owner;
@@ -119,18 +119,6 @@ public class XmlChannel {
 
     public void setTags(List<XmlTag> tags) {
         this.tags = tags;
-<<<<<<< HEAD
-=======
-    }
-
-    /**
-     * Adds an XmlTag to the collection.
-     *
-     * @param tag tag to add
-     */
-    public void addXmlTag(XmlTag tag) {
-        this.tags.addXmlTag(tag);
->>>>>>> refs/remotes/origin/master
     }
 
     /**
