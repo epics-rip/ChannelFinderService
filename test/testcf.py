@@ -430,8 +430,9 @@ class PostManyChannels(unittest.TestCase):
         self.t  = 'resources/tags'
         self.p  = 'resources/properties'
         self.c  = 'resources/channels'
-        response = conn_admin.request_put(self.t, headers=copy(jsonheader), body=Ts1234_empty)
-        response = conn_admin.request_put(self.p, headers=copy(jsonheader), body=Ps1234_empty)
+        conn_admin.request_put(self.t, headers=copy(jsonheader), body=Ts1234_empty)
+        print 'Set Tags', conn_admin.request_get(self.t, headers=copy(jsonheader))
+        conn_admin.request_put(self.p, headers=copy(jsonheader), body=Ps1234_empty)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.c, Cs12_full, 302)
@@ -482,16 +483,16 @@ class PostManyChannels(unittest.TestCase):
         doPutAndFailMessageJSON(self, conn_admin, self.c, Cs12_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.c + '/C1', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.c + '/C2', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.p + '/P3', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.p + '/P4', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.t + '/T33', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.t + '/T44', headers=copy(jsonheader))
+        conn_admin.request_delete(self.c + '/C1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.c + '/C2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P3', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P4', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T33', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T44', headers=copy(jsonheader))
 
 
 #############################################################################################
