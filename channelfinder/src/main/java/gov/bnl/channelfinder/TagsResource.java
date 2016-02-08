@@ -106,17 +106,17 @@ public class TagsResource {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
         try {
-        	MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
-        	int size = 10000;
-			if (parameters.containsKey("~size")) {
-				Optional<String> maxSize = parameters. get("~size").stream().max((o1, o2) -> {
-					return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
-				});
-				if (maxSize.isPresent()) {
-					size = Integer.valueOf(maxSize.get());
-				}
+            MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+            int size = 10000;
+            if (parameters.containsKey("~size")) {
+                Optional<String> maxSize = parameters.get("~size").stream().max((o1, o2) -> {
+                    return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
+                });
+                if (maxSize.isPresent()) {
+                    size = Integer.valueOf(maxSize.get());
+                }
 
-			}
+            }
             final SearchResponse response = client.prepareSearch("tags")
                                                   .setTypes("tag")
                                                   .setQuery(new MatchAllQueryBuilder())
@@ -375,11 +375,9 @@ public class TagsResource {
                 }
                 for (String ch : add) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", ch)
-                            .refresh(true)
                             .script("ctx._source.tags.add(tag)")
                             .addScriptParam("tag", param));
                 }
-
             }
 
             bulkRequest.setRefresh(true);

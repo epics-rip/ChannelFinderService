@@ -431,7 +431,7 @@ class PostManyChannels(unittest.TestCase):
         self.p  = 'resources/properties'
         self.c  = 'resources/channels'
         response = conn_admin.request_put(self.t, headers=copy(jsonheader), body=Ts1234_empty)
-        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps1234_empty)
+        response = conn_admin.request_put(self.p, headers=copy(jsonheader), body=Ps1234_empty)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.c, Cs12_full, 302)
