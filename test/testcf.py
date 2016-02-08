@@ -447,6 +447,8 @@ class PostManyChannels(unittest.TestCase):
     def test_AuthorizedAsChan(self):
         doPutAndGetJSON(self, conn_chan, self.c, Cs12_full, 204, self.c, Cs12_full_r, 200)
     def test_AuthorizedAsAdmin(self):
+        print conn_admin.request_get(self.t, headers=copy(jsonheader))
+        print conn_admin.request_get(self.p, headers=copy(jsonheader))
         doPutAndGetJSON(self, conn_admin, self.c, Cs12_full, 204, self.c, Cs12_full_r, 200)
 
 # same as channy2 (not member of testt)
