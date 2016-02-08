@@ -3,14 +3,25 @@
  */
 package gov.bnl.channelfinder;
 
+/*
+ * #%L
+ * ChannelFinder Directory Service
+ * %%
+ * Copyright (C) 2010 - 2015 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * %%
+ * Copyright (C) 2010 - 2012 Brookhaven National Laboratory
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
+
+
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.elasticsearch.client.Client;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
@@ -20,7 +31,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
  */
 public class ElasticSearchClient implements ServletContextListener {
 
-    private Logger log = Logger.getLogger(this.getClass().getName());
+    private static Logger log = Logger.getLogger(ElasticSearchClient.class.getCanonicalName());
 
     private static Settings settings;
     
@@ -44,7 +55,12 @@ public class ElasticSearchClient implements ServletContextListener {
     public static TransportClient getNewClient() {
         String host = settings.get("network.host");
         int port = Integer.valueOf(settings.get("transport.tcp.port"));
-        return new TransportClient().addTransportAddress(new InetSocketTransportAddress(host, port));
+        try {
+            return new TransportClient().addTransportAddress(new InetSocketTransportAddress(host, port));
+        } catch (ElasticsearchException e) {
+            log.severe(e.getDetailedMessage());
+            return null;
+        }
     }
     
     public static Settings getSettings(){

@@ -21,9 +21,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -37,17 +41,14 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -55,12 +56,18 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.DisMaxQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Top level Jersey HTTP methods for the .../channels URL
  * 
@@ -90,75 +97,18 @@ public class ChannelsResource {
      * @return HTTP Response
      */
     @GET
-    @Produces({"application/xml", "application/json"})
+    @Produces({"application/json"})
     public Response query() {
         StringBuffer performance = new StringBuffer();
         long start = System.currentTimeMillis();
         long totalStart = System.currentTimeMillis();
         Client client = ElasticSearchClient.getSearchClient();
-/**
- * Current Mapping for the channel 
- * PUT /channelfinder/_mapping/channel
-{
-  "channel": {
-    "properties": {
-      "name": {
-        "type": "string",
-        "analyzer": "whitespace"
-      },
-      "owner": {
-        "type": "string",
-        "analyzer": "whitespace"
-      },
-      "xmlProperties": {
-        "properties": {
-          "properties": {
-            "type": "nested",
-            "include_in_parent": true,
-            "properties": {
-              "name": {
-                "type": "string",
-                "analyzer": "whitespace"
-              },
-              "owner": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string",
-                "analyzer": "whitespace"
-              }
-            }
-          }
-        }
-      },
-      "xmlTags": {
-        "properties": {
-          "tags": {
-            "type": "nested",
-            "properties": {
-              "name": {
-                "type": "string",
-                "analyzer": "whitespace"
-              },
-              "owner": {
-                "type": "string",
-                "analyzer": "whitespace"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
- */
-        
         start = System.currentTimeMillis();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         try {
             MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
             BoolQueryBuilder qb = boolQuery();
-            
+            int size = 10000;
             for (Entry<String, List<String>> parameter : parameters.entrySet()) {
                 switch (parameter.getKey()) {
                 case "~name":
@@ -174,19 +124,26 @@ public class ChannelsResource {
                     for (String value : parameter.getValue()) {
                         DisMaxQueryBuilder tagQuery = disMaxQuery();
                         for (String pattern : value.split("\\|")) {
-                            tagQuery.add(wildcardQuery("xmlTags.tags.name", pattern.trim()));
+                            tagQuery.add(wildcardQuery("tags.name", pattern.trim()));
                         }
-                        qb.must(nestedQuery("xmlTags.tags", tagQuery));
+                        qb.must(nestedQuery("tags", tagQuery));
                     }
                     break;
+                case "~size":
+            		Optional<String> maxSize = parameter.getValue().stream().max((o1, o2) -> {
+            				return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
+            		});
+            		if (maxSize.isPresent()) {
+            			size = Integer.valueOf(maxSize.get());
+            		}
                 default:
                     DisMaxQueryBuilder propertyQuery = disMaxQuery();
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split(",")) {
-                            propertyQuery.add(nestedQuery("xmlProperties.properties",
+                        for (String pattern : value.split("\\|")) {
+                            propertyQuery.add(nestedQuery("properties",
                                     boolQuery()
-                                            .must(matchQuery("xmlProperties.properties.name", parameter.getKey().trim()))
-                                            .must(wildcardQuery("xmlProperties.properties.value", pattern.trim()))));
+                                            .must(matchQuery("properties.name", parameter.getKey().trim()))
+                                            .must(wildcardQuery("properties.value", pattern.trim()))));
                         }
                     }
                     qb.must(propertyQuery);
@@ -196,27 +153,27 @@ public class ChannelsResource {
             
             performance.append("|prepare:" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
-            final SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(10000).execute().actionGet();
+            final SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(size).execute().actionGet();
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             final ObjectMapper mapper = new ObjectMapper();
+            mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+            mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
             start = System.currentTimeMillis();
             
             StreamingOutput stream = new StreamingOutput() {
                 
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
-                    JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
-//                    jg.writeStartArray();
-//                    jg.writeFieldName("");
-                    XmlChannels result = new XmlChannels();
+                    JsonGenerator jg = mapper.getFactory().createGenerator(os, JsonEncoding.UTF8);
+                    jg.writeStartArray();
                     if(qbResult != null){
                         for (SearchHit hit : qbResult.getHits()) {
-                            result.addXmlChannel(mapper.readValue(hit.source(), XmlChannel.class));                            
+                            jg.writeObject(mapper.readValue(hit.source(), XmlChannel.class));
+                            jg.flush();
                         }
                     }
-                    jg.writeObject(result);
-//                    jg.writeEndArray();
+                    jg.writeEndArray();
                     jg.flush();
                     jg.close();
                 }
@@ -225,10 +182,10 @@ public class ChannelsResource {
             
             performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(stream).build();
-//            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
-//                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
-//                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
-            log.info( qbResult.getHits().getTotalHits() + " " +(System.currentTimeMillis() - totalStart));
+            log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
+                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
+                    + "|returns " + qbResult.getHits().getTotalHits() + " channels");
+//            log.info( qbResult.getHits().getTotalHits() + " " +(System.currentTimeMillis() - totalStart));
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
@@ -237,26 +194,26 @@ public class ChannelsResource {
     }
 
     /**
-     * POST method for creating multiple channel instances.
+     * PUT method for creating multiple channel instances.
      *
      * @param data XmlChannels data (from payload)
      * @return HTTP Response
      * @throws IOException when audit or log fail
      */
-    @POST
-    @Consumes({"application/xml", "application/json"})
-    public Response add(XmlChannels data) throws IOException {
+    @PUT
+    @Consumes({"application/json"})
+    public Response create(List<XmlChannel> data) throws IOException {
         Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
         try {
             long start = System.currentTimeMillis();
-            validateChannels(data, client);
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
+            data = validateChannels(data, client);
+            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|validation : "+ (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (XmlChannel channel : data.getChannels()) {
+            for (XmlChannel channel : data) {
                 bulkRequest.add(client.prepareUpdate("channelfinder", "channel", channel.getName()).setDoc(mapper.writeValueAsBytes(channel))
                         .setUpsert(new IndexRequest("channelfinder", "channel", channel.getName()).source(mapper.writeValueAsBytes(channel))));
             }
@@ -271,14 +228,13 @@ public class ChannelsResource {
                 throw new Exception();
             } else {
                 Response r = Response.noContent().build();
-                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + prepare + execute + "|data="
-                        + XmlChannels.toLog(data));
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + prepare + execute + "|data=" + (data));
                 return r;
             }
         } catch (IllegalArgumentException e) {
-            return handleException(um.getUserName(), "POST", Response.Status.BAD_REQUEST, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
+            return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
             client.close();
         }
@@ -292,20 +248,29 @@ public class ChannelsResource {
      */
     @GET
     @Path("{chName: "+chNameRegex+"}")
-    @Produces({"application/xml", "application/json"})
+    @Produces({"application/json"})
     public Response read(@PathParam("chName") String chan) {
         audit.info("getting ch:" + chan);
-        long start = System.currentTimeMillis();
         Client client = ElasticSearchClient.getSearchClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
-        XmlChannel result = null;
         try {
-            GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
-            ObjectMapper mapper = new ObjectMapper();
+            final GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
             Response r;
             if (response.isExists()) {
-                result = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
-                r = Response.ok(result).build();
+                final ObjectMapper mapper = new ObjectMapper();
+                mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+                mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
+                StreamingOutput stream = new StreamingOutput() {
+                    
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        JsonGenerator jg = mapper.getFactory().createGenerator(os, JsonEncoding.UTF8);
+                        jg.writeObject(mapper.readValue(response.getSourceAsBytes(), XmlChannel.class));
+                        jg.flush();
+                        jg.close();
+                    }
+                };
+                r = Response.ok(stream).build();
             } else {
                 r = Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -329,16 +294,25 @@ public class ChannelsResource {
      */
     @PUT
     @Path("{chName: "+chNameRegex+"}")
-    @Consumes({"application/xml", "application/json"})
+    @Consumes("application/json")
     public Response create(@PathParam("chName") String chan, XmlChannel data) {
-        long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        audit.severe("PUT:"+XmlChannel.toLog(data));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        if(data.getName()==null || data.getName().isEmpty()){
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
+                    + chan + "' and payload channel name '" + data.getName() + "' do not match");
+        }
+        if(!validateChannelName(chan, data)){
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
+                    + chan + "' and payload channel name '" + data.getName() + "' do not match");
+        }
+        long start = System.currentTimeMillis();
+        Client client = getNewClient();
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
-            validateChannel(data, client);
+            data = validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|validation : "+ (System.currentTimeMillis() - start));
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", chan)
                     .source(mapper.writeValueAsBytes(data));
@@ -370,32 +344,49 @@ public class ChannelsResource {
     @Consumes({"application/xml", "application/json"})
     public Response update(@PathParam("chName") String chan, XmlChannel data) {
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
+        Client client = getNewClient();
+        if(data.getName()==null || data.getName().isEmpty()){
+            return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
+                    + chan + "' and payload channel name '" + data.getName() + "' do not match");
+        }
+        if(!validateChannelName(chan, data)){
+            return renameChannel(um, client, chan, data);
+        }
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
-            validateChannel(data, client);
+            data = validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
-
             start = System.currentTimeMillis();
             GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
-            XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
-            channel.setName(data.getName());
-            channel.setOwner(data.getOwner());
-            channel.getXmlProperties().getProperties().addAll(data.getXmlProperties().getProperties());
-            channel.getXmlTags().getTags().addAll(data.getXmlTags().getTags());
-            UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(channel)).refresh(true);
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
-
-            start = System.currentTimeMillis();
-            UpdateResponse result = client.update(updateRequest).actionGet();
-            Response r = Response.noContent().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
-                    + "|data=" + XmlChannel.toLog(data));
-            return r;
+            if(response.isExists()){
+                XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
+                channel.setName(data.getName());
+                channel.setOwner(data.getOwner());
+                Collection<String> propNames = ChannelUtil.getPropertyNames(data);
+                data.getProperties().addAll(channel.getProperties().stream().filter(p -> {
+                    return !propNames.contains(p.getName());
+                }).collect(Collectors.toList()));
+                channel.setProperties(data.getProperties());
+                Collection<String> tagNames = ChannelUtil.getTagNames(data);
+                data.getTags().addAll(channel.getTags().stream().filter(t -> {
+                    return !tagNames.contains(t.getName());
+                }).collect(Collectors.toList()));
+                channel.setTags(data.getTags());
+                UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
+                        .doc(mapper.writeValueAsBytes(channel)).refresh(true);
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
+                start = System.currentTimeMillis();
+                UpdateResponse result = client.update(updateRequest).actionGet();
+                Response r = Response.noContent().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus()
+                        + "|data=" + XmlChannel.toLog(data));
+                return r;
+            }else{
+                return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "Specified channel '"+chan+"' does not exist");
+            }
         } catch (IllegalArgumentException e) {
             return handleException(um.getUserName(), "POST", Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
@@ -403,6 +394,56 @@ public class ChannelsResource {
         } finally {
             client.close();
         }
+    }
+
+    
+    private Response renameChannel(UserManager um, Client client, String chan, XmlChannel data) {
+        GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+        if(!response.isExists()){
+            handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "Specified channel '"+chan+"' does not exist");
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            XmlChannel originalChannel = mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
+            originalChannel.setName(data.getName());
+            Collection<String> propNames = ChannelUtil.getPropertyNames(data);
+            data.getProperties().addAll(originalChannel.getProperties().stream().filter(p -> {
+                return !propNames.contains(p.getName());
+            }).collect(Collectors.toList()));
+            originalChannel.setProperties(data.getProperties());
+            Collection<String> tagNames = ChannelUtil.getTagNames(data);
+            data.getTags().addAll(originalChannel.getTags().stream().filter(t -> {
+                return !tagNames.contains(t.getName());
+            }).collect(Collectors.toList()));
+            originalChannel.setTags(data.getTags());
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            bulkRequest.add(new DeleteRequest("channelfinder", "channel", chan));
+            IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", originalChannel.getName())
+                    .source(mapper.writeValueAsBytes(originalChannel));
+            bulkRequest.add(indexRequest);
+            bulkRequest.setRefresh(true);
+            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                audit.severe(bulkResponse.buildFailureMessage());
+                if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
+                    return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND,
+                            bulkResponse.buildFailureMessage());
+                } else {
+                    return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR,
+                            bulkResponse.buildFailureMessage());
+                }
+            } else {
+                Response r = Response.ok(originalChannel).build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|OK|" + r.getStatus() + "|data=");
+                return r;
+            }
+        } catch (IOException e) {
+            return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
+        }
+    }
+
+    private boolean validateChannelName(String chan, XmlChannel data) {
+        return chan.equals(data.getName());
     }
 
     /**
@@ -421,9 +462,13 @@ public class ChannelsResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
             DeleteResponse response = client.prepareDelete("channelfinder", "channel", chan).setRefresh(true).execute().get();
-            Response r = Response.ok().build();
-            audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
-            return r;
+            if(response.isFound()){
+                Response r = Response.ok().build();
+                audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
+                return r;
+            } else {
+                return Response.status(Status.NOT_FOUND).entity("Specified channel '"+chan+"' does not exist").build();
+            }
         } catch (Exception e) {
             return handleException(um.getUserName(), "DELETE", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -431,11 +476,6 @@ public class ChannelsResource {
         }
     }
 
-    private Response handleException(String user, String requestType, Response.Status status, Exception e){
-        log.warning(user + "|" + uriInfo.getPath() + "|"+requestType+"|ERROR|" + status +  "|cause=" + e);
-        return new CFException(status, e.getMessage()).toResponse();
-    }
-    
     /**
      * Check is all the tags and properties already exist
      * @return
@@ -443,42 +483,59 @@ public class ChannelsResource {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    private boolean validateChannels(XmlChannels channels, Client client) throws JsonParseException, JsonMappingException, IOException{
-        for (XmlChannel channel : channels.getChannels()) {
+    private List<XmlChannel> validateChannels(List<XmlChannel> channels, Client client) throws JsonParseException, JsonMappingException, IOException{
+        for (XmlChannel channel : channels) {
             if (channel.getName() == null || channel.getName().isEmpty()) {
                 throw new IllegalArgumentException("Invalid channel name ");
             }
-            for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
+            if (channel.getOwner() == null || channel.getOwner().isEmpty()) {
+                throw new IllegalArgumentException("Invalid channel owner (null or empty string) for '"+channel.getName()+"'");
+            }
+            for (XmlProperty xmlProperty : channel.getProperties()) {
                 if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
                     throw new IllegalArgumentException("Invalid property value (missing or null or empty string) for '"+xmlProperty.getName()+"'");
                 }
             }
         }
-        List<String> tagsNames = new ArrayList<String>();
-        List<String> propertyNames = new ArrayList<String>();
+        final Map<String, XmlTag> tags = new HashMap<String, XmlTag>();
+        final Map<String, XmlProperty> properties = new HashMap<String, XmlProperty>();
+        
         ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+        mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
+        
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
                 .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
         for (SearchHit hit : response.getHits()) {
-            propertyNames.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class).getName());
+            XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
+            properties.put(prop.getName(), prop);
         }
         response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
                 .actionGet();
         for (SearchHit hit : response.getHits()) {
-            tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
+            XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
+            tags.put(tag.getName(), tag);
         }
-        if (tagsNames.containsAll(ChannelUtil.getTagNames(channels.getChannels()))
-                && propertyNames.containsAll(ChannelUtil.getPropertyNames(channels.getChannels()))) {
-            return true;
+        if (tags.keySet().containsAll(ChannelUtil.getTagNames(channels))
+                && properties.keySet().containsAll(ChannelUtil.getPropertyNames(channels))) {
+            for (XmlChannel channel : channels) {
+                channel.getTags().parallelStream().forEach((tag) -> {
+                    tag.setOwner(tags.get(tag.getName()).getOwner());
+                });
+                channel.getProperties().parallelStream().forEach((prop) -> {
+                    prop.setOwner(properties.get(prop.getName()).getOwner());
+                });
+            }
+            return channels;
         }else{
             StringBuffer errorMsg = new StringBuffer();
-            Collection<String> missingTags = ChannelUtil.getTagNames(channels.getChannels());
-            missingTags.removeAll(tagsNames);
+            Collection<String> missingTags = ChannelUtil.getTagNames(channels);
+            missingTags.removeAll(tags.keySet());
             for (String tag : missingTags) {
                 errorMsg.append(tag+"|");
             }
-            Collection<String> missingProps = ChannelUtil.getPropertyNames(channels.getChannels());
-            missingProps.removeAll(propertyNames);
+            Collection<String> missingProps = ChannelUtil.getPropertyNames(channels);
+            missingProps.removeAll(properties.keySet());
             for (String prop : missingProps) {
                 errorMsg.append(prop+"|");
             }
@@ -494,47 +551,82 @@ public class ChannelsResource {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    private boolean validateChannel(XmlChannel channel, Client client) throws JsonParseException, JsonMappingException, IOException {
+    private XmlChannel validateChannel(XmlChannel channel, Client client) throws JsonParseException, JsonMappingException, IOException {
 
         if (channel.getName() == null || channel.getName().isEmpty()) {
             throw new IllegalArgumentException("Invalid channel name ");
         }
 
-        for (XmlProperty xmlProperty : channel.getXmlProperties().getProperties()) {
+        if (channel.getOwner() == null || channel.getOwner().isEmpty()) {
+            throw new IllegalArgumentException("Invalid channel owner (null or empty string) for '"+channel.getName()+"'");
+        }
+
+        for (XmlProperty xmlProperty : channel.getProperties()) {
             if (xmlProperty.getValue() == null || xmlProperty.getValue().isEmpty()) {
                 throw new IllegalArgumentException(
                         "Invalid property value (missing or null or empty string) for '" + xmlProperty.getName() + "'");
             }
         }
-        List<String> tagsNames = new ArrayList<String>();
-        List<String> propertyNames = new ArrayList<String>();
+        final Map<String, XmlTag> tags = new HashMap<String, XmlTag>();
+        final Map<String, XmlProperty> properties = new HashMap<String, XmlProperty>();
+        
         ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
+        mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
+        
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
                 .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
         for (SearchHit hit : response.getHits()) {
-            propertyNames.add(mapper.readValue(hit.getSourceAsString(), XmlProperty.class).getName());
+            XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
+            properties.put(prop.getName(), prop);
         }
         response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
                 .actionGet();
         for (SearchHit hit : response.getHits()) {
-            tagsNames.add(mapper.readValue(hit.getSourceAsString(), XmlTag.class).getName());
+            XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
+            tags.put(tag.getName(), tag);
         }
-        if (tagsNames.containsAll(ChannelUtil.getTagNames(channel))
-                && propertyNames.containsAll(ChannelUtil.getPropertyNames(channel))) {
-            return true;
+        if (tags.keySet().containsAll(ChannelUtil.getTagNames(channel))
+                && properties.keySet().containsAll(ChannelUtil.getPropertyNames(channel))) {
+            channel.getTags().parallelStream().forEach((tag) -> {
+                tag.setOwner(tags.get(tag.getName()).getOwner());
+            });
+            channel.getProperties().parallelStream().forEach((prop) -> {
+                prop.setOwner(properties.get(prop.getName()).getOwner());
+            });
+            return channel;
         } else {
             StringBuffer errorMsg = new StringBuffer();
             Collection<String> missingTags = ChannelUtil.getTagNames(channel);
-            missingTags.removeAll(tagsNames);
+            missingTags.removeAll(tags.keySet());
             for (String tag : missingTags) {
                 errorMsg.append(tag+"|");
             }
             Collection<String> missingProps = ChannelUtil.getPropertyNames(channel);
-            missingProps.removeAll(propertyNames);
+            missingProps.removeAll(properties.keySet());
             for (String prop : missingProps) {
                 errorMsg.append(prop+"|");
             }
             throw new IllegalArgumentException("The following Tags and/or Properties on the channel don't exist -- " + errorMsg.toString());
         }
+    }
+
+    private Response handleException(String user, String requestType, Response.Status status, Exception e) {
+        return handleException(user, requestType, status, e.getMessage());
+    }
+
+    private Response handleException(String user, String requestType, Response.Status status, String message) {
+        log.warning(user + "|" + uriInfo.getPath() + "|" +requestType+ "|ERROR|" + status + "|cause=" + message);
+        return new CFException(status, message).toResponse();
+    }
+    
+    abstract class OnlyXmlProperty {
+        @JsonIgnore
+        private List<XmlChannel> channels;
+    }
+
+    abstract class OnlyXmlTag {
+        @JsonIgnore
+        private List<XmlChannel> channels;
     }
 }

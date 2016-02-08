@@ -5,6 +5,18 @@
  */
 package gov.bnl.channelfinder;
 
+/*
+ * #%L
+ * ChannelFinder Directory Service
+ * %%
+ * Copyright (C) 2010 - 2015 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * %%
+ * Copyright (C) 2010 - 2012 Brookhaven National Laboratory
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
+
+
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -33,7 +45,7 @@ public class ChannelUtil {
      * @return Collection of names of tags
      */
     public static Collection<String> getTagNames(XmlChannel channel) {       
-        return Collections2.transform(channel.getXmlTags().getTags(), new Function<XmlTag, String>() {
+        return Collections2.transform(channel.getTags(), new Function<XmlTag, String>() {
             @Override
             public String apply(XmlTag tag) {
                 return tag.getName();
@@ -63,7 +75,7 @@ public class ChannelUtil {
      * @return Collection of names of properties
      */
     public static Collection<String> getPropertyNames(XmlChannel channel) {
-        return Collections2.transform(channel.getXmlProperties().getProperties(), new Function<XmlProperty, String>() {
+        return Collections2.transform(channel.getProperties(), new Function<XmlProperty, String>() {
             @Override
             public String apply(XmlProperty property) {
                 return property.getName();
@@ -111,7 +123,7 @@ public class ChannelUtil {
      * @return Property
      */
     public static XmlProperty getProperty(XmlChannel channel, String propertyName) {
-        Collection<XmlProperty> property = Collections2.filter(channel.getXmlProperties().getProperties(),
+        Collection<XmlProperty> property = Collections2.filter(channel.getProperties(),
                 new PropertyNamePredicate(propertyName));
         if (property.size() == 1)
             return property.iterator().next();

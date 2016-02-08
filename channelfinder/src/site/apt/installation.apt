@@ -16,7 +16,7 @@
 
 Installation
 
-  ChannelFinder is a Java EE5 REST-style web service. The directory data is held in
+  ChannelFinder is a Java EE6 REST-style web service. The directory data is held in
 a ElasticSearch index. Service authentication/authorization is done using the
 methods provided by the web container (connecting to e.g. LDAP or PAM).
 Application authorization, i.e. determining user/group relations, is either available
@@ -25,18 +25,18 @@ in the web container.
 
 * Prerequisites
 
-  * Glassfish v3.1.2.2 application server
-
-  * SQL database with JDBC driver, e.g. mySQL
+  * JDK 1.8
+  
+  * Glassfish v4.1.1 application server
 
   * <For authN/authZ using LDAP:> LDAP server, e.g. OpenLDAP
 
 * Installation Process
 
-** Install Glassfish v3
+** Install Glassfish v4.1.1
 
-  Download and install Glassfish v3 from
-  {{{https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
+  Download and install Glassfish v4.1.1 from
+  {{{https://glassfish.java.net/download.html}java.net}}
   following the instructions for your platform.
 
 ** Install elastic search
@@ -47,9 +47,9 @@ in the web container.
 
 ** Create the elastic indexes and set up their mapping
 
-  * The Mapping_definitions contain the curl commands to setup the 3 elastic indexes associated with channelfinder.
+  * The Mapping_definitions script (which is avaiable under /channelfinder/src/main/resources) contains the curl commands to setup the 3 elastic indexes associated with channelfinder.
   
-  * The Index and mappings can be setup using any rest client as described here {{{https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html}create elastic index}}
+  * For more information of how Index and mappings can be setup using any rest client as described here {{{https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html}create elastic index}}
   
 
 ** Authentication/Authorization using PAM
@@ -138,7 +138,10 @@ in the web container.
     git clone -b ElasticSearch https://github.com/ChannelFinder/ChannelFinderService.git
     change the configuration in the elasticsearch.yml to match the installation details of your elastic search index.
     build the war 
-    mvn clean install -DSkipTests=True
+    mvn clean install
+    
+    If you do not wish to run the Integration tests add the following
+    -DSkipTests=True -DskipCargoAndRun=True -DskipNoseTests=True
 
   * Drop the ChannelFinder WAR file <<<war/ChannelFinder.war>>> into
     <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.

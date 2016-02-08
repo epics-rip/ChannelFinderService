@@ -10,8 +10,9 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -20,12 +21,12 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
-@XmlType(propOrder = {"name","owner","xmlChannels"})
-@XmlRootElement(name = "tag")
+@XmlRootElement(name="tag")
+@XmlType (propOrder={"name","owner","channels"})
 public class XmlTag {
     private String name = null;
     private String owner = null;
-    private XmlChannels channels = null;
+    private List<XmlChannel> channels = new ArrayList<XmlChannel>();
 
     /**
      * Creates a new instance of XmlTag.
@@ -59,7 +60,6 @@ public class XmlTag {
      *
      * @return tag name
      */
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -78,7 +78,6 @@ public class XmlTag {
      *
      * @return tag owner
      */
-    @XmlAttribute
     public String getOwner() {
         return owner;
     }
@@ -97,8 +96,7 @@ public class XmlTag {
      *
      * @return XmlChannels object
      */
-    @XmlElement(name = "channels")
-    public XmlChannels getXmlChannels() {
+    public List<XmlChannel> getChannels() {
         return channels;
     }
 
@@ -107,7 +105,7 @@ public class XmlTag {
      *
      * @param channels XmlChannels object
      */
-    public void setXmlChannels(XmlChannels channels) {
+    public void setChannels(List<XmlChannel> channels) {
         this.channels = channels;
     }
 
@@ -121,8 +119,7 @@ public class XmlTag {
         if (data.channels == null) {
             return data.getName() + "(" + data.getOwner() + ")";
         } else {
-            return data.getName() + "(" + data.getOwner() + ")"
-                    + XmlChannels.toLog(data.channels);
+            return data.getName() + "(" + data.getOwner() + ")" + (data.channels);
         }
     }
 }

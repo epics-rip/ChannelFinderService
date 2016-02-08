@@ -16,7 +16,7 @@
 
 # Set both 'bind_host' and 'publish_host':
 #
-network.host: 130.199.219.220
+network.host: 127.0.0.1
 
 # Set a custom port for the node to node communication (9300 by default):
 #

@@ -10,8 +10,9 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -20,13 +21,13 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
  */
-@XmlType(propOrder = {"name","value","owner","xmlChannels"})
-@XmlRootElement(name = "property")
+@XmlRootElement(name="property")
+@XmlType (propOrder={"name","owner","value","channels"})
 public class XmlProperty {
     private String name = null;
-    private String value = null;
     private String owner = null;
-    private XmlChannels channels = null;
+    private String value = null;
+    private List<XmlChannel> channels = new ArrayList<XmlChannel>();
 
     /**
      * Creates a new instance of XmlProperty.
@@ -64,7 +65,6 @@ public class XmlProperty {
      *
      * @return property name
      */
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -83,7 +83,6 @@ public class XmlProperty {
      *
      * @return property value
      */
-    @XmlAttribute
     public String getValue() {
         return value;
     }
@@ -102,7 +101,6 @@ public class XmlProperty {
      *
      * @return property owner
      */
-    @XmlAttribute
     public String getOwner() {
         return owner;
     }
@@ -117,21 +115,19 @@ public class XmlProperty {
     }
 
     /**
-     * Getter for property's XmlChannels.
-     *
-     * @return XmlChannels object
+     * Get the list of channels associated with this property
+     * @return {@link List} of channels
      */
-    @XmlElement(name = "channels")
-    public XmlChannels getXmlChannels() {
+    public List<XmlChannel> getChannels() {
         return channels;
     }
 
     /**
-     * Setter for property's XmlChannels.
-     *
-     * @param channels XmlChannels object
+     * set the channels associated with this property
+     * 
+     * @param channels
      */
-    public void setXmlChannels(XmlChannels channels) {
+    public void setChannels(List<XmlChannel> channels) {
         this.channels = channels;
     }
 
@@ -146,7 +142,7 @@ public class XmlProperty {
             return data.getName() + "(" + data.getOwner() + ")";
         } else {
             return data.getName() + "(" + data.getOwner() + ")"
-                    + XmlChannels.toLog(data.channels);
+                    + (data.channels);
         }
     }
 }
