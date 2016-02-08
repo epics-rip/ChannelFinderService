@@ -10,9 +10,9 @@
   #L%
   -->
 
-<project name="ChannelFinder">
+<project name="ChannelFinderService">
     <bannerLeft>
-        <name>ChannelFinder</name>
+        <name>ChannelFinderService</name>
         <!--<src>http://maven.apache.org/images/apache-maven-project.png</src>-->
         <href>http://channelfinder.sourceforge.net</href>
     </bannerLeft>
@@ -25,7 +25,7 @@
         <links>
             <item name="EPICS" href="http://www.aps.anl.gov/epics/"/>
         </links>
-        <menu name="ChannelFinder">
+        <menu name="ChannelFinderService">
             <item name="Overview" href="index.html"/>
             <item name="Download" href="download.html"/>
             <item name="Installation" href="installation.html"/>
@@ -33,4 +33,3 @@
         <menu ref="reports"/>
     </body>
 </project>
-

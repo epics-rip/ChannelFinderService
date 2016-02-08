@@ -26,7 +26,7 @@ import javax.naming.directory.SearchResult;
 /**
  * Owner (group) membership management: LDAP connection and binding.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class LDAPUserManager extends UserManager {
     private ThreadLocal<DirContext> ctx = new ThreadLocal<DirContext>();

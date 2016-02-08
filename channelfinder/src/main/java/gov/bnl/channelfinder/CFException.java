@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
 /**
  * ChannelFinder Exception that creates the matching HTTP Response.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 public class CFException extends Exception {
 
@@ -26,8 +26,8 @@ public class CFException extends Exception {
      * detail message and cause.
      *
      * @param status HTTP return code
-     * @param message
-     * @param cause
+     * @param message detail message
+     * @param cause cause exception
      */
     public CFException(Response.Status status, String message, Throwable cause) {
         super(message, cause);
@@ -39,7 +39,7 @@ public class CFException extends Exception {
      * and detail message.
      *
      * @param status HTTP return code
-     * @param message
+     * @param message detail message
      */
     public CFException(Response.Status status, String message) {
         super(message);

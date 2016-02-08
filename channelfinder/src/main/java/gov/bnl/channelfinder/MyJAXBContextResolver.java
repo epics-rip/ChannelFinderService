@@ -24,6 +24,11 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
+/**
+ * Gets inserted into JAXB to configure JSON marshalling.
+ *
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
+ */
 @Provider
 public class MyJAXBContextResolver implements ContextResolver<ObjectMapper> {
 

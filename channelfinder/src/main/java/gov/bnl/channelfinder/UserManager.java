@@ -20,8 +20,8 @@ import javax.naming.InitialContext;
 /**
  * Owner (group) membership management.
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
- * @author Gabriele Carcassi <carcassi@bnl.gov>
+ * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
+ * @author Gabriele Carcassi {@literal <carcassi@bnl.gov>}
  */
 public abstract class UserManager {
     
