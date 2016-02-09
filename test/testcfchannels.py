@@ -454,8 +454,8 @@ class PostManyChannels(unittest.TestCase):
         conn_admin.request_delete(self.p + '/P4', headers=copy(jsonheader))
         conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
         conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
-        conn_admin.request_delete(self.t + '/T3', headers=copy(jsonheader))
-        conn_admin.request_delete(self.t + '/T4', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T33', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T44', headers=copy(jsonheader))
 
 
 if __name__ == '__main__':

@@ -1519,6 +1519,7 @@ class DeleteProperty(unittest.TestCase):
         response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
         response = conn_admin.request_delete(self.C2, headers=copy(jsonheader))
         response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        conn_admin.request_delete(self.P2, headers=copy(jsonheader))
 
 
 #############################################################################################
