@@ -9,8 +9,14 @@ before_script:
   - sleep 10
   - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
   - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/indexed.yml'
+  - sudo /etc/init.d/elasticsearch start
+  - sleep 25
+  - curl -XGET 'http://localhost:9200/_cluster/health?pretty'
   - chmod a+x channelfinder/src/main/resources/mapping_definitions.sh
   
 script:
   - channelfinder/src/main/resources/mapping_definitions.sh
   - mvn clean verify -fchannelfinder/pom.xml
+
+after_script:
+  - sudo /etc/init.d/elasticsearch stop
