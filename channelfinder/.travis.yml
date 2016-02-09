@@ -1,0 +1,16 @@
+
+jdk:
+  - oraclejdk8
+
+before_install:
+  - curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.7.3.deb && sudo dpkg -i --force-confnew elasticsearch-1.7.3.deb
+  
+before_script:
+  - sleep 10
+  - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
+  - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/indexed.yml'
+  - chmod a+x src/main/resources/mapping_definitions.sh
+  
+  script:
+   - ./src/main/resources/mapping_definitions.sh
+   - mvn clean verify 
