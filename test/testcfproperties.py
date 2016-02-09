@@ -335,7 +335,7 @@ class PutOneProperty(unittest.TestCase):
         doPutAndGetJSON(self, conn_prop, self.P1, P1_empty, 200, self.P1, P1_empty_r, 200)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        conn_admin.request_delete(self.P1, headers=copy(jsonheader))
 
 #############################################################################################
 # Test .../properties PUT                          not implemented
@@ -380,8 +380,8 @@ class PostManyProperties(unittest.TestCase):
         doPostAndGetJSON(self, conn_admin, self.urlp, Ps12_empty, 204, self.urlp, Ps12_empty_r, 200)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.P2, headers=copy(jsonheader))
+        conn_admin.request_delete(self.P1, headers=copy(jsonheader))
+        conn_admin.request_delete(self.P2, headers=copy(jsonheader))
 
 
 if __name__ == '__main__':

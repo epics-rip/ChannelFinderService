@@ -322,8 +322,8 @@ class PutOneChannel(unittest.TestCase):
         self.C1 = 'resources/channels/C1'
         self.p = 'resources/properties'
         self.t = 'resources/tags'
-        response = conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts12_empty)
-        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps12_empty)
+        conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts12_empty)
+        conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps12_empty)
 
     def test_Unauthorized(self):
         doPutAndFailJSON(self, conn_none, self.C1, C1_full, 302)
@@ -364,13 +364,12 @@ class PutOneChannel(unittest.TestCase):
 #        doPutAndGetJSON(self, conn_admin, self.C1, C1_empty, 204, self.C1, C1_empty_r, 200)
 #        doPutAndGetJSON(self, conn_admin, self.C1, C1_full, 204, self.C1, C1_full_r, 200)
 
-
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
-        response = conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -387,7 +386,7 @@ class PutManyChannels(unittest.TestCase):
         doPutAndFailJSON(self, conn_admin_plain, self.c, Cs1_full, 302)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        conn_admin.request_delete(self.C1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -398,8 +397,8 @@ class PostManyChannels(unittest.TestCase):
         self.t  = 'resources/tags'
         self.p  = 'resources/properties'
         self.c  = 'resources/channels'
-        response = conn_admin.request_post(self.t, headers=copy(jsonheader), body=Ts1234_empty)
-        response = conn_admin.request_post(self.p, headers=copy(jsonheader), body=Ps1234_empty)
+        conn_admin.request_put(self.t, headers=copy(jsonheader), body=Ts1234_empty)
+        conn_admin.request_put(self.p, headers=copy(jsonheader), body=Ps1234_empty)
 
     def test_Unauthorized(self):
         doPostAndFailJSON(self, conn_none, self.c, Cs12_full, 302)
@@ -448,7 +447,15 @@ class PostManyChannels(unittest.TestCase):
     def test_AuthorizedAsAdminNullPropValue(self):
         doPutAndFailMessageJSON(self, conn_admin, self.c, Cs12_P1nv, 400, "Invalid property value (missing or null or empty string) for 'P1'")
 
-
+    def tearDown(self):
+        conn_admin.request_delete(self.p + '/P1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P3', headers=copy(jsonheader))
+        conn_admin.request_delete(self.p + '/P4', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T1', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T2', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T3', headers=copy(jsonheader))
+        conn_admin.request_delete(self.t + '/T4', headers=copy(jsonheader))
 
 
 if __name__ == '__main__':
