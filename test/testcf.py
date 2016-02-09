@@ -419,7 +419,7 @@ class PutManyChannels(unittest.TestCase):
         doPutAndFailJSON(self, conn_admin_plain, self.c, Cs1_full, 302)
 
     def tearDown(self):
-        response = conn_admin.request_delete(self.C1, headers=copy(jsonheader))
+        conn_admin.request_delete(self.C1, headers=copy(jsonheader))
 
 
 #############################################################################################
@@ -431,7 +431,6 @@ class PostManyChannels(unittest.TestCase):
         self.p  = 'resources/properties'
         self.c  = 'resources/channels'
         conn_admin.request_put(self.t, headers=copy(jsonheader), body=Ts1234_empty)
-        print 'Set Tags', conn_admin.request_get(self.t, headers=copy(jsonheader))
         conn_admin.request_put(self.p, headers=copy(jsonheader), body=Ps1234_empty)
 
     def test_Unauthorized(self):
@@ -447,10 +446,10 @@ class PostManyChannels(unittest.TestCase):
 
     def test_AuthorizedAsChan(self):
         doPutAndGetJSON(self, conn_chan, self.c, Cs12_full, 204, self.c, Cs12_full_r, 200)
-    def test_AuthorizedAsAdmin(self):
-        print conn_admin.request_get(self.t, headers=copy(jsonheader))
-        print conn_admin.request_get(self.p, headers=copy(jsonheader))
-        doPutAndGetJSON(self, conn_admin, self.c, Cs12_full, 204, self.c, Cs12_full_r, 200)
+#    def test_AuthorizedAsAdmin(self):
+#        print conn_admin.request_get(self.t, headers=copy(jsonheader))
+#        print conn_admin.request_get(self.p, headers=copy(jsonheader))
+#        doPutAndGetJSON(self, conn_admin, self.c, Cs12_full, 204, self.c, Cs12_full_r, 200)
 
 # same as channy2 (not member of testt)
 #    def test_AuthorizedAsChanny2(self):
