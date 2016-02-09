@@ -9,8 +9,8 @@ before_script:
   - sleep 10
   - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
   - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/indexed.yml'
-  - chmod a+x src/main/resources/mapping_definitions.sh
+  - chmod a+x channelfinder/src/main/resources/mapping_definitions.sh
   
 script:
-  - src/main/resources/mapping_definitions.sh
-  - mvn clean verify 
+  - channelfinder/src/main/resources/mapping_definitions.sh
+  - mvn clean verify -fchannelfinder/pom.xml
