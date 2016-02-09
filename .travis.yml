@@ -6,7 +6,7 @@ before_install:
   - curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.7.3.deb && sudo dpkg -i --force-confnew elasticsearch-1.7.3.deb
 
 install:
-  - pip install nose
+  - apt-get install python-nose
   
 before_script:
   - sleep 10
