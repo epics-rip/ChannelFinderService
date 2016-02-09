@@ -12,5 +12,5 @@ before_script:
   - chmod a+x src/main/resources/mapping_definitions.sh
   
 script:
-  - ./src/main/resources/mapping_definitions.sh
+  - src/main/resources/mapping_definitions.sh
   - mvn clean verify 
