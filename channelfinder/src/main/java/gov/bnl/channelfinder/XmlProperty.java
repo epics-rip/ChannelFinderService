@@ -125,7 +125,7 @@ public class XmlProperty {
     /**
      * set the channels associated with this property
      * 
-     * @param channels
+     * @param channels - list of channels
      */
     public void setChannels(List<XmlChannel> channels) {
         this.channels = channels;

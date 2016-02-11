@@ -94,10 +94,8 @@ public class TagsResource {
     /**
      * GET method for retrieving the list of tags in the database.
      *
-     * @param name URI path parameter: tag name to search for
-     * @return list of channels with their properties and tags that match
+     * @return list of tags
      */
-
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public Response list() {
@@ -316,7 +314,6 @@ public class TagsResource {
      * structure <tt>data</tt>.
      * Setting the owner attribute in the XML root element is mandatory.
      * 
-     * @param tag URI path parameter: tag name
      * @param data XmlTag structure containing the list of channels to be tagged
      * @return HTTP Response
      */

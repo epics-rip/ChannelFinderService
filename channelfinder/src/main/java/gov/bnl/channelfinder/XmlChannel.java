@@ -38,7 +38,7 @@ public class XmlChannel {
     /**
      * Creates a new instance of XmlChannel.
      *
-     * @param name channel name
+     * @param name - channel name
      */
     public XmlChannel(String name) {
         this.name = name;
@@ -47,8 +47,8 @@ public class XmlChannel {
     /**
      * Creates a new instance of XmlChannel.
      *
-     * @param name channel name
-     * @param owner owner name
+     * @param name - channel name
+     * @param owner - owner name
      */
     public XmlChannel(String name, String owner) {
         this.name = name;
@@ -57,10 +57,10 @@ public class XmlChannel {
 
     /**
      * 
-     * @param name
-     * @param owner
-     * @param properties
-     * @param tags
+     * @param name - channel name
+     * @param owner - channel owner
+     * @param properties - list of channel properties
+     * @param tags - list of channel tags
      */
     public XmlChannel(String name, String owner, List<XmlProperty> properties, List<XmlTag> tags) {
         this.name = name;
@@ -72,7 +72,7 @@ public class XmlChannel {
     /**
      * Getter for channel name.
      *
-     * @return name
+     * @return name - channel name
      */
     public String getName() {
         return name;
@@ -81,7 +81,7 @@ public class XmlChannel {
     /**
      * Setter for channel name.
      *
-     * @param name the value to set
+     * @param name - channel name
      */
     public void setName(String name) {
         this.name = name;
@@ -90,7 +90,7 @@ public class XmlChannel {
     /**
      * Getter for channel owner.
      *
-     * @return owner
+     * @return owner - channel owner
      */
     public String getOwner() {
         return owner;
@@ -99,7 +99,7 @@ public class XmlChannel {
     /**
      * Setter for channel owner.
      *
-     * @param owner
+     * @param owner - channel owner
      */
     public void setOwner(String owner) {
         this.owner = owner;

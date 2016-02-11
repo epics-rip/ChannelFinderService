@@ -67,7 +67,7 @@ import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
 /**
  * Top level Jersey HTTP methods for the .../properties URL
  *
- * @author Kunal Shroff {@literal <shroffk@bnl.gov>}, Ralph Lange {@literal {<Ralph.Lange@helmholtz-berlin.de>}
+ * @author Kunal Shroff {@literal <shroffk@bnl.gov>}, Ralph Lange {@literal <Ralph.Lange@helmholtz-berlin.de>}
  */
 @Path("/properties/")
 public class PropertiesResource {
@@ -88,11 +88,8 @@ public class PropertiesResource {
     /**
      * GET method for retrieving the list of properties in the database.
      *
-     * @param name
-     *            URI path parameter: tag name to search for
-     * @return list of channels with their properties and tags that match
+     * @return list of properties
      */
-
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response list() {
@@ -623,7 +620,7 @@ public class PropertiesResource {
      *
      * @param prop URI path parameter: property name
      * @param chan URI path parameter: channel to addSingle <tt>tag</tt> to
-     * @param data property data (specifying property ownership & value)
+     * @param data property data (specifying property ownership and value)
      * @return HTTP Response
      */
     @PUT

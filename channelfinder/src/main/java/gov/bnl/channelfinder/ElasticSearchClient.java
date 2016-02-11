@@ -49,7 +49,7 @@ public class ElasticSearchClient implements ServletContextListener {
     /**
      * Returns a new {@link TransportClient} using the default settings
      * **IMPORTANT** it is the responsibility of the caller to close this client
-     * @return
+     * @return es transport client
      */
     @SuppressWarnings("resource")
     public static TransportClient getNewClient() {
