@@ -3,7 +3,7 @@
     <groupId>gov.bnl.channelfinder</groupId>
     <artifactId>ChannelFinderService</artifactId>
     <packaging>war</packaging>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.2-SNAPSHOT</version>
 
     <name>ChannelFinder Directory Service</name>
     <description>ChannelFinderService is a directory server, implemented as a REST style web service.
