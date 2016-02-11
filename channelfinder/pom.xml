@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>gov.bnl.channelfinder</groupId>
     <artifactId>ChannelFinderService</artifactId>
     <packaging>war</packaging>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>3.0.1-SNAPSHOT</version>
 
     <name>ChannelFinder Directory Service</name>
     <description>ChannelFinderService is a directory server, implemented as a REST style web service.
@@ -56,7 +55,8 @@
     <scm>
         <connection>scm:git:https://github.com/ChannelFinder/ChannelFinderService.git</connection>
         <url>https://github.com/ChannelFinder/ChannelFinderService</url>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
     <issueManagement>
         <system>JIRA</system>
         <url>http://java.net/jira/browse/CHANNELFINDER/component/14299</url>
