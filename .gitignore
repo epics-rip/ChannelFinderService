@@ -1,1 +1,3 @@
 /channelfinder/target/
+.settings/
+*.pyc

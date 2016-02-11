@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>gov.bnl.channelfinder</groupId>
     <artifactId>ChannelFinderService</artifactId>
     <packaging>war</packaging>
     <version>1.1.2-SNAPSHOT</version>
-    
+
     <name>ChannelFinder Directory Service</name>
     <description>ChannelFinderService is a directory server, implemented as a REST style web service.
         Its intended use is within control systems, namely the EPICS Control system, for which it
     has been written.</description>
     <url>http://channelfinder.sourceforge.net/ChannelFinderService/</url>
-    
+
     <organization>
         <name>Brookhaven National Laboratory / National Synchrotron Light Source II</name>
         <url>http://www.bnl.gov/ps/</url>
@@ -48,7 +48,9 @@
         <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <servlet.port>8080</servlet.port>
+        <servlet.port>9999</servlet.port>
+        <skipCargoAndRun>false</skipCargoAndRun>
+        <skipNoseTests>false</skipNoseTests>
     </properties>
 
     <scm>
@@ -65,8 +67,8 @@
     </ciManagement>
 
     <distributionManagement>
-    	<!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
-    	(id values there should match ids below) -->
+        <!-- To be able to deploy, set login/passwd in your m2 settings.xml, 
+            <servers> section (id values there should match ids below) -->
         <repository>
             <id>epics.releases</id>
             <name>EPICS Repository</name>
@@ -92,7 +94,13 @@
         <repository>
             <id>java.net2</id>
             <name>Repository hosting the jee6 artifacts</name>
-            <url>https://maven.java.net/content/groups/public/</url>
+            <url>http://download.java.net/maven/2</url>
+        </repository>
+        <repository>
+            <id>snapshot-repository.java.net</id>
+            <name>Java.net Snapshot Repository for Maven</name>
+            <url>https://maven.java.net/content/repositories/snapshots/</url>
+            <layout>default</layout>
         </repository>
         <repository>
             <id>epics</id>
@@ -126,11 +134,43 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey.glassfish.v3</groupId>
-            <artifactId>jersey-gfv3-core</artifactId>
-            <version>1.18.3</version>
-            <scope>provided</scope>
-            <type>pom</type>
+            <groupId>com.google.collections</groupId>
+            <artifactId>google-collections</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>2.10.4</version>
+            <scope>provided</scope> 
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>2.10.4</version>
+            <scope>provided</scope> 
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>2.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.5.1</version>
+            <scope>provided</scope> 
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.5.1</version>
+            <scope>provided</scope> 
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -138,9 +178,10 @@
             <version>18.0</version>
         </dependency>
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.34</version>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId>
+            <version>1.4.17</version>
+            <type>maven-plugin</type>
         </dependency>
     </dependencies>
 
@@ -149,10 +190,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
+                <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
@@ -249,47 +290,50 @@
                 </executions>
             </plugin>
             <plugin>
-              <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
-              <version>1.4.11</version>
-              <configuration>
-                <container>
-                  <containerId>glassfish3x</containerId>
-                  <zipUrlInstaller>
-                    <url>http://download.java.net/glassfish/3.1.2.2/release/glassfish-3.1.2.2.zip</url>
-                  </zipUrlInstaller>
-                  <dependencies>
-                      <dependency>
-                          <groupId>mysql</groupId>
-                          <artifactId>mysql-connector-java</artifactId>
-                      </dependency>
-                  </dependencies>
-                </container>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven2-plugin</artifactId>
+                <version>1.4.17</version>
                 <configuration>
-                    <configfiles>
-                        <configfile>
-                            <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
-                            <todir>cargo-domain/config</todir>
-                        </configfile>
-                    </configfiles>
+                    <skip>${skipCargoAndRun}</skip>
+                    <container>
+                        <containerId>glassfish4x</containerId>
+                        <zipUrlInstaller>
+                            <url>http://download.java.net/glassfish/4.1.1/release/glassfish-4.1.1.zip</url>
+                        </zipUrlInstaller>
+                    </container>
+                    <configuration>
+                    <!--
+                        <properties>
+                            <cargo.servlet.port>${servlet.port}</cargo.servlet.port>
+                            <cargo.glassfish.admin.port>5858</cargo.glassfish.admin.port>
+                            <cargo.glassfish.jms.port>8686</cargo.glassfish.jms.port>
+                            <cargo.hostname>localhost</cargo.hostname>
+                        </properties>
+                        -->
+                        <configfiles>
+                            <configfile>
+                                <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
+                                <todir>cargo-domain/config</todir>
+                            </configfile>
+                        </configfiles>
+                    </configuration>
                 </configuration>
-              </configuration>
-              <executions>
-                  <execution>
-                      <id>start-cargo</id>
-                      <phase>pre-integration-test</phase>
-                      <goals>
-                          <goal>start</goal>
-                      </goals>
-                  </execution>
-                  <execution>
-                      <id>stop-cargo</id>
-                      <phase>post-integration-test</phase>
-                      <goals>
-                          <goal>stop</goal>
-                      </goals>
-                  </execution>
-              </executions>
+                <executions>
+                    <execution>
+                        <id>start-cargo</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-cargo</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -306,6 +350,7 @@
                 <configuration>
                     <executable>nosetests</executable>
                     <workingDirectory>../test</workingDirectory>
+                    <skip>${skipNoseTests}</skip>
                     <arguments>
                         <argument>-v</argument>
                         <argument>-s</argument>
@@ -343,7 +388,8 @@
                 <artifactId>maven-changes-plugin</artifactId>
                 <version>2.11</version>
                 <configuration>
-                    <columnNames>Fix Version,Priority,Type,Summary,Assignee,Key,Status,Resolution</columnNames>
+                    <columnNames>Fix
+                        Version,Priority,Type,Summary,Assignee,Key,Status,Resolution</columnNames>
                     <sortColumnNames>Fix Version,Priority,Key DESC</sortColumnNames>
                     <component>Service</component>
                 </configuration>
@@ -368,6 +414,6 @@
                     </reportSet>
                 </reportSets>
             </plugin>
-         </plugins>
+        </plugins>
     </reporting>
 </project>

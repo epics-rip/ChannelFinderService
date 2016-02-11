@@ -1,22 +1,28 @@
 package gov.bnl.channelfinder;
-/**
+
+/*
  * #%L
  * ChannelFinder Directory Service
  * %%
- * Copyright (C) 2010 - 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * Copyright (C) 2010 - 2015 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
  * %%
  * Copyright (C) 2010 - 2012 Brookhaven National Laboratory
  * All rights reserved. Use is subject to license terms.
  * #L%
  */
 
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.api.json.JSONJAXBContext;
+
 import java.util.Arrays;
-import java.util.List;
+
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
+
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
 /**
  * Gets inserted into JAXB to configure JSON marshalling.
@@ -24,21 +30,32 @@ import javax.xml.bind.JAXBContext;
  * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 @Provider
-public class MyJAXBContextResolver implements ContextResolver<JAXBContext> {
+public class MyJAXBContextResolver implements ContextResolver<ObjectMapper> {
 
-    private JAXBContext context;
-    private List<Class<?>> types = Arrays.asList(XmlChannels.class,
-            XmlProperties.class, XmlTags.class);
+    final ObjectMapper defaultObjectMapper;
+    
+    @SuppressWarnings("rawtypes")
+    private Class[] types = { XmlTag.class, XmlProperty.class, XmlChannel.class };
 
     public MyJAXBContextResolver() throws Exception {
-        this.context = new JSONJAXBContext(
-                JSONConfiguration.mapped()
-                .rootUnwrapping(false)
-                .build(),
-                types.toArray(new Class[types.size()]));
+        defaultObjectMapper = createDefaultMapper();
     }
 
-    public JAXBContext getContext(Class<?> objectType) {
-        return (types.contains(objectType)) ? context : null;
+    public ObjectMapper getContext(Class<?> objectType) {
+        return Arrays.asList(types).contains(objectType) ? defaultObjectMapper:null;
+    }
+    
+    private static ObjectMapper createDefaultMapper() {
+        final ObjectMapper result = new ObjectMapper();
+        result.enable(SerializationFeature.INDENT_OUTPUT);
+        result.setAnnotationIntrospector(createJaxbJacksonAnnotationIntrospector());
+        return result;
+    }
+
+
+    private static AnnotationIntrospector createJaxbJacksonAnnotationIntrospector() {
+        final AnnotationIntrospector jaxbIntrospector = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        final AnnotationIntrospector jacksonIntrospector = new JacksonAnnotationIntrospector();
+        return AnnotationIntrospector.pair(jacksonIntrospector, jaxbIntrospector);
     }
 }
