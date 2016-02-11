@@ -67,7 +67,7 @@ import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
 /**
  * Top level Jersey HTTP methods for the .../properties URL
  *
- * @author Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Kunal Shroff {@literal <shroffk@bnl.gov>}, Ralph Lange {@literal {<Ralph.Lange@helmholtz-berlin.de>}
  */
 @Path("/properties/")
 public class PropertiesResource {

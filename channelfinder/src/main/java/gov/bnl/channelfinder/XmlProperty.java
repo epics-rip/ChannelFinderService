@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * Property object that can be represented as XML/JSON in payload data.
+ * Property object that can be represented as JSON in payload data.
  *
  * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
  */

@@ -71,7 +71,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Top level Jersey HTTP methods for the .../channels URL
  * 
- * @author Ralph Lange {@literal <ralph.lange@gmx.de>}
+ * @author Kunal Shroff {@literal <shroffk@bnl.gov>}, Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 
 @Path("/channels/")

@@ -73,7 +73,7 @@ import gov.bnl.channelfinder.ChannelsResource.OnlyXmlTag;
 /**
  * Top level Jersey HTTP methods for the .../tags URL
  *
- * @author Kunal Shroff <shroffk@bnl.gov>, Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Kunal Shroff {@literal <shroffk@bnl.gov>}, Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 @Path("/tags/")
 public class TagsResource {

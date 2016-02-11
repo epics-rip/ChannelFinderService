@@ -41,10 +41,10 @@ public class ChannelUtil {
     /**
      * Return a list of tag names associated with this channel
      * 
-     * @param channel
+     * @param channel channel to be processed
      * @return Collection of names of tags
      */
-    public static Collection<String> getTagNames(XmlChannel channel) {       
+    public static Collection<String> getTagNames(XmlChannel channel) {
         return Collections2.transform(channel.getTags(), new Function<XmlTag, String>() {
             @Override
             public String apply(XmlTag tag) {
@@ -56,7 +56,7 @@ public class ChannelUtil {
     /**
      * Return a union of tag names associated with channels
      * 
-     * @param channels
+     * @param channels channels to be processed
      * @return a set of all unique tag names associated with atleast one or more
      *         channel in channels
      */
@@ -71,7 +71,7 @@ public class ChannelUtil {
     /**
      * Return a list of property names associated with this channel
      * 
-     * @param channel
+     * @param channel channel to be processed
      * @return Collection of names of properties
      */
     public static Collection<String> getPropertyNames(XmlChannel channel) {
@@ -86,7 +86,7 @@ public class ChannelUtil {
     /**
      * Return a union of property names associated with channels
      * 
-     * @param channels
+     * @param channels channels to be processed
      * @return a set of all unique property names associated with atleast one or
      *         more channel in channels
      */
@@ -101,7 +101,7 @@ public class ChannelUtil {
     /**
      * Returns all the channel Names in the given Collection of channels
      * 
-     * @param channels
+     * @param channels channels to be processed
      * @return a set of all the unique names associated with the each channel in
      *         channels
      */
@@ -118,9 +118,9 @@ public class ChannelUtil {
      * Return the property object with the name <tt>propertyName</tt> if it
      * exists on the channel <tt>channel</tt> else return null
      * 
-     * @param channel
-     * @param propertyName
-     * @return Property
+     * @param channel channel to be processed
+     * @param propertyName name of property being searched
+     * @return Property property object if found
      */
     public static XmlProperty getProperty(XmlChannel channel, String propertyName) {
         Collection<XmlProperty> property = Collections2.filter(channel.getProperties(),

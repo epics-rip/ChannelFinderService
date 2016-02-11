@@ -26,7 +26,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 /**
- * @author Kunal Shroff <shroffk@bnl.gov>
+ * @author Kunal Shroff {@literal <shroffk@bnl.gov>}
  *
  */
 public class ElasticSearchClient implements ServletContextListener {
