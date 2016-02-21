@@ -51,12 +51,12 @@ in the web container.
 1. Install Glassfish v3
 
   Download and install Glassfish v3 from
-  {{{https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
+  (https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
   following the instructions for your platform.
 
 2. Install elastic search
 
-  * Download and install elasticsearch from {{{https://www.elastic.co/downloads/elasticsearch}elastic.com}}
+  * Download and install elasticsearch from [elastic.com](https://www.elastic.co/downloads/elasticsearch)
     following the instructions for your platform.\
     <Alternatively:> Install the elastic server from your distribution using a package manager.
 
@@ -64,7 +64,7 @@ in the web container.
 
   * The Mapping_definitions script (which is avaiable under /channelfinder/src/main/resources) contains the curl commands to setup the 3 elastic indexes associated with channelfinder.
   
-  * For more information of how Index and mappings can be setup using any rest client as described here {{{https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html}create elastic index}}
+  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html)
   
 
 4. Authentication/Authorization
@@ -118,11 +118,11 @@ in the web container.
       * If your site is running an LDAP server, you can skip the next step, and have
         the LDAP manager show you the structure and how to query it.
     
-      * Download and install slapd from {{{http://www.openldap.org/}OpenLDAP.org}}
+      * Download and install slapd from [OpenLDAP.org](http://www.openldap.org/)
         following the instructions for your platform.\
         <Alternatively:> Install the slapd daemon from your distribution using a package manager.
     
-      * Set up users and groups. The <<<ldif/cftest.ldif>>> file in the distribution shows
+      * Set up users and groups. The `ldif/cftest.ldif` file in the distribution shows
         the LDAP entries I create to run the integration tests. That should give you an idea
         about the structures that ChannelFinder expects.
     
@@ -136,7 +136,7 @@ in the web container.
         "com.sun.enterprise.security.auth.realm.ldap.LDAPRealm", and the "JAAS Context" to "ldapRealm".
         "Directory" and "Base DN" should reflect your LDAP configuration. (My integration tests use
         "ldap://localhost:389" as "Directory" and "dc=cf-test,dc=local" as "Base DN" which connects
-        to a slapd on localhost that has loaded the definitions from <<<cftest.ldif>>>.
+        to a slapd on localhost that has loaded the definitions from `cftest.ldif`.
     
       * Add a property called "group-search-filter" with the value "memberUid=%s" to make
         authentication work using the usual posixGroup definitions in the LDAP server.
@@ -202,15 +202,15 @@ SourceForge project site, and Build information.
 7. Using a Generic Client
 
   For in-depth testing of the service, I recommend using the
-{{{http://code.google.com/p/rest-client/}rest-client}} application, that allows a complete
+[rest-client](http://code.google.com/p/rest-client/) application, that allows a complete
 detailed specification of a request and its payload, giving a lot more options than using a browser.
 To use rest-client for SSL connections, you will have to download the server certificate of your
-Glassfish server (e.g. using a web browser), then use <<<keytool>>> to load it into a trust store,
+Glassfish server (e.g. using a web browser), then use `keytool` to load it into a trust store,
 which then can be configured in rest-client.
-{{{http://xcitestudios.com/blog/2011/03/04/using-ssl-in-restclient/}These instructions}} will give
+[These instructions](http://xcitestudios.com/blog/2011/03/04/using-ssl-in-restclient/) will give
 you a general idea.
 
 ###### Using the Integration Tests
 
   If you have set up the necessary users and groups, you can try running the python
-integration tests in <<<test/cftest.py>>> against your server.
+integration tests in `test/cftest.py` against your server.
