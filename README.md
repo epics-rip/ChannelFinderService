@@ -51,7 +51,7 @@ in the web container.
 1. Install Glassfish v3
 
   Download and install Glassfish v3 from
-  (https://glassfish.dev.java.net/public/downloadsindex.html}java.net}}
+  [java.net](https://glassfish.dev.java.net/public/downloadsindex.html)
   following the instructions for your platform.
 
 2. Install elastic search
