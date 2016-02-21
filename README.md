@@ -166,22 +166,25 @@ in the web container.
 
 5. Deploy the ChannelFinder Application
 
-  * Temporary step
-    Currently the v2 of channelfinder is under active development and requires installation from the source
-    Checkout the elasticsearch branch from github
-    git clone -b ElasticSearch https://github.com/ChannelFinder/ChannelFinderService.git
+  * Download the Channelfinder binaries https://sourceforge.net/projects/channelfinder/files/ChannelFinder/ChannelFinder-3.0.1.tar.gz/download
+  * Update the elasticsearch.yml (located under ChannelFinder.war\WEB-INF\classes\) to match the installtion location of your elastic cluster.
+  
+  * Drop the ChannelFinder WAR file `war/ChannelFinder.war` into
+    `GLASSFISH_HOME/domains/domain1/autodeploy`.
+    (You may have to create the autodeploy directory if it doesn't exist yet.)  
+    <Alternatively:> Call `asadmin deploy <WAR-file>` (`asadmin.bat` on Windows)
+    inside `GLASSFISH_HOME/bin`.
+
+
+  * To build from source
+    
+    git clone -b master https://github.com/ChannelFinder/ChannelFinderService.git
     change the configuration in the elasticsearch.yml to match the installation details of your elastic search index.
     build the war 
     mvn clean install
     
     If you do not wish to run the Integration tests add the following
     -DSkipTests=True -DskipCargoAndRun=True -DskipNoseTests=True
-
-  * Drop the ChannelFinder WAR file <<<war/ChannelFinder.war>>> into
-    <<<GLASSFISH_HOME/domains/domain1/autodeploy>>>.
-    (You may have to create the autodeploy directory if it doesn't exist yet.)\
-    <Alternatively:> Call <<<asadmin deploy <WAR-file>>>> (<<<asadmin.bat>>> on Windows)
-    inside <<<GLASSFISH_HOME/bin>>>.
 
 ######Checking the Installation
 
