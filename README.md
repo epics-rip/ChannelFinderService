@@ -42,15 +42,15 @@ in the web container.
 
 * Prerequisites
 
-  * Glassfish v3.1.2.2 application server
+  * Glassfish v4.1 application server
 
   * <For authN/authZ using LDAP:> LDAP server, e.g. OpenLDAP
 
 * Installation Process
 
-1. Install Glassfish v3
+1. Install Glassfish
 
-  Download and install Glassfish v3 from
+  Download and install Glassfish from
   [java.net](https://glassfish.dev.java.net/public/downloadsindex.html)
   following the instructions for your platform.
 
