@@ -1,0 +1,15 @@
+#Channelfinder defaults
+
+ELASTIC_HOST="http://localhost:9200"
+
+CLASSNAME="com.sun.enterprise.security.auth.realm.ldap.LDAPRealm"
+JAAS_CONTEXT="ldapRealm"
+DIRECTORY="ldap://localhost:389"
+BASE_DN="dc=cf-test,dc=local"
+GROUP_BASE_DN="dc=cf-test,dc=local"
+GROUP_SEARCH_FILTER="(&(objectClass\=group)(member\=%d))"
+JAVA_NAMING_REFERRAL="follow"
+SEARCH_FILTER="(&(objectClass\=user)(sAMAccountName\=%s))"
+SEARCH_BIND_PASSWORD="1234"
+SEARCH_BIND_DN="cn=channelfinder,dc=cf-test,dc=local"
+USER_MANAGER="gov.bnl.channelfinder.LDAPUserManager"

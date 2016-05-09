@@ -1,0 +1,19 @@
+This package was debianized by Eric Berryman <berryman@frib.msu.edu> on
+Mon, 09 May 2016 09:37:22 -0400.
+
+
+Upstream Authors:
+
+    Ralph Lange, Kunal Shroff
+
+Copyright:
+
+
+License:
+
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
+
+The Debian packaging is (C) 2011, Eric Berryman <berryman@frib.msu.edu> and
+is licensed under the MIT, see above.

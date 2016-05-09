@@ -1,0 +1,41 @@
+#!/bin/sh
+# /etc/rc.d/init.d/channelfinder:  Controls channelfinder
+#
+# Version: channelfinder 1.0
+#
+# chkconfig: 345 99 01
+# description: EPICS Directory Service
+#
+
+### BEGIN INIT INFO
+# Provides:          channelfinder
+# Required-Start:    $remote_fs $local_fs $network $syslog $time
+# Required-Stop:     $remote_fs $local_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Channelfinder
+# Description:       EPICS Directory Service
+### END INIT INFO
+
+PROG=/usr/share/channelfinder/ChannelFinder.war
+
+
+case $1 in
+start)
+    asadmin deploy ${PROG}
+    ;;
+stop)
+    asadmin undeploy ${PROG}
+    ;;
+status)
+    asadmin list-applications --type web
+    ;;
+restart)
+    asadmin undeploy ${PROG}
+    asadmin deploy ${PROG}
+    ;;
+*)
+    echo $0 "start | stop | status"
+esac
+
+    

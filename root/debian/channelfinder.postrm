@@ -1,0 +1,16 @@
+#!/bin/sh 
+
+
+case "$1" in
+  remove)
+    ;;
+  failed-upgrade)
+    ;;
+  deconfigure)
+    source /etc/channelfinder/glassfish_config_remove
+    ;;
+  *)
+    ;;
+esac
+
+exit 0

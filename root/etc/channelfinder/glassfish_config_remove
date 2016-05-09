@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+asadmin delete-auth-realm channelfinder
+asadmin delete-custom-resource channelfinder/ldapManagerConnection
+asadmin delete-custom-resource channelfinder/userManager
