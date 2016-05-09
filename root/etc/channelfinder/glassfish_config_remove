@@ -1,8 +1,6 @@
 #!/bin/bash
 
 exec sh -ac '. /etc/default/channelfinder
-${ASADMIN} export AS_ADMIN_USER=${ADMIN}
-${ASADMIN} export AS_ADMIN_PASSWORD=${PASS}
 
 ${ASADMIN} delete-auth-realm channelfinder
 ${ASADMIN} delete-custom-resource channelfinder/ldapManagerConnection
