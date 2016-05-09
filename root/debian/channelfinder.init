@@ -18,21 +18,22 @@
 ### END INIT INFO
 
 PROG=/usr/share/channelfinder/ChannelFinder.war
-
+GF_HOME=/home/glassfish/glassfish4/glassfish
+ASADMIN=$GF_HOME/bin/asadmin
 
 case $1 in
 start)
-    asadmin deploy ${PROG}
+    ${ASADMIN} deploy ${PROG}
     ;;
 stop)
-    asadmin undeploy ${PROG}
+    ${ASADMIN} undeploy ${PROG}
     ;;
 status)
-    asadmin list-applications --type web
+    ${ASADMIN} list-applications --type web
     ;;
 restart)
-    asadmin undeploy ${PROG}
-    asadmin deploy ${PROG}
+    ${ASADMIN} undeploy ${PROG}
+    ${ASADMIN} deploy ${PROG}
     ;;
 *)
     echo $0 "start | stop | status"

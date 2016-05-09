@@ -3,7 +3,7 @@
 
 case "$1" in
   configure)
-    source /etc/channelfinder/glassfish_config_create 
+    . /etc/channelfinder/glassfish_config_create 
     ;;
   abort-upgrade)
     :

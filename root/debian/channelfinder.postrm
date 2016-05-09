@@ -7,7 +7,7 @@ case "$1" in
   failed-upgrade)
     ;;
   deconfigure)
-    source /etc/channelfinder/glassfish_config_remove
+    . /etc/channelfinder/glassfish_config_remove
     ;;
   *)
     ;;
