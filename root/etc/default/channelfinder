@@ -2,6 +2,8 @@
 
 GF_HOME=/home/glassfish/glassfish4/glassfish
 ASADMIN=$GF_HOME/bin/asadmin
+ADMIN=admin
+PASS=adminadmin
 
 ELASTIC_HOST="http\://localhost\:9200"
 
