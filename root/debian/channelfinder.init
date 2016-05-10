@@ -35,8 +35,18 @@ restart)
     ${ASADMIN} undeploy ${PROG}
     ${ASADMIN} deploy ${PROG}
     ;;
+configure)
+    . /etc/channelfinder/glassfish_config_create
+    ;;
+deconfigure)
+    . /etc/channelfinder/glassfish_config_remove
+    ;;
+reconfigure)
+    . /etc/channelfinder/glassfish_config_remove
+    . /etc/channelfinder/glassfish_config_create
+    ;;
 *)
-    echo $0 "start | stop | status"
+    echo $0 "start | stop | status | configure | deconfigure | reconfigure"
 esac
 
     
