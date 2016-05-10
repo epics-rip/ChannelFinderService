@@ -17,13 +17,14 @@
 # Description:       EPICS Directory Service
 ### END INIT INFO
 
-PROG=/usr/share/channelfinder/ChannelFinder.war
+PROG=/usr/share/channelfinder/ChannelFinder
+PROG_WAR=/usr/share/channelfinder/ChannelFinder.war
 GF_HOME=/home/glassfish/glassfish4/glassfish
 ASADMIN=$GF_HOME/bin/asadmin
 
 case $1 in
 start)
-    ${ASADMIN} deploy ${PROG}
+    ${ASADMIN} deploy ${PROG_WAR}
     ;;
 stop)
     ${ASADMIN} undeploy ${PROG}
@@ -33,7 +34,7 @@ status)
     ;;
 restart)
     ${ASADMIN} undeploy ${PROG}
-    ${ASADMIN} deploy ${PROG}
+    ${ASADMIN} deploy ${PROG_WAR}
     ;;
 configure)
     . /etc/channelfinder/glassfish_config_create
