@@ -15,9 +15,9 @@
 
 
 #Create the Index
-curl -XPUT '${ELASTIC_HOST}/tags'
+curl -XPUT "${ELASTIC_HOST}/tags"
 #Set the mapping
-curl -XPUT '${ELASTIC_HOST}/tags/_mapping/tag' -d'
+curl -XPUT "${ELASTIC_HOST}/tags/_mapping/tag" -d'
 {
   "tag" : {
     "properties" : {
@@ -31,8 +31,8 @@ curl -XPUT '${ELASTIC_HOST}/tags/_mapping/tag' -d'
   }
 }'
 
-curl -XPUT '${ELASTIC_HOST}/properties'
-curl -XPUT '${ELASTIC_HOST}/properties/_mapping/property' -d'
+curl -XPUT "${ELASTIC_HOST}/properties"
+curl -XPUT "${ELASTIC_HOST}/properties/_mapping/property" -d'
 {
   "property" : {
     "properties" : {
@@ -46,8 +46,8 @@ curl -XPUT '${ELASTIC_HOST}/properties/_mapping/property' -d'
   }
 }'
 
-curl -XPUT '${ELASTIC_HOST}/channelfinder'
-curl -XPUT '${ELASTIC_HOST}/channelfinder/_mapping/channel' -d'
+curl -XPUT "${ELASTIC_HOST}/channelfinder"
+curl -XPUT "${ELASTIC_HOST}/channelfinder/_mapping/channel" -d'
 {
   "channel" : {
     "properties" : {
