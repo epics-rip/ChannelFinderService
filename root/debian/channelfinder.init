@@ -24,6 +24,7 @@ ASADMIN=$GF_HOME/bin/asadmin
 
 case $1 in
 start)
+    jar -uf ${PROG_WAR} -C /etc/channelfinder WEB-INF/classes/elasticsearch.yml
     ${ASADMIN} deploy ${PROG_WAR}
     ;;
 stop)
