@@ -42,7 +42,7 @@ in the web container.
 
 * Prerequisites
 
-  * Glassfish v4.1 application server
+  * Glassfish v4.1.1 application server
 
   * <For authN/authZ using LDAP:> LDAP server, e.g. OpenLDAP
 
