@@ -19,13 +19,12 @@ import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -52,6 +51,7 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -60,13 +60,13 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.DisMaxQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Top level Jersey HTTP methods for the .../channels URL
@@ -109,6 +109,7 @@ public class ChannelsResource {
             MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
             BoolQueryBuilder qb = boolQuery();
             int size = 10000;
+            int from = 0;
             for (Entry<String, List<String>> parameter : parameters.entrySet()) {
                 switch (parameter.getKey()) {
                 case "~name":
@@ -136,6 +137,15 @@ public class ChannelsResource {
             		if (maxSize.isPresent()) {
             			size = Integer.valueOf(maxSize.get());
             		}
+            		break;
+                case "~from":
+            		Optional<String> maxFrom = parameter.getValue().stream().max((o1, o2) -> {
+            				return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
+            		});
+            		if (maxFrom.isPresent()) {
+            			from = Integer.valueOf(maxFrom.get());
+            		}
+            		break;
                 default:
                     DisMaxQueryBuilder propertyQuery = disMaxQuery();
                     for (String value : parameter.getValue()) {
@@ -153,7 +163,12 @@ public class ChannelsResource {
             
             performance.append("|prepare:" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
-            final SearchResponse qbResult = client.prepareSearch("channelfinder").setQuery(qb).setSize(size).execute().actionGet();
+            SearchRequestBuilder builder = client.prepareSearch("channelfinder").setQuery(qb).setSize(size);
+            if(from >= 0){
+            	builder.addSort(SortBuilders.fieldSort("name"));
+            	builder.setFrom(from);
+            }
+            final SearchResponse qbResult = builder.execute().actionGet();
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             final ObjectMapper mapper = new ObjectMapper();
@@ -185,7 +200,6 @@ public class ChannelsResource {
             log.info(user + "|" + uriInfo.getPath() + "|GET|OK" + performance.toString() + "|total:"
                     + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
                     + "|returns " + qbResult.getHits().getTotalHits() + " channels");
-//            log.info( qbResult.getHits().getTotalHits() + " " +(System.currentTimeMillis() - totalStart));
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
