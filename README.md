@@ -1,4 +1,6 @@
 ### ChannelFinderService 
+[![Build Status](https://travis-ci.org/ChannelFinder/ChannelFinderService.svg?branch=master)](https://travis-ci.org/ChannelFinder/ChannelFinderService)
+
 A simple directory service
 
 ##### ChannelFinder Overview
