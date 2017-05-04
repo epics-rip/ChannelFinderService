@@ -19,10 +19,7 @@ package gov.bnl.channelfinder;
 
 import java.util.Collection;
 import java.util.HashSet;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
+import java.util.stream.Collectors;
 
 
 /**
@@ -45,12 +42,7 @@ public class ChannelUtil {
      * @return Collection of names of tags
      */
     public static Collection<String> getTagNames(XmlChannel channel) {
-        return Collections2.transform(channel.getTags(), new Function<XmlTag, String>() {
-            @Override
-            public String apply(XmlTag tag) {
-                return tag.getName();
-            }
-        });
+        return channel.getTags().stream().map(XmlTag::getName).collect(Collectors.toSet());
     }
 
     /**
@@ -75,12 +67,7 @@ public class ChannelUtil {
      * @return Collection of names of properties
      */
     public static Collection<String> getPropertyNames(XmlChannel channel) {
-        return Collections2.transform(channel.getProperties(), new Function<XmlProperty, String>() {
-            @Override
-            public String apply(XmlProperty property) {
-                return property.getName();
-            }
-        });
+        return channel.getProperties().stream().map(XmlProperty::getName).collect(Collectors.toSet());
     }
 
     /**
@@ -123,27 +110,12 @@ public class ChannelUtil {
      * @return Property property object if found
      */
     public static XmlProperty getProperty(XmlChannel channel, String propertyName) {
-        Collection<XmlProperty> property = Collections2.filter(channel.getProperties(),
-                new PropertyNamePredicate(propertyName));
+        Collection<XmlProperty> property = channel.getProperties().stream()
+                .filter(p -> p.getName().equals(propertyName)).collect(Collectors.toSet());
         if (property.size() == 1)
             return property.iterator().next();
         else
             return null;
     }
 
-    private static class PropertyNamePredicate implements Predicate<XmlProperty> {
-
-        private String propertyName;
-
-        PropertyNamePredicate(String propertyName) {
-            this.propertyName = propertyName;
-        }
-
-        @Override
-        public boolean apply(XmlProperty input) {
-            if (input.getName().equals(propertyName))
-                return true;
-            return false;
-        }
-    }
 }

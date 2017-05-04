@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -65,8 +66,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 
 import gov.bnl.channelfinder.ChannelsResource.OnlyXmlTag;
 
@@ -242,12 +241,8 @@ public class TagsResource {
 
                 Set<String> newChannels = new HashSet<String>();
                 if (data.getChannels() != null) {
-                    newChannels.addAll(Collections2.transform(data.getChannels(), new Function<XmlChannel, String>() {
-                        @Override
-                        public String apply(XmlChannel channel) {
-                            return channel.getName();
-                        }
-                    }));
+                    newChannels
+                            .addAll(data.getChannels().stream().map(XmlChannel::getName).collect(Collectors.toSet()));
                 }
 
                 Set<String> remove = new HashSet<String>(existingChannels);
@@ -345,12 +340,7 @@ public class TagsResource {
                 Set<String> newChannels = new HashSet<String>();
                 if (xmlTag.getChannels() != null) {
                     newChannels.addAll(
-                            Collections2.transform(xmlTag.getChannels(), new Function<XmlChannel, String>() {
-                                @Override
-                                public String apply(XmlChannel channel) {
-                                    return channel.getName();
-                                }
-                            }));
+                            xmlTag.getChannels().stream().map(XmlChannel::getName).collect(Collectors.toList()));
                 }
 
                 Set<String> remove = new HashSet<String>(existingChannels);
