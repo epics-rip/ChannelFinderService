@@ -26,3 +26,6 @@ script:
 
 after_script:
   - sudo /etc/init.d/elasticsearch stop
+  
+after_failure:
+  -  find . -type f -name "*.log" -print0 -exec cat {} \;
