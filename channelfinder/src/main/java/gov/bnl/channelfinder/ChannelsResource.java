@@ -19,7 +19,6 @@ import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +65,11 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 /**
  * Top level Jersey HTTP methods for the .../channels URL
  * 
@@ -126,7 +128,7 @@ public class ChannelsResource {
                         for (String pattern : value.split("\\|")) {
                             tagQuery.add(wildcardQuery("tags.name", pattern.trim()));
                         }
-                        qb.must(nestedQuery("tags", tagQuery));
+                        qb.must(nestedQuery("tags", tagQuery, ScoreMode.Avg));
                     }
                     break;
                 case "~size":
@@ -143,7 +145,8 @@ public class ChannelsResource {
                             propertyQuery.add(nestedQuery("properties",
                                     boolQuery()
                                             .must(matchQuery("properties.name", parameter.getKey().trim()))
-                                            .must(wildcardQuery("properties.value", pattern.trim()))));
+                                            .must(wildcardQuery("properties.value", pattern.trim())),
+                                    ScoreMode.Avg));
                         }
                     }
                     qb.must(propertyQuery);
@@ -219,7 +222,7 @@ public class ChannelsResource {
             }
             String prepare = "|Prepare: " + (System.currentTimeMillis()-start) + "|";
             start = System.currentTimeMillis();
-            bulkRequest.setRefresh(true);
+            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             String execute = "|Execute: " + (System.currentTimeMillis()-start)+"|";
             start = System.currentTimeMillis();
@@ -317,7 +320,7 @@ public class ChannelsResource {
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", chan)
                     .source(mapper.writeValueAsBytes(data));
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest).refresh(true);
+                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest).setRefreshPolicy(RefreshPolicy.IMMEDIATE);
             UpdateResponse result = client.update(updateRequest).actionGet();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + XmlChannel.toLog(data));
@@ -376,7 +379,7 @@ public class ChannelsResource {
                 }).collect(Collectors.toList()));
                 channel.setTags(data.getTags());
                 UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                        .doc(mapper.writeValueAsBytes(channel)).refresh(true);
+                        .doc(mapper.writeValueAsBytes(channel)).setRefreshPolicy(RefreshPolicy.IMMEDIATE);
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
                 start = System.currentTimeMillis();
                 UpdateResponse result = client.update(updateRequest).actionGet();
@@ -421,7 +424,7 @@ public class ChannelsResource {
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", originalChannel.getName())
                     .source(mapper.writeValueAsBytes(originalChannel));
             bulkRequest.add(indexRequest);
-            bulkRequest.setRefresh(true);
+            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
             BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
@@ -461,8 +464,8 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse response = client.prepareDelete("channelfinder", "channel", chan).setRefresh(true).execute().get();
-            if(response.isFound()){
+            DeleteResponse deleteResponse = client.prepareDelete("channelfinder", "channel", chan).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().get();
+            if(deleteResponse.getResult() == DocWriteResponse.Result.DELETED){
                 Response r = Response.ok().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
                 return r;

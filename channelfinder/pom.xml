@@ -67,7 +67,7 @@
     </ciManagement>
 
     <distributionManagement>
-        <!-- To be able to deploy, set login/passwd in your m2 settings.xml, 
+        <!-- To be able to deploy, set login/passwd in your m2 settings.xml,
             <servers> section (id values there should match ids below) -->
         <repository>
             <id>epics.releases</id>
@@ -141,19 +141,24 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>1.5.2</version>
+            <version>5.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>transport</artifactId>
+            <version>5.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
             <version>2.10.4</version>
-            <scope>provided</scope> 
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
             <version>2.10.4</version>
-            <scope>provided</scope> 
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -164,13 +169,13 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>2.5.1</version>
-            <scope>provided</scope> 
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.5.1</version>
-            <scope>provided</scope> 
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -235,16 +240,52 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin> 
-                <artifactId>maven-deploy-plugin</artifactId> 
-                <version>2.8.2</version> 
-                <dependencies> 
-                    <dependency> 
-                        <groupId>org.apache.maven.wagon</groupId> 
-                        <artifactId>wagon-ssh</artifactId> 
-                        <version>2.8</version> 
-                    </dependency> 
-                </dependencies> 
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>fish.payara.extras</groupId>
+                        <artifactId>payara-micro</artifactId>
+                        <version>4.1.1.162</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>payara-uber-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>fish.payara.micro.PayaraMicro</mainClass>
+                            <arguments>
+                               <argument>--deploy</argument>
+                               <argument>${basedir}/target/${project.build.finalName}.war</argument>
+                               <argument>--outputUberJar</argument>
+                               <argument>${basedir}/target/${project.build.finalName}.jar</argument>
+                            </arguments>
+                            <includeProjectDependencies>false</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>fish.payara.extras</groupId>
+                                <artifactId>payara-micro</artifactId>
+                            </executableDependency>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh</artifactId>
+                        <version>2.8</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
