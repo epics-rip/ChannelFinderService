@@ -15,6 +15,7 @@ package gov.bnl.channelfinder;
  */
 
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
@@ -71,14 +72,20 @@ public class ElasticSearchClient implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        log.info("Initializing a new Transport clients.");
-        searchClient = new PreBuiltTransportClient(Settings.EMPTY);
-        indexClient = new PreBuiltTransportClient(Settings.EMPTY);
-        settings = searchClient.settings();
-        String host = settings.get("network.host");
-        int port = Integer.valueOf(settings.get("transport.tcp.port"));
-        searchClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
-        indexClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+        try {
+            log.info("Initializing a new Transport clients.");
+            String yaml  = "elasticsearch.yml";
+            settings = Settings.builder().loadFromStream(yaml,getClass().getClassLoader().getResourceAsStream(yaml)).build();
+            String host = settings.get("network.host");
+            int port = Integer.valueOf(settings.get("transport.tcp.port"));
+            
+            searchClient = new PreBuiltTransportClient(settings);
+            indexClient = new PreBuiltTransportClient(settings);
+            searchClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+            indexClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+        } catch (IOException e) {
+            log.severe(e.getMessage());
+        }
     }
 
     @Override
