@@ -72,8 +72,8 @@ public class ElasticSearchClient implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         log.info("Initializing a new Transport clients.");
-        searchClient = new PreBuiltTransportClient(settings);
-        indexClient = new PreBuiltTransportClient(settings);
+        searchClient = new PreBuiltTransportClient(Settings.EMPTY);
+        indexClient = new PreBuiltTransportClient(Settings.EMPTY);
         settings = searchClient.settings();
         String host = settings.get("network.host");
         int port = Integer.valueOf(settings.get("transport.tcp.port"));
