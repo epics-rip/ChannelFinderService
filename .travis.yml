@@ -5,7 +5,7 @@ jdk:
   - oraclejdk8
 
 before_install:
-  - curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.7.3.deb && sudo dpkg -i --force-confnew elasticsearch-1.7.3.deb
+  - curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-5.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-5.4.0.deb
 
 install:
   - sudo apt-get update
@@ -13,8 +13,8 @@ install:
   
 before_script:
   - sleep 10
-  - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
-  - 'echo "script.inline: on" | sudo tee -a /etc/elasticsearch/indexed.yml'
+  - 'echo "script.inline: true" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
+  - 'echo "script.inline: true" | sudo tee -a /etc/elasticsearch/indexed.yml'
   - sudo /etc/init.d/elasticsearch start
   - sleep 25
   - curl -XGET 'http://localhost:9200/_cluster/health?pretty'
