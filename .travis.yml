@@ -23,7 +23,7 @@ before_script:
   
 script:
   - channelfinder/src/main/resources/mapping_definitions.sh
-  - mvn -X clean verify -fchannelfinder/pom.xml
+  - mvn clean verify -fchannelfinder/pom.xml
 
 after_script:
   - sudo /etc/init.d/elasticsearch stop
