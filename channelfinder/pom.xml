@@ -399,7 +399,7 @@
                 </executions>
                 <configuration>
                     <executable>nosetests</executable>
-                    <workingDirectory>../test</workingDirectory>
+                    <workingDirectory>${project.basedir}/../test</workingDirectory>
                     <skip>${skipNoseTests}</skip>
                     <arguments>
                         <argument>-v</argument>
