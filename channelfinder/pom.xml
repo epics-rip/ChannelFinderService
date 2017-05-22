@@ -405,7 +405,7 @@
                         <argument>-v</argument>
                         <argument>-s</argument>
                         <argument>--with-xunit</argument>
-                        <argument>--xunit-file=${project.build.directory}/failsafe-reports/nosetests.xml</argument>
+
                     </arguments>
                 </configuration>
             </plugin>
