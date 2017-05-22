@@ -169,7 +169,7 @@ public class ChannelsResource {
             start = System.currentTimeMillis();
             SearchRequestBuilder builder = client.prepareSearch("channelfinder").setQuery(qb).setSize(size);
             if(from >= 0){
-            	builder.addSort(SortBuilders.fieldSort("name"));
+            	builder.addSort(SortBuilders.fieldSort("name.keyword"));
             	builder.setFrom(from);
             }
             final SearchResponse qbResult = builder.execute().actionGet();
