@@ -65,6 +65,8 @@ import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 
 /**
  * Top level Jersey HTTP methods for the .../properties URL
@@ -215,7 +217,6 @@ public class PropertiesResource {
                     param.put("value", property.getValue());
                     for (XmlChannel channel : property.getChannels()) {
                         bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
-                                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                                 .script("removeProperty = new Object();"
                                         + "for (xmlProp in ctx._source.properties) "
                                         + "{ if (xmlProp.name == property.name) { removeProperty = xmlProp} }; "
@@ -332,7 +333,7 @@ public class PropertiesResource {
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject());
             UpdateRequest updateRequest = new UpdateRequest("properties", "property", prop).doc(jsonBuilder()
                     .startObject().field("name", data.getName()).field("owner", data.getOwner()).endObject())
-                    .upsert(indexRequest).setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+                    .upsert(indexRequest);
             bulkRequest.add(updateRequest);
             
             SearchResponse qbResult = client.prepareSearch("channelfinder")
@@ -343,7 +344,7 @@ public class PropertiesResource {
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.field("name").getValue().toString();
-                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName)
                             .script("removeProp = new Object();" 
                                     + "for (xmlProp in ctx._source.properties) "
                                     + "{ if (xmlProp.name == prop) { removeProp = xmlProp} }; "
@@ -364,7 +365,6 @@ public class PropertiesResource {
                     }
                     param.put("value", ChannelUtil.getProperty(channel, data.getName()).getValue());
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
-                            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                             .script("ctx._source.properties.add(prop)")
                             .addScriptParam("prop", param));
                 }
@@ -454,7 +454,6 @@ public class PropertiesResource {
                         .setSize(10000).execute().actionGet();
                 for (SearchHit hit : queryResponse.getHits()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", hit.getId())
-                            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                             .script("origProp = new Object();"
                                     + "for (xmlProp in ctx._source.properties) "
                                     + "{ if (xmlProp.name == prop.name) { origProp = xmlProp} }; "
@@ -477,7 +476,6 @@ public class PropertiesResource {
                     }
                     param.put("value", value);
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
-                            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                             .script("removeProp = new Object();"
                                     + "for (property in ctx._source.properties) "
                                     + "{ if (property.name == prop.name) { removeProp = property} }; "
@@ -535,7 +533,6 @@ public class PropertiesResource {
                 param.put("name", data.getName());
                 for (String channel : channelNames) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel)
-                            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                             .script("origProp = new Object();"
                                     + "for (xmlProp in ctx._source.properties) "
                                     + "{ if (xmlProp.name == originalProp.name) { origProp = xmlProp} }; "
@@ -593,7 +590,7 @@ public class PropertiesResource {
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.field("name").getValue().toString();
-                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName).setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
+                    bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName)
                             .script("removeProp = new Object();" 
                                     + "for (xmlProp in ctx._source.properties) "
                                     + "{ if (xmlProp.name == prop) { removeProp = xmlProp} }; "
@@ -656,21 +653,20 @@ public class PropertiesResource {
             mapper.addMixIn(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
             if (result != null) {
-                HashMap<String, String> param = new HashMap<String, String>(); 
-                param.put("name", data.getName());
-                param.put("value", data.getValue());
+                XContentBuilder xb =  XContentFactory.jsonBuilder().startObject();
+                xb.startArray("properties");
+                xb.startObject();
+                xb.field("name", data.getName());      
+                xb.field("value", data.getValue());
                 // ignores the provided user and matches the one present in the properties index
-                param.put("owner", result.getOwner());
+                xb.field("owner", result.getOwner());
+                xb.endObject();
+                xb.endArray();
+                xb.endObject();
 
-                UpdateResponse updateResponse = client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-                        .script("removeProps = new java.util.ArrayList(); "
-                                + "for (property in ctx._source.properties) "
-                                + "{ if (property.name == prop.name) { removeProps.add(property)} }; "
-                                + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp)}; "
-                                + "ctx._source.properties.add(prop)")
-                        .addScriptParam("prop", param))
-                        .actionGet();
+                client.update(new UpdateRequest("channelfinder", "channel", chan)
+                        .doc(xb)).get();
+
                 Response r = Response.ok().build();
                 return r;
             }else{
@@ -707,7 +703,7 @@ public class PropertiesResource {
                         .script(" removeProps = new java.util.ArrayList();" + "for (property in ctx._source.properties)"
                                 + "{ if (property.name == prop) { removeProps.add(property)} };"
                                 + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp)}")
-                        .addScriptParam("prop", prop).setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)).actionGet();
+                        .addScriptParam("prop", prop)).actionGet();
                 Response r = Response.ok().build();
                 return r;
             } else {

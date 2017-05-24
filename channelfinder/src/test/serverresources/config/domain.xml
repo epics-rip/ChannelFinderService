@@ -2,23 +2,23 @@
   #%L
   ChannelFinder Directory Service
   %%
-  Copyright (C) 2010 - 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+  Copyright (C) 2010 - 2017 Brookhaven National Laboratory / National Synchrotron Light Source II
   %%
   Copyright (C) 2010 - 2012 Brookhaven National Laboratory
   All rights reserved. Use is subject to license terms.
   #L%
   -->
-<domain application-root="${com.sun.aas.instanceRoot}/applications" version="1" log-root="${com.sun.aas.instanceRoot}/logs">
+<domain application-root="${com.sun.aas.instanceRoot}/applications" version="235" log-root="${com.sun.aas.instanceRoot}/logs">
   <security-configurations>
     <authentication-service default="true" name="adminAuth" use-password-credential="true">
       <security-provider provider-name="adminSpc" name="spcrealm" type="LoginModule">
-        <login-module-config control-flag="sufficient" module-class="com.sun.enterprise.admin.util.AdminLoginModule" name="adminSpecialLM">
+        <login-module-config module-class="com.sun.enterprise.admin.util.AdminLoginModule" control-flag="sufficient" name="adminSpecialLM">
           <property name="config" value="server-config"></property>
           <property name="auth-realm" value="admin-realm"></property>
         </login-module-config>
       </security-provider>
       <security-provider provider-name="adminFile" name="filerealm" type="LoginModule">
-        <login-module-config control-flag="sufficient" module-class="com.sun.enterprise.security.auth.login.FileLoginModule" name="adminFileLM">
+        <login-module-config module-class="com.sun.enterprise.security.auth.login.FileLoginModule" control-flag="sufficient" name="adminFileLM">
           <property name="config" value="server-config"></property>
           <property name="auth-realm" value="admin-realm"></property>
         </login-module-config>
@@ -32,7 +32,7 @@
   </security-configurations>
   <managed-job-config></managed-job-config>
   <system-applications>
-    <application context-root="" object-type="system-admin" directory-deployed="true" name="__admingui" location="${com.sun.aas.installRootURI}/lib/install/applications/__admingui">
+    <application context-root="" object-type="system-admin" name="__admingui" directory-deployed="true" location="${com.sun.aas.installRootURI}/lib/install/applications/__admingui">
       <module name="__admingui">
         <engine sniffer="web"></engine>
         <engine sniffer="security"></engine>
@@ -54,7 +54,7 @@
       <property name="DatabaseName" value="sun-appserv-samples"></property>
       <property name="connectionAttributes" value=";create=true"></property>
     </jdbc-connection-pool>
-    <connector-connection-pool max-pool-size="250" resource-adapter-name="jmsra" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
+    <connector-connection-pool resource-adapter-name="jmsra" max-pool-size="250" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
     <connector-resource pool-name="jms/__defaultConnectionFactory-Connection-Pool" object-type="system-all-req" jndi-name="jms/__defaultConnectionFactory"></connector-resource>
     <context-service object-type="system-all" jndi-name="concurrent/__defaultContextService"></context-service>
     <managed-executor-service object-type="system-all" jndi-name="concurrent/__defaultManagedExecutorService"></managed-executor-service>
@@ -62,7 +62,7 @@
     <managed-thread-factory object-type="system-all" jndi-name="concurrent/__defaultManagedThreadFactory"></managed-thread-factory>
   </resources>
   <servers>
-    <server name="server" config-ref="server-config">
+    <server config-ref="server-config" name="server">
       <application-ref ref="__admingui" virtual-servers="__asadmin"></application-ref>
       <application-ref ref="ChannelFinder" virtual-servers="server"></application-ref>
       <resource-ref ref="jdbc/__TimerPool"></resource-ref>
@@ -105,9 +105,6 @@
       <connector-service></connector-service>
       <transaction-service tx-log-dir="${com.sun.aas.instanceRoot}/logs"></transaction-service>
       <batch-runtime-configuration></batch-runtime-configuration>
-      <jms-service default-jms-host="default_JMS_host" type="EMBEDDED">
-        <jms-host port="${JMS_PROVIDER_PORT}" host="localhost" name="default_JMS_host"></jms-host>
-      </jms-service>
       <ejb-container>
         <ejb-timer-service></ejb-timer-service>
       </ejb-container>
@@ -120,8 +117,18 @@
           <session-properties></session-properties>
         </session-config>
       </web-container>
-      <rest-config></rest-config>
       <cdi-service></cdi-service>
+      <notification-service-configuration>
+        <log-notifier-configuration></log-notifier-configuration>
+      </notification-service-configuration>
+      <hazelcast-runtime-configuration></hazelcast-runtime-configuration>
+      <request-tracing-service-configuration>
+        <log-notifier></log-notifier>
+      </request-tracing-service-configuration>
+      <health-check-service-configuration>
+        <log-notifier></log-notifier>
+      </health-check-service-configuration>
+      <phone-home-runtime-configuration phone-home-id="d5a74c7b-0946-4672-bf78-85a684d2d977"></phone-home-runtime-configuration>
       <diagnostic-service></diagnostic-service>
       <security-service>
         <auth-realm classname="com.sun.enterprise.security.auth.realm.file.FileRealm" name="admin-realm">
@@ -250,7 +257,7 @@
         </transports>
       </network-config>
       <thread-pools>
-        <thread-pool name="admin-thread-pool" max-thread-pool-size="50" max-queue-size="256"></thread-pool>
+        <thread-pool name="admin-thread-pool" max-queue-size="256" max-thread-pool-size="50"></thread-pool>
         <thread-pool name="http-thread-pool"></thread-pool>
         <thread-pool name="thread-pool-1" max-thread-pool-size="200"></thread-pool>
       </thread-pools>
@@ -298,9 +305,6 @@
         <ejb-timer-service></ejb-timer-service>
       </ejb-container>
       <mdb-container></mdb-container>
-      <jms-service addresslist-behavior="priority" default-jms-host="default_JMS_host" type="EMBEDDED">
-        <jms-host port="${JMS_PROVIDER_PORT}" name="default_JMS_host" host="localhost"></jms-host>
-      </jms-service>
       <log-service file="${com.sun.aas.instanceRoot}/logs/server.log" log-rotation-limit-in-bytes="2000000">
         <module-log-levels></module-log-levels>
       </log-service>
@@ -391,7 +395,6 @@
       <availability-service>
         <web-container-availability></web-container-availability>
         <ejb-container-availability sfsb-store-pool-name="jdbc/hastore"></ejb-container-availability>
-        <jms-availability></jms-availability>
       </availability-service>
       <network-config>
         <protocols>
@@ -439,7 +442,7 @@
       <thread-pools>
         <thread-pool name="http-thread-pool"></thread-pool>
         <thread-pool name="thread-pool-1" max-thread-pool-size="200"></thread-pool>
-        <thread-pool name="admin-thread-pool" max-queue-size="256" max-thread-pool-size="50"></thread-pool>
+        <thread-pool name="admin-thread-pool" max-thread-pool-size="50" max-queue-size="256"></thread-pool>
       </thread-pools>
       <group-management-service>
         <failure-detection></failure-detection>
@@ -466,9 +469,10 @@
   </secure-admin>
   <clusters></clusters>
   <applications>
-    <application context-root="/ChannelFinder" location="${com.sun.aas.instanceRootURI}/applications/ChannelFinder/" name="ChannelFinder" object-type="user">
-      <property name="appLocation" value="${com.sun.aas.instanceRootURI}/applications/__internal/ChannelFinder/ChannelFinder.war"></property>
-      <property name="defaultAppName" value="ChannelFinder"></property>
+    <application context-root="/ChannelFinder" object-type="user" name="ChannelFinder" location="${com.sun.aas.instanceRootURI}/applications/ChannelFinder/" availability-enabled="true">
+      <property name="appLocation" value="${com.sun.aas.instanceRootURI}/applications/__internal/ChannelFinder/app2786815389624848372tmp"></property>
+      <property name="archiveType" value="war"></property>
+      <property name="defaultAppName" value="app2786815389624848372tmp"></property>
       <module name="ChannelFinder">
         <engine sniffer="security"></engine>
         <engine sniffer="web"></engine>

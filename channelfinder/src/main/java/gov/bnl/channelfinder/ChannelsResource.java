@@ -335,7 +335,7 @@ public class ChannelsResource {
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", chan)
                     .source(mapper.writeValueAsBytes(data));
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest).setRefreshPolicy(RefreshPolicy.IMMEDIATE);
+                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest);
             UpdateResponse result = client.update(updateRequest).actionGet();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + XmlChannel.toLog(data));
@@ -394,7 +394,7 @@ public class ChannelsResource {
                 }).collect(Collectors.toList()));
                 channel.setTags(data.getTags());
                 UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                        .doc(mapper.writeValueAsBytes(channel)).setRefreshPolicy(RefreshPolicy.IMMEDIATE);
+                        .doc(mapper.writeValueAsBytes(channel));
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
                 start = System.currentTimeMillis();
                 UpdateResponse result = client.update(updateRequest).actionGet();
@@ -479,7 +479,7 @@ public class ChannelsResource {
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            DeleteResponse deleteResponse = client.prepareDelete("channelfinder", "channel", chan).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().get();
+            DeleteResponse deleteResponse = client.prepareDelete("channelfinder", "channel", chan).execute().get();
             if(deleteResponse.getResult() == DocWriteResponse.Result.DELETED){
                 Response r = Response.ok().build();
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|DELETE|OK|" + r.getStatus());
