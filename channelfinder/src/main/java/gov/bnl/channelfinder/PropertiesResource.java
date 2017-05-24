@@ -62,11 +62,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.bnl.channelfinder.ChannelsResource.OnlyXmlProperty;
 import gov.bnl.channelfinder.TagsResource.MyMixInForXmlChannels;
+import java.util.concurrent.ExecutionException;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.transport.RemoteTransportException;
 
 /**
  * Top level Jersey HTTP methods for the .../properties URL
@@ -673,9 +675,9 @@ public class PropertiesResource {
                 return handleException(um.getUserName(), "PUT", Status.BAD_REQUEST,
                         "Property " +prop+ " does not exist ");
             }
-        } catch (DocumentMissingException e) {
+        } catch (DocumentMissingException | RemoteTransportException | ExecutionException e) {
             return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST,
-                    "Channels specified in property update do not exist" + e.getDetailedMessage());
+                    "Channels specified in property update do not exist" + e.getMessage());
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
