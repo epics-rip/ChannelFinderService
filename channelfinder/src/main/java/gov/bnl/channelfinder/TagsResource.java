@@ -68,9 +68,13 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 
 import gov.bnl.channelfinder.ChannelsResource.OnlyXmlTag;
+import java.util.concurrent.ExecutionException;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.transport.RemoteTransportException;
 
 /**
  * Top level Jersey HTTP methods for the .../tags URL
@@ -722,18 +726,20 @@ public class TagsResource {
             
             if (result != null) {
 //                if(um.userHasAdminRole() || um.userIsInGroup(result.getOwner())){
-                if (validateTag(result, data)) {
-                    HashMap<String, String> param = new HashMap<String, String>();
-                    param.put("name", result.getName());
-                    param.put("owner", result.getOwner());
-                    UpdateResponse updateResponse = client
-                            .update(new UpdateRequest("channelfinder", "channel", chan)
-                                    .script("removeTags = new java.util.ArrayList();" + "for (tag in ctx._source.tags) "
-                                            + "{ if (tag.name == tag.name) { removeTags.add(tag)} }; "
-                                            + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag)};"
-                                            + "ctx._source.tags.add(tag)")
-                                    .addScriptParam("tag", param))
-                                    .actionGet();
+                if (validateTag(result, data)) { 
+                    XContentBuilder xb = XContentFactory.jsonBuilder().startObject();
+                    xb.startArray("tags");
+                    xb.startObject();
+                    xb.field("name", data.getName());
+                    // ignores the provided user and matches the one present in the properties index
+                    xb.field("owner", result.getOwner());
+                    xb.endObject();
+                    xb.endArray();
+                    xb.endObject();
+
+                    client.update(new UpdateRequest("channelfinder", "channel", chan)
+                            .doc(xb)).get();
+
                     Response r = Response.ok().build();
                     return r;
                 } else {
@@ -749,8 +755,8 @@ public class TagsResource {
             }else{
                 return Response.status(Status.BAD_REQUEST).entity(tag + " Does not exist").build();
             }
-        } catch (DocumentMissingException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Channels specified in tag update do not exist"+e.getDetailedMessage()).build();
+        } catch (DocumentMissingException | RemoteTransportException | ExecutionException e) {
+            return Response.status(Status.BAD_REQUEST).entity("Channels specified in tag update do not exist"+e.getMessage()).build();
         }  catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
