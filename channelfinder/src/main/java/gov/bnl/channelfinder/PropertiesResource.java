@@ -71,6 +71,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
+import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.transport.RemoteTransportException;
 
 /**
@@ -225,11 +226,11 @@ public class PropertiesResource {
                     for (XmlChannel channel : property.getChannels()) {
                         bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                                 .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                                        "removeProperty = new Object();"
+                                        "Object removeProperty = new Object();"
                                         + "for (xmlProp in ctx._source.properties) "
-                                        + "{ if (xmlProp.name == params.property.name) { removeProperty = xmlProp} }; "
+                                        + "{ if (xmlProp.name == params.property.name) { removeProperty = xmlProp;} } "
                                         + "ctx._source.tags.remove(removeProperty);"
-                                        + "ctx._source.tags.add(params.property)",
+                                        + "ctx._source.tags.add(params.property);",
                                         params)));
                     }
                 }
@@ -353,10 +354,12 @@ public class PropertiesResource {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.getField("name").getValue().toString();
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName)
-                            .script(new Script("removeProp = new Object();" 
+                            .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+                                    "Object removeProp = new Object();" 
                                     + "for (xmlProp in ctx._source.properties) "
-                                    + "{ if (xmlProp.name == "+prop+") { removeProp = xmlProp} }; "
-                                    + "ctx._source.properties.remove(removeProp);")));
+                                    + "{ if (xmlProp.name == params.prop) { removeProp = xmlProp;} } "
+                                    + "ctx._source.properties.remove(removeProp);",
+                                    Collections.singletonMap("prop", prop))));
                 }
             }
             
@@ -467,12 +470,12 @@ public class PropertiesResource {
                 for (SearchHit hit : queryResponse.getHits()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", hit.getId())
                             .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                                    "origProp = new Object();"
+                                    "Object origProp = new Object();"
                                     + "for (xmlProp in ctx._source.properties) "
-                                    + "{ if (xmlProp.name == params.prop.name) { origProp = xmlProp} }; "
+                                    + "{ if (xmlProp.name == params.prop.name) { origProp = xmlProp;} } "
                                     + "ctx._source.properties.remove(origProp);"
                                     + "origProp.owner = params.prop.owner;"
-                                    + "ctx._source.properties.add(origProp)",
+                                    + "ctx._source.properties.add(origProp);",
                                     params)));
                 }
             }
@@ -492,11 +495,11 @@ public class PropertiesResource {
                     params.put("prop", param);
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel.getName())
                             .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                                    "removeProp = new Object();"
+                                    "Object removeProp = new Object();"
                                     + "for (property in ctx._source.properties) "
-                                    + "{ if (property.name == params.prop.name) { removeProp = property} }; "
+                                    + "{ if (property.name == params.prop.name) { removeProp = property;} } "
                                     + "ctx._source.properties.remove(removeProp);"
-                                    + "ctx._source.properties.add(params.prop)",
+                                    + "ctx._source.properties.add(params.prop);",
                                     params)));
                 }
             }
@@ -553,12 +556,12 @@ public class PropertiesResource {
                 for (String channel : channelNames) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channel)
                             .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                                    "origProp = new Object();"
+                                    "Object origProp = new Object();"
                                     + "for (xmlProp in ctx._source.properties) "
-                                    + "{ if (xmlProp.name == params.originalProp.name) { origProp = xmlProp} }; "
+                                    + "{ if (xmlProp.name == params.originalProp.name) { origProp = xmlProp;} } "
                                     + "ctx._source.properties.remove(origProp);"
                                     + "origProp.name = params.newProp.name;"
-                                    + "ctx._source.properties.add(origProp)",
+                                    + "ctx._source.properties.add(origProp);",
                                     params)));
                 }
             }
@@ -608,12 +611,11 @@ public class PropertiesResource {
                     .setSize(10000).execute().actionGet();
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
-                    String channelName = hit.getField("name").getValue().toString();
+                    String channelName = hit.getId();
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", channelName)
-                            .script(new Script("removeProp = new Object();" 
-                                    + "for (xmlProp in ctx._source.properties) "
-                                    + "{ if (xmlProp.name == "+prop+") { removeProp = xmlProp} }; "
-                                    + "ctx._source.properties.remove(removeProp);")));
+                            .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+                                    "ctx._source.properties.removeIf(item -> item.name == params.prop); ",
+                                    Collections.singletonMap("prop", prop))));
                 }
             }
             
@@ -671,27 +673,29 @@ public class PropertiesResource {
             mapper.addMixIn(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
             if (result != null) {
-                XContentBuilder xb =  XContentFactory.jsonBuilder().startObject();
-                xb.startArray("properties");
-                xb.startObject();
-                xb.field("name", data.getName());      
-                xb.field("value", data.getValue());
+                HashMap<String, String> param = new HashMap<>(); 
+                param.put("name", data.getName());
+                param.put("value", data.getValue());
                 // ignores the provided user and matches the one present in the properties index
-                xb.field("owner", result.getOwner());
-                xb.endObject();
-                xb.endArray();
-                xb.endObject();
+                param.put("owner", result.getOwner());
+                HashMap<String, Object> params = new HashMap<>();
+                params.put("prop", param);
 
                 client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .doc(xb)).get();
-
+                        .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+                                "ArrayList removeProps = new ArrayList(); "
+                                + "for (property in ctx._source.properties) "
+                                + "{ if (property.name == params.prop.name) { removeProps.add(property);} } "
+                                + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp);} "
+                                + "ctx._source.properties.add(params.prop)",params)))
+                        .actionGet();
                 Response r = Response.ok().build();
                 return r;
             }else{
                 return handleException(um.getUserName(), "PUT", Status.BAD_REQUEST,
                         "Property " +prop+ " does not exist ");
             }
-        } catch (DocumentMissingException | RemoteTransportException | ExecutionException e) {
+        } catch (DocumentMissingException | RemoteTransportException e) {
             return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST,
                     "Channels specified in property update do not exist" + e.getMessage());
         } catch (Exception e) {
@@ -718,10 +722,12 @@ public class PropertiesResource {
         try {
             if(client.prepareGet("properties", "property", prop).get().isExists()){
                 client.update(new UpdateRequest("channelfinder", "channel", chan)
-                        .script(new Script("removeProps = new java.util.ArrayList();"
+                        .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+                                "ArrayList removeProps = new ArrayList();"
                                 + "for (property in ctx._source.properties)"
-                                + "{ if (property.name == "+prop+") { removeProps.add(property)} };"
-                                + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp)}")))
+                                + "{ if (property.name == params.prop) { removeProps.add(property);} }"
+                                + "for (removeProp in removeProps) {ctx._source.properties.remove(removeProp);}",
+                        Collections.singletonMap("prop", prop))))
                         .actionGet();
                 Response r = Response.ok().build();
                 return r;
