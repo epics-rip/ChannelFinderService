@@ -302,18 +302,6 @@
                             <goal>single</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>cargo-config-filtering</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/cargo.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -325,52 +313,6 @@
                         <goals>
                             <goal>integration-test</goal>
                             <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.cargo</groupId>
-                <artifactId>cargo-maven2-plugin</artifactId>
-                <version>1.4.17</version>
-                <configuration>
-                    <skip>${skipCargoAndRun}</skip>
-                    <container>
-                        <containerId>glassfish4x</containerId>
-                        <zipUrlInstaller>
-                            <url>http://download.java.net/glassfish/4.1.1/release/glassfish-4.1.1.zip</url>
-                        </zipUrlInstaller>
-                    </container>
-                    <configuration>
-                    <!--
-                        <properties>
-                            <cargo.servlet.port>${servlet.port}</cargo.servlet.port>
-                            <cargo.glassfish.admin.port>5858</cargo.glassfish.admin.port>
-                            <cargo.glassfish.jms.port>8686</cargo.glassfish.jms.port>
-                            <cargo.hostname>localhost</cargo.hostname>
-                        </properties>
-                        -->
-                        <configfiles>
-                            <configfile>
-                                <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
-                                <todir>cargo-domain/config</todir>
-                            </configfile>
-                        </configfiles>
-                    </configuration>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>start-cargo</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>start</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>stop-cargo</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -413,6 +355,49 @@
                                 <argument>${basedir}/target/${project.build.finalName}.jar</argument>
                             </arguments>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.bazaarvoice.maven.plugins</groupId>
+                <artifactId>process-exec-maven-plugin</artifactId>
+                <version>0.8</version>
+                <executions>
+                    <!--Start process-->
+                    <execution>
+                        <id>start-jar</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <workingDir>${basedir}</workingDir>
+<!--                            <healthcheckUrl>http://localhost:8080/ChannelFinder/resources/channels</healthcheckUrl>-->
+                            <waitAfterLaunch>120</waitAfterLaunch>
+                            <arguments>
+                                <argument>java</argument>
+                                <argument>-jar</argument>
+                                <argument>${basedir}/target/${project.build.finalName}.jar</argument>
+                                <argument>--rootdir</argument>
+                                <argument>${basedir}/src/test/serverresources/config</argument>
+                                <argument>--sslPort</argument>
+                                <argument>8181</argument>
+                                <argument>--nocluster</argument>
+                                <argument>true</argument>
+                                <argument>--port</argument>
+                                <argument>8080</argument>
+                                <argument>--prebootcommandfile</argument>
+                                <argument>${basedir}/../root/etc/channelfinder/asadmin_commands</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!--Stop Process-->
+                    <execution>
+                        <id>stop-jar-process</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop-all</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
