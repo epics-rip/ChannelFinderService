@@ -69,12 +69,9 @@ import com.google.common.collect.Collections2;
 
 import gov.bnl.channelfinder.ChannelsResource.OnlyXmlTag;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.transport.RemoteTransportException;
@@ -737,10 +734,7 @@ public class TagsResource {
                     params.put("tag", param);
                     client.update(new UpdateRequest("channelfinder", "channel", chan)
                                     .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                                            "ArrayList removeTags = new ArrayList();" 
-                                            + "for (tag in ctx._source.tags) "
-                                            + "{ if (tag.name == params.tag.name) { removeTags.add(tag);} } "
-                                            + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag);}"
+                                            "ctx._source.tags.removeIf(item -> item.name == params.tag.name);"
                                             + "ctx._source.tags.add(params.tag);",params)))
                                     .actionGet();
                     Response r = Response.ok().build();
@@ -797,10 +791,7 @@ public class TagsResource {
                 UpdateResponse updateResponse = client
                         .update(new UpdateRequest("channelfinder", "channel", chan)
                                 .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                                        "ArrayList removeTags = new ArrayList();" 
-                                        + "for (tag in ctx._source.tags) "
-                                        + "{ if (tag.name == params.tag) { removeTags.add(tag);} } "
-                                        + "for (removeTag in removeTags) {ctx._source.tags.remove(removeTag);}",
+                                        "ctx._source.tags.removeIf(item -> item.name == params.tag);",
                                         Collections.singletonMap("tag", tag)))).actionGet();
                 Response r = Response.ok().build();
                 return r;

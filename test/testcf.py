@@ -883,7 +883,7 @@ class PutOneTagWithChannels(unittest.TestCase):
 
 # Adding tag to non-existing channel
     def test_AuthorizedAsTagNonexChannel(self):
-        doPutAndFailMessageJSON(self, conn_tag, self.T1, T1_C3, 404, "DocumentMissingException[[channelfinder][-1] [channel][C3]")
+        doPutAndFailMessageJSON(self, conn_tag, self.T1, T1_C3, 404, "DocumentMissingException[[channel][C3]")
 
 # Payload and URL names do not match
     def test_AuthorizedAsTagLcPayload(self):
@@ -1004,7 +1004,7 @@ class UpdateTagWithChannels(unittest.TestCase):
 
 # Non-existing channel
     def test_AuthorizedAsTagNonexChannel(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T2, T2_C4, 404, "DocumentMissingException[[channelfinder][-1] [channel][C4]")
+        doPostAndFailMessageJSON(self, conn_tag, self.T2, T2_C4, 404, "DocumentMissingException[[channel][C4]")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
@@ -1312,7 +1312,7 @@ class PutOnePropertyWithChannels(unittest.TestCase):
 
 # Adding property to non existing channel
     def test_AuthorizedAsPropNonexChannel(self):
-        doPutAndFailMessageJSON(self, conn_prop, self.P1, P1_C3, 404, "DocumentMissingException[[channelfinder][-1] [channel][C3]: document missing")
+        doPutAndFailMessageJSON(self, conn_prop, self.P1, P1_C3, 404, "DocumentMissingException[[channel][C3]: document missing")
 
 # Payload and URL names do not match
     def test_AuthorizedAsPropLcPayload(self):
@@ -1460,7 +1460,7 @@ class UpdatePropertyWithChannels(unittest.TestCase):
 
 # Non-existing channel
     def test_AuthorizedAsPropNonexChannel(self):
-        doPostAndFailMessageJSON(self, conn_prop, self.P2, P2_C4, 404, "DocumentMissingException[[channelfinder][-1] [channel][C4]: document missing")
+        doPostAndFailMessageJSON(self, conn_prop, self.P2, P2_C4, 404, "DocumentMissingException[[channel][C4]: document missing")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.P1, headers=copy(jsonheader))

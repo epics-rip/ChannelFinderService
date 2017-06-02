@@ -189,7 +189,6 @@ public class ChannelsResource {
                     if(qbResult != null){
                         for (SearchHit hit : qbResult.getHits()) {
                             jg.writeObject(mapper.readValue(hit.source(), XmlChannel.class));
-                            jg.flush();
                         }
                     }
                     jg.writeEndArray();

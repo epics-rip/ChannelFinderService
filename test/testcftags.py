@@ -403,7 +403,7 @@ class UpdateTagWithChannels(unittest.TestCase):
 
 # Non-existing channel
     def test_AuthorizedAsTagNonexChannel(self):
-        doPostAndFailMessageJSON(self, conn_tag, self.T2, T2_C4, 404, "DocumentMissingException[[channelfinder][-1] [channel][C4]: document missing]")
+        doPostAndFailMessageJSON(self, conn_tag, self.T2, T2_C4, 404, "DocumentMissingException[[channel][C4]: document missing]")
 
     def tearDown(self):
         response = conn_admin.request_delete(self.T1, headers=copy(jsonheader))
