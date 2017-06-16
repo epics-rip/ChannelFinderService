@@ -373,7 +373,7 @@
                         <configuration>
                             <workingDir>${basedir}</workingDir>
 <!--                            <healthcheckUrl>http://localhost:8080/ChannelFinder/resources/channels</healthcheckUrl>-->
-                            <waitAfterLaunch>120</waitAfterLaunch>
+                            <waitAfterLaunch>60</waitAfterLaunch>
                             <arguments>
                                 <argument>java</argument>
                                 <argument>-jar</argument>
