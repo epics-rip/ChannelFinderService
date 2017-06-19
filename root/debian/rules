@@ -2,5 +2,5 @@
 
 
 %:
-	dh $@
+	dh $@ --with  systemd
 
