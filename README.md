@@ -1,7 +1,9 @@
-### ChannelFinderService
+### ChannelFinderService 
+[![Build Status](https://travis-ci.org/ChannelFinder/ChannelFinderService.svg?branch=master)](https://travis-ci.org/ChannelFinder/ChannelFinderService)
+
 A simple directory service
 
-#####ChannelFinder Overview
+##### ChannelFinder Overview
 
   ChannelFinder is a directory server, implemented as a REST style web service.
 Its intended use is within control systems, namely the EPICS Control system, for which it has been written.
@@ -31,7 +33,7 @@ properties and their values, or channel names. The service returns a list of mat
 properties and tags, as an XML or JSON document.
 
 
-#####Installation
+##### Installation
 
   ChannelFinder is a Java EE5 REST-style web service. The directory data is held in
 a ElasticSearch index. Service authentication/authorization is done using the
@@ -67,12 +69,12 @@ in the web container.
   ```
   ################################# Scripting ###############################
 
-  script.inline: on
-  script.indexed: on
+  script.inline: true
+  script.stored: true
   ```
     
   
-  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html)
+  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/5.4/_create_an_index.html)
   
 
 4. Authentication/Authorization
@@ -194,7 +196,7 @@ in the web container.
     If you do not wish to run the Integration tests add the following
     -DSkipTests=True -DskipCargoAndRun=True -DskipNoseTests=True
 
-######Checking the Installation
+###### Checking the Installation
 
 6. Using a Browser
 

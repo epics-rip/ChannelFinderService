@@ -22,10 +22,15 @@ curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
   "tag" : {
     "properties" : {
       "name" : {
-        "type" : "string"
+        "type" : "text",
+        "fields": {
+            "keyword": { 
+              "type": "keyword"
+            }
+        }
       },
       "owner" : {
-        "type" : "string"
+        "type" : "text"
       }
     }
   }
@@ -37,10 +42,15 @@ curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
   "property" : {
     "properties" : {
       "name" : {
-        "type" : "string"
+        "type" : "text",
+        "fields": {
+            "keyword": { 
+              "type": "keyword"
+            }
+        }
       },
       "owner" : {
-        "type" : "string"
+        "type" : "text"
       }
     }
   }
@@ -52,29 +62,39 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
   "channel" : {
     "properties" : {
       "name" : {
-        "type" : "string",
+        "type" : "text",
+        "fields": {
+            "keyword": { 
+              "type": "keyword"
+            }
+        },
         "analyzer" : "whitespace"
       },
       "owner" : {
-        "type" : "string",
+        "type" : "text",
         "analyzer" : "whitespace"
       },
       "script" : {
-        "type" : "string"
+        "type" : "text"
       },
       "properties" : {
         "type" : "nested",
         "include_in_parent" : true,
         "properties" : {
           "name" : {
-            "type" : "string",
+            "type" : "text",
+            "fields": {
+                "keyword": { 
+                  "type": "keyword"
+                }
+            },
             "analyzer" : "whitespace"
           },
           "owner" : {
-            "type" : "string"
+            "type" : "text"
           },
           "value" : {
-            "type" : "string",
+            "type" : "text",
             "analyzer" : "whitespace"
           }
         }
@@ -84,11 +104,16 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
         "include_in_parent" : true,
         "properties" : {
           "name" : {
-            "type" : "string",
+            "type" : "text",
+            "fields": {
+                "keyword": { 
+                  "type": "keyword"
+                }
+            },
             "analyzer" : "whitespace"
           },
           "owner" : {
-            "type" : "string",
+            "type" : "text",
             "analyzer" : "whitespace"
           }
         }

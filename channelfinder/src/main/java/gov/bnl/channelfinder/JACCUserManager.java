@@ -5,6 +5,18 @@
  */
 package gov.bnl.channelfinder;
 
+/*
+ * #%L
+ * ChannelFinder Directory Service
+ * %%
+ * Copyright (C) 2010 - 2017 Brookhaven National Laboratory / National Synchrotron Light Source II
+ * %%
+ * Copyright (C) 2010 - 2012 Brookhaven National Laboratory
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
+
+
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;

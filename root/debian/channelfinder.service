@@ -1,0 +1,15 @@
+[Unit]
+Description=ChannelFinder Service
+After=network.target remote-fs.target
+
+[Service]
+user=channelfinder
+ExecStartPre=/usr/bin/jar -uf /usr/share/channelfinder/ChannelFinder.jar -C /etc/channelfinder MICRO-INF/classes/elasticsearch.yml
+ExecStartPre=mkdir -p /tmp/channelfinder
+ExecStart=/usr/bin/java -Xmx2G -jar /usr/share/channelfinder/ChannelFinder.jar --sslport 8181 --nocluster true --port 8080 --prebootcommandfile /etc/channelfinder/asadmin_commands --logtofile /tmp/channelfinder/log.txt
+ExecStop=/bin/kill -SIGINT $MAINPID
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
