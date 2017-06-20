@@ -7,6 +7,6 @@ Standards-Version: 3.8.0
 Homepage: https://channelfinder.github.io/
 
 Package: channelfinder
-Depends: oracle-java8-jdk
+Depends: oracle-java8-jdk, unzip
 Architecture: amd64
 Description: Directory service for EPICS

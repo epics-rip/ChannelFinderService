@@ -1,5 +1,8 @@
 #Channelfinder defaults
 
+SERVICEPORT=8080
+SERVICESSLPORT=8181
+
 GF_HOME=/home/glassfish/glassfish4/glassfish
 ASADMIN=$GF_HOME/bin/asadmin
 

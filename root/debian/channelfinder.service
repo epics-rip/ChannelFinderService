@@ -4,9 +4,12 @@ After=network.target remote-fs.target
 
 [Service]
 user=channelfinder
-ExecStartPre=/usr/bin/jar -uf /usr/share/channelfinder/ChannelFinder.jar -C /etc/channelfinder MICRO-INF/classes/elasticsearch.yml
-ExecStartPre=mkdir -p /tmp/channelfinder
-ExecStart=/usr/bin/java -Xmx2G -jar /usr/share/channelfinder/ChannelFinder.jar --sslport 8181 --nocluster true --port 8080 --prebootcommandfile /etc/channelfinder/asadmin_commands --logtofile /tmp/channelfinder/log.txt
+EnvironmentFile=/etc/default/channelfinder
+ExecStartPre=/bin/mkdir -p /tmp/channelfinder
+ExecStartPre=/usr/bin/unzip -o /usr/share/channelfinder/ChannelFinder.jar MICRO-INF/deploy/ChannelFinder.war -d /tmp/channelfinder
+ExecStartPre=/usr/bin/jar -uf /tmp/channelfinder/MICRO-INF/deploy/ChannelFinder.war -C /etc/channelfinder WEB-INF/classes/elasticsearch.yml
+ExecStartPre=/usr/bin/jar -uf /usr/share/channelfinder/ChannelFinder.jar -C /tmp/channelfinder MICRO-INF/deploy/ChannelFinder.war
+ExecStart=/usr/bin/java -Xmx2G -jar /usr/share/channelfinder/ChannelFinder.jar --sslport ${SERVICESSLPORT} --nocluster true --port ${SERVICEPORT} --prebootcommandfile /etc/channelfinder/asadmin_commands --logtofile /var/log/channelfinder/log.txt
 ExecStop=/bin/kill -SIGINT $MAINPID
 Restart=on-failure
 RestartSec=10
