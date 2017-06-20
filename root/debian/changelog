@@ -1,4 +1,4 @@
-channelfinder (1.0.0-5.1) unstable; urgency=medium
+channelfinder (1.0.1) unstable; urgency=medium
 
   * Non-maintainer upload.
   * update to elastic 5.4, payara, and systemd
