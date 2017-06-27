@@ -59,7 +59,7 @@ public class ElasticSearchClient implements ServletContextListener {
         String host = settings.get("network.host");
         int port = Integer.valueOf(settings.get("transport.tcp.port"));
         try {
-            return new PreBuiltTransportClient(Settings.EMPTY).addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+            return new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
         } catch (ElasticsearchException e) {
             log.severe(e.getDetailedMessage());
             return null;
