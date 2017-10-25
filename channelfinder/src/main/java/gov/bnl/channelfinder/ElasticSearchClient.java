@@ -15,13 +15,16 @@ package gov.bnl.channelfinder;
  */
 
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import java.net.InetSocketAddress;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
@@ -38,7 +41,7 @@ public class ElasticSearchClient implements ServletContextListener {
     private static TransportClient searchClient;
     private static TransportClient indexClient;
 
-    public static TransportClient getSearchClient() {
+    public static TransportClient  getSearchClient() {
         return searchClient;
     }
     
@@ -56,7 +59,7 @@ public class ElasticSearchClient implements ServletContextListener {
         String host = settings.get("network.host");
         int port = Integer.valueOf(settings.get("transport.tcp.port"));
         try {
-            return new TransportClient().addTransportAddress(new InetSocketTransportAddress(host, port));
+            return new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
         } catch (ElasticsearchException e) {
             log.severe(e.getDetailedMessage());
             return null;
@@ -69,14 +72,20 @@ public class ElasticSearchClient implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        log.info("Initializing a new Transport clients.");
-        searchClient = new TransportClient();
-        indexClient = new TransportClient();
-        settings = searchClient.settings();
-        String host = settings.get("network.host");
-        int port = Integer.valueOf(settings.get("transport.tcp.port"));
-        searchClient.addTransportAddress(new InetSocketTransportAddress(host, port));
-        indexClient.addTransportAddress(new InetSocketTransportAddress(host, port));
+        try {
+            log.info("Initializing a new Transport clients.");
+            String yaml  = "elasticsearch.yml";
+            settings = Settings.builder().loadFromStream(yaml,getClass().getClassLoader().getResourceAsStream(yaml)).build();
+            String host = settings.get("network.host");
+            int port = Integer.valueOf(settings.get("transport.tcp.port"));
+            
+            searchClient = new PreBuiltTransportClient(settings);
+            indexClient = new PreBuiltTransportClient(settings);
+            searchClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+            indexClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+        } catch (IOException e) {
+            log.severe(e.getMessage());
+        }
     }
 
     @Override

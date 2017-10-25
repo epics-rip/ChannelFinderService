@@ -67,7 +67,7 @@
     </ciManagement>
 
     <distributionManagement>
-        <!-- To be able to deploy, set login/passwd in your m2 settings.xml, 
+        <!-- To be able to deploy, set login/passwd in your m2 settings.xml,
             <servers> section (id values there should match ids below) -->
         <repository>
             <id>epics.releases</id>
@@ -141,36 +141,40 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>1.5.2</version>
+            <version>5.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>transport</artifactId>
+            <version>5.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
             <version>2.10.4</version>
-            <scope>provided</scope> 
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
             <version>2.10.4</version>
-            <scope>provided</scope> 
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.5.1</version>
+            <version>2.8.8</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.5.1</version>
-            <scope>provided</scope> 
+            <version>2.8.8</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.5.1</version>
-            <scope>provided</scope> 
+            <version>2.8.8</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -182,6 +186,16 @@
             <artifactId>cargo-maven2-plugin</artifactId>
             <version>1.4.17</version>
             <type>maven-plugin</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.7</version>
         </dependency>
     </dependencies>
 
@@ -235,16 +249,42 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin> 
-                <artifactId>maven-deploy-plugin</artifactId> 
-                <version>2.8.2</version> 
-                <dependencies> 
-                    <dependency> 
-                        <groupId>org.apache.maven.wagon</groupId> 
-                        <artifactId>wagon-ssh</artifactId> 
-                        <version>2.8</version> 
-                    </dependency> 
-                </dependencies> 
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-payara-micro</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target</outputDirectory>
+                            <stripVersion>true</stripVersion>
+                            <silent>true</silent>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>fish.payara.extras</groupId>
+                                    <artifactId>payara-micro</artifactId>
+                                    <version>4.1.2.172</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh</artifactId>
+                        <version>2.8</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -262,18 +302,6 @@
                             <goal>single</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>cargo-config-filtering</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/cargo.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -290,52 +318,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.cargo</groupId>
-                <artifactId>cargo-maven2-plugin</artifactId>
-                <version>1.4.17</version>
-                <configuration>
-                    <skip>${skipCargoAndRun}</skip>
-                    <container>
-                        <containerId>glassfish4x</containerId>
-                        <zipUrlInstaller>
-                            <url>http://download.java.net/glassfish/4.1.1/release/glassfish-4.1.1.zip</url>
-                        </zipUrlInstaller>
-                    </container>
-                    <configuration>
-                    <!--
-                        <properties>
-                            <cargo.servlet.port>${servlet.port}</cargo.servlet.port>
-                            <cargo.glassfish.admin.port>5858</cargo.glassfish.admin.port>
-                            <cargo.glassfish.jms.port>8686</cargo.glassfish.jms.port>
-                            <cargo.hostname>localhost</cargo.hostname>
-                        </properties>
-                        -->
-                        <configfiles>
-                            <configfile>
-                                <file>${project.build.directory}/ChannelFinder-cargo-inject/config</file>
-                                <todir>cargo-domain/config</todir>
-                            </configfile>
-                        </configfiles>
-                    </configuration>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>start-cargo</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>start</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>stop-cargo</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.3.2</version>
@@ -345,19 +327,79 @@
                         <goals>
                             <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>nosetests</executable>
+                            <workingDirectory>${project.basedir}/../test</workingDirectory>
+                            <skip>${skipNoseTests}</skip>
+                            <arguments>
+                                <argument>-v</argument>
+                                <argument>-s</argument>
+                                <argument>--with-xunit</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>payara-uber-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-jar</argument>
+                                <argument>${basedir}/target/payara-micro.jar</argument>
+                                <argument>--deploy</argument>
+                                <argument>${basedir}/target/${project.build.finalName}.war</argument>
+                                <argument>--outputUberJar</argument>
+                                <argument>${basedir}/target/${project.build.finalName}.jar</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <executable>nosetests</executable>
-                    <workingDirectory>../test</workingDirectory>
-                    <skip>${skipNoseTests}</skip>
-                    <arguments>
-                        <argument>-v</argument>
-                        <argument>-s</argument>
-                        <argument>--with-xunit</argument>
-                        <argument>--xunit-file=${project.build.directory}/failsafe-reports/nosetests.xml</argument>
-                    </arguments>
-                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.bazaarvoice.maven.plugins</groupId>
+                <artifactId>process-exec-maven-plugin</artifactId>
+                <version>0.8</version>
+                <executions>
+                    <!--Start process-->
+                    <execution>
+                        <id>start-jar</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <workingDir>${basedir}</workingDir>
+<!--                            <healthcheckUrl>http://localhost:8080/ChannelFinder/resources/channels</healthcheckUrl>-->
+                            <waitAfterLaunch>60</waitAfterLaunch>
+                            <arguments>
+                                <argument>java</argument>
+                                <argument>-jar</argument>
+                                <argument>${basedir}/target/${project.build.finalName}.jar</argument>
+                                <argument>--rootdir</argument>
+                                <argument>${basedir}/src/test/serverresources/config</argument>
+                                <argument>--sslPort</argument>
+                                <argument>8181</argument>
+                                <argument>--nocluster</argument>
+                                <argument>true</argument>
+                                <argument>--port</argument>
+                                <argument>8080</argument>
+                                <argument>--prebootcommandfile</argument>
+                                <argument>${basedir}/../root/etc/channelfinder/asadmin_commands</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!--Stop Process-->
+                    <execution>
+                        <id>stop-jar-process</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop-all</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <finalName>ChannelFinder</finalName>

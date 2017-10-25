@@ -69,12 +69,12 @@ in the web container.
   ```
   ################################# Scripting ###############################
 
-  script.inline: on
-  script.indexed: on
+  script.inline: true
+  script.stored: true
   ```
     
   
-  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html)
+  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/5.4/_create_an_index.html)
   
 
 4. Authentication/Authorization

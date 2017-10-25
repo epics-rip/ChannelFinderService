@@ -1,0 +1,12 @@
+Source: channelfinder
+Section: java
+Priority: optional
+Maintainer: Eric Berryman <berryman@frib.msu.edu>
+Build-Depends: debhelper (>= 9), dh-systemd (>=1.5),
+Standards-Version: 3.8.0
+Homepage: https://channelfinder.github.io/
+
+Package: channelfinder
+Depends: oracle-java8-jdk, unzip
+Architecture: amd64
+Description: Directory service for EPICS

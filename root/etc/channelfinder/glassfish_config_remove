@@ -1,0 +1,8 @@
+#!/bin/bash
+
+exec sh -ac '. /etc/default/channelfinder
+
+${ASADMIN} delete-auth-realm channelfinder
+${ASADMIN} delete-custom-resource channelfinder/ldapManagerConnection
+${ASADMIN} delete-custom-resource channelfinder/userManager
+'

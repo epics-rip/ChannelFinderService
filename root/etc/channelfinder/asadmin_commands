@@ -1,0 +1,6 @@
+create-auth-realm --classname com.sun.enterprise.security.auth.realm.file.FileRealm --property file=${com.sun.aas.instanceRoot}/keyfile:jaas-context=fileRealm channelfinder
+
+create-custom-resource --restype java.lang.String --factoryclass org.glassfish.resources.custom.factory.PrimitivesAndStringFactory --property Value=gov.bnl.channelfinder.JACCUserManager channelfinder/userManager
+
+set-log-levels gov.bnl.channelfinder.ChannelsResource=FINEST
+set-log-levels gov.bnl.channelfinder.ChannelsResource.audit=FINEST

@@ -1,0 +1,64 @@
+channelfinder (1.0.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  *  update settings
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Tue, 27 Jun 2017 16:15:20 -0400
+
+channelfinder (1.0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * update to elastic 5.4, payara, and systemd
+
+ -- Eric Berryman <jenkins-slave@jenkins6.nscl.msu.edu>  Mon, 19 Jun 2017 11:27:23 -0400
+
+channelfinder (1.0.0-5) unstable; urgency=medium
+
+  *  added JACCUserManager
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Tue, 06 Sep 2016 16:51:26 -0400
+
+channelfinder (1.0.0-4) unstable; urgency=medium
+
+  * release
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Wed, 11 May 2016 12:38:06 -0400
+
+channelfinder (1.0.0-3) unstable; urgency=medium
+
+  *  dpkg init script fixes
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Tue, 10 May 2016 14:19:25 -0400
+
+channelfinder (1.0.0-2) unstable; urgency=medium
+
+  *  release
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Tue, 10 May 2016 11:12:23 -0400
+
+channelfinder (1.0.0-1) unstable; urgency=medium
+
+  *  release
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Tue, 10 May 2016 11:09:27 -0400
+
+channelfinder (1.0.0-0.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  *  release
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Tue, 10 May 2016 11:06:39 -0400
+
+channelfinder (1.0.0-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * release
+
+ -- Eric Berryman <jenkins-slave@jenkins6.nscl.msu.edu>  Tue, 10 May 2016 10:53:33 -0400
+
+channelfinder (1.0.0-0) unstable; urgency=low
+
+  * initial
+
+ -- Eric Berryman <berryman@frib.msu.edu>  Mon, 09 May 2016 09:34:33 -0400
+

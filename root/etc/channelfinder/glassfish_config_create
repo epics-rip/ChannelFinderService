@@ -1,0 +1,12 @@
+#!/bin/bash
+
+exec sh -ac '. /etc/default/channelfinder
+
+${ASADMIN} create-auth-realm --classname ${CLASSNAME} --property "jaas-context=${JAAS_CONTEXT}:directory=${DIRECTORY}:base-dn=${BASE_DN}:group-base-dn=${GROUP_BASE_DN}:group-search-filter=${GROUP_SEARCH_FILTER}:java.naming.referral=${JAVA_NAMING_REFERRAL}:search-filter=${SEARCH_FILTER}:search-bind-password=${SEARCH_BIND_PASSWORD}:search-bind-dn=${SEARCH_BIND_DN}" channelfinder
+
+${ASADMIN} create-custom-resource --restype javax.naming.directory.Directory --factoryclass com.sun.jndi.ldap.LdapCtxFactory --property "URL=${DIRECTORY}/${BASE_DN}:javax.naming.security.principal=${SEARCH_BIND_DN}:javax.naming.security.credentials=${SEARCH_BIND_PASSWORD}:java.naming.referral=${JAVA_NAMING_REFERRAL}" channelfinder/ldapManagerConnection
+
+${ASADMIN} create-custom-resource --restype java.lang.String --factoryclass org.glassfish.resources.custom.factory.PrimitivesAndStringFactory --property "Value=${USER_MANAGER}" channelfinder/userManager
+
+. /etc/channelfinder/mapping_definitions.sh
+'
