@@ -32,6 +32,9 @@ and an arbitrary set of <tags> (names).
 properties and their values, or channel names. The service returns a list of matching channels with their
 properties and tags, as an XML or JSON document.
 
+##### API reference guide
+
+https://github.com/ChannelFinder/ChannelFinderService/tree/master/channelfinder/src/main/webapp
 
 ##### Installation
 
