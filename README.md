@@ -61,7 +61,7 @@ in the web container.
 
 2. Install elastic search
 
-  * Download and install elasticsearch (verision 1.7) from [elastic.com](https://www.elastic.co/downloads/past-releases/elasticsearch-1-7-5)
+  * Download and install elasticsearch (verision 1.6) from [elastic.com](https://www.elastic.co/downloads/past-releases/elasticsearch-1-6-2)
     following the instructions for your platform.\
     <Alternatively:> Install the elastic server from your distribution using a package manager.
 
@@ -77,7 +77,7 @@ in the web container.
   ```
     
   
-  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/1.4/_create_an_index.html)
+  * For more information of how Index and mappings can be setup using any rest client as described here [create elastic index](https://www.elastic.co/guide/en/elasticsearch/reference/1.6/_create_an_index.html)
   
 
 4. Authentication/Authorization
