@@ -61,7 +61,7 @@ in the web container.
 
 2. Install elastic search
 
-  * Download and install elasticsearch from [elastic.com](https://www.elastic.co/downloads/elasticsearch)
+  * Download and install elasticsearch (verision 1.7) from [elastic.com](https://www.elastic.co/downloads/past-releases/elasticsearch-1-7-5)
     following the instructions for your platform.\
     <Alternatively:> Install the elastic server from your distribution using a package manager.
 
