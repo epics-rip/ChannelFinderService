@@ -13,7 +13,6 @@ package gov.bnl.channelfinder;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
-import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,6 +48,7 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -57,6 +57,7 @@ import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -105,7 +106,10 @@ public class TagsResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public Response list() {
-        Client client = getNewClient();
+    	StringBuffer performance = new StringBuffer();
+        long start = System.currentTimeMillis();
+        long totalStart = System.currentTimeMillis();
+    	Client client = ElasticSearchClient.getSearchClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         final ObjectMapper mapper = new ObjectMapper();
         mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
@@ -121,10 +125,16 @@ public class TagsResource {
                 }
 
             }
-            final SearchResponse response = client.prepareSearch("tags")
+            performance.append("|prepare:" + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
+            SearchRequestBuilder builder = client.prepareSearch("tags")
                                                   .setTypes("tag")
-                                                  .setQuery(new MatchAllQueryBuilder())
-                                                  .setSize(size).execute().actionGet();
+                                                  .setQuery(QueryBuilders.matchAllQuery())
+                                                  .setSize(size);
+            builder.addSort(SortBuilders.fieldSort("name.keyword"));
+            final SearchResponse response = builder.get();
+            performance.append("|query:("+response.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
             StreamingOutput stream = new StreamingOutput(){
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
@@ -140,13 +150,15 @@ public class TagsResource {
                     jg.close();
                 }
             };
+            performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(stream).build();
-            log.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + response.getTook() + "|returns " + response.getHits().getTotalHits() + " tags");
+            audit.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + performance.toString() + "|total:"
+                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
+                    + "|returns " + response.getHits().getTotalHits()+ " tags");
             return r;
         } catch (Exception e) {
             return handleException(user,Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
-            client.close();
         }
     }
 
@@ -165,12 +177,12 @@ public class TagsResource {
     public Response read(@PathParam("tagName") String tag) {
         MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlTag result = null;        
         try {
-            GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+            GetResponse response = client.prepareGet("tags", "tag", tag).get();
             if (response.isExists()) {
                 ObjectMapper mapper = new ObjectMapper();
                 result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
@@ -181,7 +193,7 @@ public class TagsResource {
                     if (parameters.containsKey("withChannels")) {
                         // TODO iterator or scrolling needed
                         final SearchResponse channelResult = client.prepareSearch("channelfinder")
-                                .setQuery(matchQuery("tags.name", tag.trim())).setSize(10000).execute().actionGet();
+                                .setQuery(matchQuery("tags.name", tag.trim())).setSize(10000).get();
                         List<XmlChannel> channels = new ArrayList<XmlChannel>();
                         if (channelResult != null) {
                             for (SearchHit hit : channelResult.getHits()) {
@@ -204,7 +216,6 @@ public class TagsResource {
         } catch (IOException e) {
             return handleException(user, Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
-            client.close();
         }
     }
 
@@ -223,7 +234,7 @@ public class TagsResource {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -240,7 +251,7 @@ public class TagsResource {
                         .setQuery(QueryBuilders.matchQuery("tags.name", tag))
                         .setSearchType(SearchType.QUERY_THEN_FETCH)
                         .setFetchSource(new String[]{"name"}, null) 
-                        .setSize(10000).execute().actionGet();
+                        .setSize(10000).get();
                 
                 Set<String> existingChannels = new HashSet<String>();
                 for (SearchHit hit : qbResult.getHits()) {
@@ -282,7 +293,7 @@ public class TagsResource {
                 }
 
                 bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-                BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+                BulkResponse bulkResponse = bulkRequest.get();
                 if (bulkResponse.hasFailures()) {
                     audit.severe(bulkResponse.buildFailureMessage());
                     if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -293,7 +304,7 @@ public class TagsResource {
                                 bulkResponse.buildFailureMessage());
                     }
                 } else {
-                    GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+                    GetResponse response = client.prepareGet("tags", "tag", tag).get();
                     ObjectMapper mapper = new ObjectMapper();
                     XmlTag result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
                     Response r;
@@ -314,7 +325,6 @@ public class TagsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -331,7 +341,7 @@ public class TagsResource {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response createTags(List<XmlTag> data) {
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
@@ -348,7 +358,7 @@ public class TagsResource {
                         .setQuery(QueryBuilders.matchQuery("tags.name", xmlTag.getName()))
                         .setSearchType(SearchType.QUERY_THEN_FETCH)
                         .setFetchSource(new String[]{"name"}, null) 
-                        .setSize(10000).execute().actionGet();
+                        .setSize(10000).get();
 
                 Set<String> existingChannels = new HashSet<String>();
                 for (SearchHit hit : qbResult.getHits()) {
@@ -392,7 +402,7 @@ public class TagsResource {
             }
 
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -408,7 +418,6 @@ public class TagsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -430,12 +439,12 @@ public class TagsResource {
     @Consumes({"application/json"})
     public Response update(@PathParam("tagName") String tag, XmlTag data) {
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         audit.info("client initialization: "+ (System.currentTimeMillis() - start));
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
-            GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+            GetResponse response = client.prepareGet("tags", "tag", tag).get();
             if(!response.isExists()){
                 return handleException(um.getUserName(), Response.Status.NOT_FOUND, "A tag named '"+tag+"' does not exist");
             }
@@ -464,7 +473,7 @@ public class TagsResource {
                         .setQuery(wildcardQuery("tags.name", original.getName().trim()))
                         .setSearchType(SearchType.QUERY_THEN_FETCH)
                         .setFetchSource(new String[]{"name"}, null) 
-                        .setSize(10000).execute().actionGet();
+                        .setSize(10000).get();
                 for (SearchHit hit : queryResponse.getHits()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", hit.getId())
                             .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
@@ -484,7 +493,7 @@ public class TagsResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -503,7 +512,6 @@ public class TagsResource {
         } catch (Exception e) {
             return handleException(um.getUserName() , Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -524,7 +532,7 @@ public class TagsResource {
                     .setQuery(wildcardQuery("tags.name", original.getName().trim()))
                     .setSearchType(SearchType.QUERY_THEN_FETCH)
                     .setFetchSource(new String[]{"name"}, null) 
-                    .setSize(10000).execute().actionGet();
+                    .setSize(10000).get();
             List<String> channelNames = new ArrayList<String>();
             for (SearchHit hit : queryResponse.getHits()) {
                 channelNames.add(hit.getId());
@@ -557,7 +565,7 @@ public class TagsResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -590,7 +598,7 @@ public class TagsResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateTags(List<XmlTag> data) throws IOException {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -617,7 +625,7 @@ public class TagsResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -636,7 +644,6 @@ public class TagsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR , e);
         } finally {
-            client.close();
         }
     }
 
@@ -650,7 +657,7 @@ public class TagsResource {
     @DELETE
     @Path("{tagName: "+tagNameRegex+"}")
     public Response remove(@PathParam("tagName") String tag) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -660,7 +667,7 @@ public class TagsResource {
                     .setQuery(QueryBuilders.matchQuery("tags.name", tag))
                     .setSearchType(SearchType.QUERY_THEN_FETCH)
                     .setFetchSource(new String[]{"name"}, null) 
-                    .setSize(10000).execute().actionGet();
+                    .setSize(10000).get();
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.getId();
@@ -671,7 +678,7 @@ public class TagsResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR,
@@ -690,7 +697,6 @@ public class TagsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -714,12 +720,12 @@ public class TagsResource {
     @Path("{tagName}/{chName}")
     @Consumes({"application/xml", "application/json"})
     public Response addSingle(@PathParam("tagName") String tag, @PathParam("chName") String chan, XmlTag data) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlTag result = null;
         try {
-            GetResponse response = client.prepareGet("tags", "tag", tag).execute().actionGet();
+            GetResponse response = client.prepareGet("tags", "tag", tag).get();
             ObjectMapper mapper = new ObjectMapper();
             mapper.addMixIn(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlTag.class);
@@ -757,7 +763,6 @@ public class TagsResource {
         }  catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -783,7 +788,7 @@ public class TagsResource {
     @DELETE
     @Path("{tagName}/{chName}")
     public Response removeSingle(@PathParam("tagName") final String tag, @PathParam("chName") String chan) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -803,7 +808,6 @@ public class TagsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 

@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.elasticsearch.ElasticsearchException;
@@ -39,31 +41,9 @@ public class ElasticSearchClient implements ServletContextListener {
     private static Settings settings;
     
     private static TransportClient searchClient;
-    private static TransportClient indexClient;
 
     public static TransportClient  getSearchClient() {
         return searchClient;
-    }
-    
-    public static TransportClient getIndexClient() {
-        return indexClient;
-    }
-
-    /**
-     * Returns a new {@link TransportClient} using the default settings
-     * **IMPORTANT** it is the responsibility of the caller to close this client
-     * @return es transport client
-     */
-    @SuppressWarnings("resource")
-    public static TransportClient getNewClient() {
-        String host = settings.get("network.host");
-        int port = Integer.valueOf(settings.get("transport.tcp.port"));
-        try {
-            return new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
-        } catch (ElasticsearchException e) {
-            log.severe(e.getDetailedMessage());
-            return null;
-        }
     }
     
     public static Settings getSettings(){
@@ -80,9 +60,7 @@ public class ElasticSearchClient implements ServletContextListener {
             int port = Integer.valueOf(settings.get("transport.tcp.port"));
             
             searchClient = new PreBuiltTransportClient(settings);
-            indexClient = new PreBuiltTransportClient(settings);
-            searchClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
-            indexClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host,port)));
+            searchClient.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host),port));
         } catch (IOException e) {
             log.severe(e.getMessage());
         }
@@ -92,7 +70,6 @@ public class ElasticSearchClient implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         log.info("Closeing the default Transport clients.");
         searchClient.close();
-        indexClient.close();
     }
 
 }

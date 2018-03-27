@@ -7,6 +7,7 @@ from copy import copy
 import sys, os
 import json
 from _testConf import _testConf
+import time
 
 base_url = os.getenv("BASEURL")
 if base_url is None:
@@ -213,6 +214,7 @@ def ordered(obj):
         return obj
 
 def doGetJSON(self, conn, g_url, g_result, g_resp):
+    time.sleep(1)
     response = conn_none.request_get(g_url, headers=copy(jsonheader))
     self.assertEqual(`g_resp`, response[u'headers']['status'],
     'unexpected return code for get operation - expected ' + `g_resp` + ', received ' + response[u'headers']['status'] + ', message body:\n' + response[u'body'])

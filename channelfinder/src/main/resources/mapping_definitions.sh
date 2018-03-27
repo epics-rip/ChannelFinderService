@@ -15,6 +15,7 @@
 
 
 #Create the Index
+
 curl -XPUT 'http://localhost:9200/tags'
 #Set the mapping
 curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
@@ -36,6 +37,7 @@ curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
   }
 }'
 
+
 curl -XPUT 'http://localhost:9200/properties'
 curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
 {
@@ -55,6 +57,7 @@ curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
     }
   }
 }'
+
 
 curl -XPUT 'http://localhost:9200/channelfinder'
 curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
@@ -95,6 +98,12 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
           },
           "value" : {
             "type" : "text",
+            "fields": {
+                "keyword": { 
+                  "type": "keyword",
+                  "null_value": "null"
+                }
+            },
             "analyzer" : "whitespace"
           }
         }

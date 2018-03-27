@@ -10,7 +10,6 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.disMaxQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -158,6 +157,11 @@ public class ChannelsResource {
                                             .must(matchQuery("properties.name", parameter.getKey().trim()))
                                             .must(wildcardQuery("properties.value", pattern.trim())),
                                     ScoreMode.Avg));
+                            propertyQuery.add(nestedQuery("properties",
+                                    boolQuery()
+                                            .must(matchQuery("properties.name", parameter.getKey().trim()))
+                                            .must(wildcardQuery("properties.value.keyword", pattern.trim())),
+                                    ScoreMode.Avg));
                         }
                     }
                     qb.must(propertyQuery);
@@ -172,7 +176,7 @@ public class ChannelsResource {
             	builder.addSort(SortBuilders.fieldSort("name.keyword"));
             	builder.setFrom(from);
             }
-            final SearchResponse qbResult = builder.execute().actionGet();
+            final SearchResponse qbResult = builder.get();
             performance.append("|query:("+qbResult.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             final ObjectMapper mapper = new ObjectMapper();
@@ -220,7 +224,7 @@ public class ChannelsResource {
     @PUT
     @Consumes({"application/json"})
     public Response create(List<XmlChannel> data) throws IOException {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -237,7 +241,7 @@ public class ChannelsResource {
             String prepare = "|Prepare: " + (System.currentTimeMillis()-start) + "|";
             start = System.currentTimeMillis();
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             String execute = "|Execute: " + (System.currentTimeMillis()-start)+"|";
             start = System.currentTimeMillis();
             if (bulkResponse.hasFailures()) {
@@ -253,7 +257,6 @@ public class ChannelsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -271,7 +274,7 @@ public class ChannelsResource {
         Client client = ElasticSearchClient.getSearchClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         try {
-            final GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+            final GetResponse response = client.prepareGet("channelfinder", "channel", chan).get();
             Response r;
             if (response.isExists()) {
                 final ObjectMapper mapper = new ObjectMapper();
@@ -325,7 +328,7 @@ public class ChannelsResource {
                     + chan + "' and payload channel name '" + data.getName() + "' do not match");
         }
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         ObjectMapper mapper = new ObjectMapper();
         try {
             start = System.currentTimeMillis();
@@ -344,7 +347,6 @@ public class ChannelsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -363,7 +365,7 @@ public class ChannelsResource {
         long start = System.currentTimeMillis();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         if(data.getName()==null || data.getName().isEmpty()){
             return handleException(um.getUserName(), "PUT", Response.Status.BAD_REQUEST, "Specified channel name '"
                     + chan + "' and payload channel name '" + data.getName() + "' do not match");
@@ -377,7 +379,7 @@ public class ChannelsResource {
             data = validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|validation : "+ (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
-            GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+            GetResponse response = client.prepareGet("channelfinder", "channel", chan).get();
             if(response.isExists()){
                 XmlChannel channel= mapper.readValue(response.getSourceAsBytes(), XmlChannel.class);
                 channel.setName(data.getName());
@@ -409,13 +411,12 @@ public class ChannelsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
     
     private Response renameChannel(UserManager um, Client client, String chan, XmlChannel data) {
-        GetResponse response = client.prepareGet("channelfinder", "channel", chan).execute().actionGet();
+        GetResponse response = client.prepareGet("channelfinder", "channel", chan).get();
         if(!response.isExists()){
             handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "Specified channel '"+chan+"' does not exist");
         }
@@ -439,7 +440,7 @@ public class ChannelsResource {
                     .source(mapper.writeValueAsBytes(originalChannel));
             bulkRequest.add(indexRequest);
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -474,7 +475,7 @@ public class ChannelsResource {
     @Path("{chName: "+chNameRegex+"}")
     public Response remove(@PathParam("chName") String chan) {
         audit.info("deleting ch:" + chan);
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -489,7 +490,6 @@ public class ChannelsResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "DELETE", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -522,13 +522,12 @@ public class ChannelsResource {
         mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
         
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
-                .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
+                .setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
             XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
             properties.put(prop.getName(), prop);
         }
-        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
-                .actionGet();
+        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
             XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
             tags.put(tag.getName(), tag);
@@ -592,13 +591,12 @@ public class ChannelsResource {
         mapper.addMixIn(XmlTag.class, OnlyXmlTag.class);
         
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
-                .setQuery(new MatchAllQueryBuilder()).setSize(1000).execute().actionGet();
+                .setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
             XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
             properties.put(prop.getName(), prop);
         }
-        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).execute()
-                .actionGet();
+        response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
             XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
             tags.put(tag.getName(), tag);
