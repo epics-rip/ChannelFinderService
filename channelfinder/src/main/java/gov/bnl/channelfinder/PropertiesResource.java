@@ -10,7 +10,6 @@ package gov.bnl.channelfinder;
  * #L%
  */
 
-import static gov.bnl.channelfinder.ElasticSearchClient.getNewClient;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
@@ -47,13 +46,14 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.engine.DocumentMissingException;
-import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -98,7 +98,10 @@ public class PropertiesResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response list() {
-        Client client = getNewClient();
+    	StringBuffer performance = new StringBuffer();
+        long start = System.currentTimeMillis();
+        long totalStart = System.currentTimeMillis();
+        Client client = ElasticSearchClient.getSearchClient();
         final String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         final ObjectMapper mapper = new ObjectMapper();
         mapper.addMixIn(XmlProperty.class, OnlyXmlProperty.class);
@@ -114,10 +117,16 @@ public class PropertiesResource {
                 }
 
             }
-            final SearchResponse response = client.prepareSearch("properties")
+            performance.append("|prepare:" + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
+            SearchRequestBuilder builder = client.prepareSearch("properties")
                                             .setTypes("property")
-                                            .setQuery(new MatchAllQueryBuilder())
-                                            .setSize(size).execute().actionGet();
+                                            .setQuery(QueryBuilders.matchAllQuery())
+                                            .setSize(size);
+            builder.addSort(SortBuilders.fieldSort("name.keyword"));
+            final SearchResponse response = builder.get();
+            performance.append("|query:("+response.getHits().getTotalHits()+")" + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
             StreamingOutput stream = new StreamingOutput() {
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
@@ -133,13 +142,15 @@ public class PropertiesResource {
                     jg.close();
                 }
             };
+            performance.append("|parse:" + (System.currentTimeMillis() - start));
             Response r = Response.ok(stream).build();
-            audit.info(user + "|" + uriInfo.getPath() + "|GET|OK|" + r.getStatus() + "|returns " + response.getHits().getTotalHits()+ " properties");
+            audit.fine(user + "|" + uriInfo.getPath() + "|GET|OK|" + performance.toString() + "|total:"
+                    + (System.currentTimeMillis() - totalStart) + "|" + r.getStatus()
+                    + "|returns " + response.getHits().getTotalHits()+ " properties");
             return r;
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -154,7 +165,7 @@ public class PropertiesResource {
     @PUT
     @Consumes("application/json")
     public Response create(List<XmlProperty> data) throws IOException {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -169,7 +180,7 @@ public class PropertiesResource {
                                 );
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR,
                         bulkResponse.buildFailureMessage());
@@ -181,7 +192,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -198,7 +208,7 @@ public class PropertiesResource {
     @POST
     @Consumes("application/json")
     public Response update(List<XmlProperty> data) throws IOException {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         ObjectMapper mapper = new ObjectMapper();
@@ -228,7 +238,7 @@ public class PropertiesResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -246,7 +256,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
     /**
@@ -264,11 +273,11 @@ public class PropertiesResource {
     @Produces("application/json")
     public Response read(@PathParam("propName") String prop) {
         MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         String user = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName() : "";
         XmlProperty result = null;
         try {
-            GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+            GetResponse response = client.prepareGet("properties", "property", prop).get();
             if (response.isExists()) {
                 ObjectMapper mapper = new ObjectMapper();
                 result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
@@ -280,7 +289,7 @@ public class PropertiesResource {
                     if (parameters.containsKey("withChannels")) {
                         final SearchResponse channelResult = client.prepareSearch("channelfinder")
                                 .setQuery(matchQuery("properties.name", prop.trim()))
-                                .setSize(10000).execute().actionGet();
+                                .setSize(10000).get();
                         List<XmlChannel> channels = new ArrayList<>();
                         if (channelResult != null) {
                             for (SearchHit hit : channelResult.getHits()) {
@@ -299,7 +308,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(user, "GET", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -325,7 +333,7 @@ public class PropertiesResource {
                     .entity("Specified property name '"+prop+"' and payload property name '"+data.getName()+"' do not match").build();
         }
         long start = System.currentTimeMillis();
-        Client client = getNewClient();
+        Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -341,7 +349,7 @@ public class PropertiesResource {
                     .setQuery(QueryBuilders.matchQuery("properties.name", prop))
                     .setSearchType(SearchType.QUERY_THEN_FETCH)
                     .setFetchSource(new String[]{"name"}, null) 
-                    .setSize(10000).execute().actionGet();
+                    .setSize(10000).get();
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.getId();
@@ -372,7 +380,7 @@ public class PropertiesResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -383,7 +391,7 @@ public class PropertiesResource {
                             bulkResponse.buildFailureMessage());
                 }
             } else {
-                GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+                GetResponse response = client.prepareGet("properties", "property", prop).get();
                 ObjectMapper mapper = new ObjectMapper();
                 XmlProperty result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
                 Response r;
@@ -398,7 +406,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -417,14 +424,14 @@ public class PropertiesResource {
     @Path("{propName : " + propertyNameRegex + "}")
     @Consumes("application/json")
     public Response update(@PathParam("propName") String prop, XmlProperty data) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         if(data.getName() == null || data.getName().isEmpty()){
             handleException(um.getUserName(), "POST", Status.BAD_REQUEST, "payload data has invalid/incorrect property name " + data.getName());
         }
         try {
-            GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+            GetResponse response = client.prepareGet("properties", "property", prop).get();
             if(!response.isExists()){
                 return handleException(um.getUserName(), "POST", Response.Status.NOT_FOUND, "A property named '"+prop+"' does not exist");
             }
@@ -455,7 +462,7 @@ public class PropertiesResource {
                         .setQuery(wildcardQuery("properties.name", original.getName().trim()))
                         .setSearchType(SearchType.QUERY_THEN_FETCH)
                         .setFetchSource(new String[]{"name"}, null) 
-                        .setSize(10000).execute().actionGet();
+                        .setSize(10000).get();
                 for (SearchHit hit : queryResponse.getHits()) {
                     bulkRequest.add(new UpdateRequest("channelfinder", "channel", hit.getId())
                             .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
@@ -486,7 +493,7 @@ public class PropertiesResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -504,7 +511,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "POST", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -514,7 +520,7 @@ public class PropertiesResource {
                     .setQuery(wildcardQuery("properties.name", original.getName().trim()))
                     .setSearchType(SearchType.QUERY_THEN_FETCH)
                     .setFetchSource(new String[]{"name"}, null) 
-                    .setSize(10000).execute().actionGet();
+                    .setSize(10000).get();
             List<String> channelNames = new ArrayList<String>();
             for (SearchHit hit : queryResponse.getHits()) {
                 channelNames.add(hit.getId());
@@ -544,7 +550,7 @@ public class PropertiesResource {
                 }
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 if (bulkResponse.buildFailureMessage().contains("DocumentMissingException")) {
@@ -576,7 +582,7 @@ public class PropertiesResource {
     @DELETE
     @Path("{propName : " + propertyNameRegex + "}")
     public Response remove(@PathParam("propName") String prop) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -586,7 +592,7 @@ public class PropertiesResource {
                     .setQuery(QueryBuilders.matchQuery("properties.name", prop))
                     .setSearchType(SearchType.QUERY_THEN_FETCH)
                     .setFetchSource(new String[]{"name"}, null) 
-                    .setSize(10000).execute().actionGet();
+                    .setSize(10000).get();
             if (qbResult != null) {
                 for (SearchHit hit : qbResult.getHits()) {
                     String channelName = hit.getId();
@@ -598,7 +604,7 @@ public class PropertiesResource {
             }
             
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-            BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            BulkResponse bulkResponse = bulkRequest.get();
             if (bulkResponse.hasFailures()) {
                 audit.severe(bulkResponse.buildFailureMessage());
                 throw new Exception();
@@ -616,7 +622,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -633,7 +638,7 @@ public class PropertiesResource {
     @Path("{propName}/{chName}")
     @Consumes({ "application/xml", "application/json" })
     public Response addSingle(@PathParam("propName") String prop, @PathParam("chName") String chan, XmlProperty data) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         if (data.getValue() == null || data.getValue().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -646,7 +651,7 @@ public class PropertiesResource {
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         XmlProperty result = null;
         try {
-            GetResponse response = client.prepareGet("properties", "property", prop).execute().actionGet();
+            GetResponse response = client.prepareGet("properties", "property", prop).get();
             ObjectMapper mapper = new ObjectMapper();
             mapper.addMixIn(XmlChannel.class, MyMixInForXmlChannels.class);
             result = mapper.readValue(response.getSourceAsBytes(), XmlProperty.class);
@@ -676,7 +681,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "PUT", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
@@ -691,7 +695,7 @@ public class PropertiesResource {
     @DELETE
     @Path("{propName}/{chName}")
     public Response removeSingle(@PathParam("propName") String prop, @PathParam("chName") String chan) {
-        Client client = getNewClient();
+    	Client client = ElasticSearchClient.getSearchClient();
         UserManager um = UserManager.getInstance();
         um.setUser(securityContext.getUserPrincipal(), securityContext.isUserInRole("Administrator"));
         try {
@@ -711,7 +715,6 @@ public class PropertiesResource {
         } catch (Exception e) {
             return handleException(um.getUserName(), "DELETE", Response.Status.INTERNAL_SERVER_ERROR, e);
         } finally {
-            client.close();
         }
     }
 
