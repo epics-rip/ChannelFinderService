@@ -1,3 +1,9 @@
+channelfinder (1.0.5) unstable; urgency=medium
+
+  *  release
+
+ -- Eric Berryman <jenkins-slave@jenkins5.nscl.msu.edu>  Mon, 23 Apr 2018 14:27:33 -0400
+
 channelfinder (1.0.4) unstable; urgency=medium
 
   *  release
