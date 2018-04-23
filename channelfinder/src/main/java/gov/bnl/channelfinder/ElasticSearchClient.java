@@ -22,13 +22,11 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 
-import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 
 /**
  * @author Kunal Shroff {@literal <shroffk@bnl.gov>}
@@ -55,12 +53,12 @@ public class ElasticSearchClient implements ServletContextListener {
         try {
             log.info("Initializing a new Transport clients.");
             String yaml  = "elasticsearch.yml";
-            settings = Settings.builder().loadFromStream(yaml,getClass().getClassLoader().getResourceAsStream(yaml)).build();
+            settings = Settings.builder().loadFromStream(yaml,getClass().getClassLoader().getResourceAsStream(yaml), true).build();
             String host = settings.get("network.host");
             int port = Integer.valueOf(settings.get("transport.tcp.port"));
             
             searchClient = new PreBuiltTransportClient(settings);
-            searchClient.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host),port));
+            searchClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host),port));
         } catch (IOException e) {
             log.severe(e.getMessage());
         }

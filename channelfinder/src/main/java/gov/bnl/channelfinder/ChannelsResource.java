@@ -55,6 +55,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.DisMaxQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
@@ -93,7 +95,7 @@ public class ChannelsResource {
 
     /**
      * GET method for retrieving a collection of Channel instances,
-     * based on a multi-parameter query specifiying patterns for tags, property values,
+     * based on a multi-parameter query specifying patterns for tags, property values,
      * and channel names to match against.
      *
      * @return HTTP Response
@@ -192,7 +194,7 @@ public class ChannelsResource {
                     jg.writeStartArray();
                     if(qbResult != null){
                         for (SearchHit hit : qbResult.getHits()) {
-                            jg.writeObject(mapper.readValue(hit.source(), XmlChannel.class));
+                            jg.writeObject(mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlChannel.class));
                         }
                     }
                     jg.writeEndArray();
@@ -235,8 +237,8 @@ public class ChannelsResource {
             start = System.currentTimeMillis();
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (XmlChannel channel : data) {
-                bulkRequest.add(client.prepareUpdate("channelfinder", "channel", channel.getName()).setDoc(mapper.writeValueAsBytes(channel))
-                        .setUpsert(new IndexRequest("channelfinder", "channel", channel.getName()).source(mapper.writeValueAsBytes(channel))));
+                bulkRequest.add(client.prepareUpdate("channelfinder", "channel", channel.getName()).setDoc(mapper.writeValueAsBytes(channel),XContentType.JSON)
+                        .setUpsert(new IndexRequest("channelfinder", "channel", channel.getName()).source(mapper.writeValueAsBytes(channel),XContentType.JSON)));
             }
             String prepare = "|Prepare: " + (System.currentTimeMillis()-start) + "|";
             start = System.currentTimeMillis();
@@ -335,9 +337,9 @@ public class ChannelsResource {
             data = validateChannel(data, client);
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|validation : "+ (System.currentTimeMillis() - start));
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", chan)
-                    .source(mapper.writeValueAsBytes(data));
+                    .source(mapper.writeValueAsBytes(data),XContentType.JSON);
             UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                    .doc(mapper.writeValueAsBytes(data)).upsert(indexRequest);
+                    .doc(mapper.writeValueAsBytes(data),XContentType.JSON).upsert(indexRequest);
             UpdateResponse result = client.update(updateRequest).actionGet();
             Response r = Response.noContent().build();
             audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|PUT|OK|" + r.getStatus() + "|data=" + XmlChannel.toLog(data));
@@ -395,7 +397,7 @@ public class ChannelsResource {
                 }).collect(Collectors.toList()));
                 channel.setTags(data.getTags());
                 UpdateRequest updateRequest = new UpdateRequest("channelfinder", "channel", chan)
-                        .doc(mapper.writeValueAsBytes(channel));
+                        .doc(mapper.writeValueAsBytes(channel),XContentType.JSON);
                 audit.info(um.getUserName() + "|" + uriInfo.getPath() + "|POST|prepare : "+ (System.currentTimeMillis() - start));
                 start = System.currentTimeMillis();
                 UpdateResponse result = client.update(updateRequest).actionGet();
@@ -437,7 +439,7 @@ public class ChannelsResource {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             bulkRequest.add(new DeleteRequest("channelfinder", "channel", chan));
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", originalChannel.getName())
-                    .source(mapper.writeValueAsBytes(originalChannel));
+                    .source(mapper.writeValueAsString(originalChannel),XContentType.JSON);
             bulkRequest.add(indexRequest);
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
             BulkResponse bulkResponse = bulkRequest.get();

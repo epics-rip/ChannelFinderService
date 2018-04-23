@@ -10,7 +10,7 @@ addons:
       - python-nose
 
 before_install:
-  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-5.4.0.deb
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.deb && sudo dpkg -i --force-confnew elasticsearch-6.2.4.deb
 
 before_script:
   - sleep 10

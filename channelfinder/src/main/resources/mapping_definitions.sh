@@ -18,7 +18,7 @@
 
 curl -XPUT 'http://localhost:9200/tags'
 #Set the mapping
-curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
 {
   "tag" : {
     "properties" : {
@@ -37,9 +37,8 @@ curl -XPUT 'http://localhost:9200/tags/_mapping/tag' -d'
   }
 }'
 
-
 curl -XPUT 'http://localhost:9200/properties'
-curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
 {
   "property" : {
     "properties" : {
@@ -58,9 +57,8 @@ curl -XPUT 'http://localhost:9200/properties/_mapping/property' -d'
   }
 }'
 
-
 curl -XPUT 'http://localhost:9200/channelfinder'
-curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
 {
   "channel" : {
     "properties" : {
@@ -129,4 +127,9 @@ curl -XPUT 'http://localhost:9200/channelfinder/_mapping/channel' -d'
       }
     }
   }
+}'
+# increase max window for pagination
+curl -H "Content-Type: application/json" -XPUT "http://localhost:9200/channelfinder/_settings" -d '
+{ "index" :
+    { "max_result_window" : 10000000 }
 }'

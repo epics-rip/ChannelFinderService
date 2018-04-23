@@ -43,7 +43,7 @@ public class JACCUserManager extends UserManager {
             Subject s = (Subject) PolicyContext.getContext(SUBJECT_HANDLER_KEY);
             Principal principals[] = (s == null ? new Principal[0] : s.getPrincipals().toArray(new Principal[0]));
 
-            HashSet<String> roleSet = new HashSet();
+            HashSet<String> roleSet = new HashSet<String>();
             for(Principal principal :principals){
                 roleSet.add(principal.getName());
             }

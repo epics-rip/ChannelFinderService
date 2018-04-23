@@ -53,8 +53,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.index.engine.DocumentMissingException;
-import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -142,7 +142,7 @@ public class TagsResource {
                     jg.writeStartArray();
                     if(response != null){
                         for (SearchHit hit : response.getHits()) {
-                            jg.writeObject(mapper.readValue(hit.source(), XmlTag.class));
+                            jg.writeObject(mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlTag.class));
                         }
                     }
                     jg.writeEndArray();
@@ -197,7 +197,7 @@ public class TagsResource {
                         List<XmlChannel> channels = new ArrayList<XmlChannel>();
                         if (channelResult != null) {
                             for (SearchHit hit : channelResult.getHits()) {
-                                channels.add(mapper.readValue(hit.source(), XmlChannel.class));
+                                channels.add(mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlChannel.class));
                             }
                         }
                         result.setChannels(channels);

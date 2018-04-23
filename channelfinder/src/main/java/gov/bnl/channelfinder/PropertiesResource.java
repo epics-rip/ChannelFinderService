@@ -50,6 +50,8 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -134,7 +136,7 @@ public class PropertiesResource {
                     jg.writeStartArray();
                     if(response != null){
                         for (SearchHit hit : response.getHits()) {
-                            jg.writeObject(mapper.readValue(hit.source(), XmlProperty.class));
+                            jg.writeObject(mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlProperty.class));
                         }
                     }
                     jg.writeEndArray();
@@ -173,10 +175,10 @@ public class PropertiesResource {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (XmlProperty property : data) {
                 bulkRequest.add(client.prepareUpdate("properties", "property", property.getName())
-                                      .setDoc(mapper.writeValueAsBytes(property))
+                                      .setDoc(mapper.writeValueAsBytes(property),XContentType.JSON)
                                       .setUpsert(
                                               new IndexRequest("properties", "property", property.getName())
-                                              .source(mapper.writeValueAsBytes(property)))
+                                              .source(mapper.writeValueAsBytes(property),XContentType.JSON))
                                 );
             }
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
@@ -216,10 +218,10 @@ public class PropertiesResource {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (XmlProperty property : data) {
                 bulkRequest.add(client.prepareUpdate("properties", "property", property.getName())
-                                      .setDoc(mapper.writeValueAsBytes(property))
+                                      .setDoc(mapper.writeValueAsBytes(property),XContentType.JSON)
                                       .setUpsert(
                                               new IndexRequest("properties", "property", property.getName())
-                                              .source(mapper.writeValueAsBytes(property)))
+                                              .source(mapper.writeValueAsBytes(property),XContentType.JSON))
                                 );
                 if (property.getChannels() != null) {
                     HashMap<String, String> param = new HashMap<>(); 
@@ -293,7 +295,7 @@ public class PropertiesResource {
                         List<XmlChannel> channels = new ArrayList<>();
                         if (channelResult != null) {
                             for (SearchHit hit : channelResult.getHits()) {
-                                channels.add(mapper.readValue(hit.source(), XmlChannel.class));
+                                channels.add(mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlChannel.class));
                             }
                         }
                         result.setChannels(channels);
