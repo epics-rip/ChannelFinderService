@@ -439,7 +439,7 @@ public class ChannelsResource {
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             bulkRequest.add(new DeleteRequest("channelfinder", "channel", chan));
             IndexRequest indexRequest = new IndexRequest("channelfinder", "channel", originalChannel.getName())
-                    .source(mapper.writeValueAsString(originalChannel),XContentType.JSON);
+                    .source(mapper.writeValueAsBytes(originalChannel),XContentType.JSON);
             bulkRequest.add(indexRequest);
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
             BulkResponse bulkResponse = bulkRequest.get();
@@ -526,12 +526,12 @@ public class ChannelsResource {
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
                 .setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
-            XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
+            XmlProperty prop = mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlProperty.class);
             properties.put(prop.getName(), prop);
         }
         response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
-            XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
+            XmlTag tag = mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlTag.class);
             tags.put(tag.getName(), tag);
         }
         if (tags.keySet().containsAll(ChannelUtil.getTagNames(channels))
@@ -595,12 +595,12 @@ public class ChannelsResource {
         SearchResponse response = client.prepareSearch("properties").setTypes("property")
                 .setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
-            XmlProperty prop = mapper.readValue(hit.getSourceAsString(), XmlProperty.class);
+            XmlProperty prop = mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlProperty.class);
             properties.put(prop.getName(), prop);
         }
         response = client.prepareSearch("tags").setTypes("tag").setQuery(new MatchAllQueryBuilder()).setSize(1000).get();
         for (SearchHit hit : response.getHits()) {
-            XmlTag tag = mapper.readValue(hit.getSourceAsString(), XmlTag.class);
+            XmlTag tag = mapper.readValue(BytesReference.toBytes(hit.getSourceRef()), XmlTag.class);
             tags.put(tag.getName(), tag);
         }
         if (tags.keySet().containsAll(ChannelUtil.getTagNames(channel))
