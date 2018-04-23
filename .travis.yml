@@ -17,7 +17,7 @@ before_script:
   - 'echo "script.inline: true" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
   - 'echo "script.inline: true" | sudo tee -a /etc/elasticsearch/indexed.yml'
   - sudo /etc/init.d/elasticsearch start
-  - sleep 25
+  - sleep 45
   - curl -XGET 'http://localhost:9200/_cluster/health?pretty'
   - chmod a+x channelfinder/src/main/resources/mapping_definitions.sh
   
