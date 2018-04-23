@@ -14,8 +14,6 @@ before_install:
 
 before_script:
   - sleep 10
-  - 'echo "script.inline: true" | sudo tee -a /etc/elasticsearch/elasticsearch.yml'
-  - 'echo "script.inline: true" | sudo tee -a /etc/elasticsearch/indexed.yml'
   - sudo /etc/init.d/elasticsearch start
   - sleep 45
   - curl -XGET 'http://localhost:9200/_cluster/health?pretty'
